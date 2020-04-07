@@ -59,6 +59,21 @@ in {
         '';
       };
 
+      options.confinement.usrbinenv = lib.mkOption {
+        type = types.nullOr types.path;
+        default = toplevelConfig.environment.usrbinenv;
+        defaultText = "config.environment.usrbinenv";
+        example = lib.literalExample "\${pkgs.busybox}/bin/env";
+        description = ''
+          The program to make available as <filename>/usr/bin/env</filename> inside
+          the chroot. If this is set to <literal>null</literal>, no
+          <filename>/usr/bin/env</filename> is provided at all.
+
+          This is useful for some scripts in NixOS, which often find an executable
+          in PATH by calling <filename>/usr/bin/env</filename>.
+        '';
+      };
+
       options.confinement.binSh = lib.mkOption {
         type = types.nullOr types.path;
         default = toplevelConfig.environment.binsh;
@@ -105,8 +120,18 @@ in {
         wantsAPIVFS = lib.mkDefault (config.confinement.mode == "full-apivfs");
       in lib.mkIf config.confinement.enable {
         serviceConfig = {
-          RootDirectory = pkgs.runCommand rootName {} "mkdir \"$out\"";
-          TemporaryFileSystem = "/";
+          RootDirectory = pkgs.runCommand rootName {} ''
+            mkdir -p $out/{proc,usr/bin,etc,sys,var/lib,var/cache,var/log,/var/tmp,dev,home,run/user,nix/store,root,tmp,bin}
+          '';
+          TemporaryFileSystem = [
+            "/nix/store:ro"   
+            "/run"            # RuntimeDirectory is transient state
+            "/bin:ro"         # for /bin/sh
+            "/usr/bin:ro"     # for /usr/bin/env
+            "/var/lib:ro"     # StateDirectory mounts go here
+            "/var/cache:ro"   # CacheDirectory mounts go here
+            "/var/log:ro"     # LogDirectory mounts go here
+          ];
           PrivateMounts = lib.mkDefault true;
 
           # https://github.com/NixOS/nixpkgs/issues/14645 is a future attempt
@@ -155,11 +180,6 @@ in {
               + " Please either define a separate service or find a way to run"
               + " commands other than ExecStart within the chroot.";
     }
-    { assertion = !cfg.serviceConfig.DynamicUser or false;
-      message = "${whatOpt "DynamicUser"}. Please create a dedicated user via"
-              + " the 'users.users' option instead as this combination is"
-              + " currently not supported.";
-    }
   ]) config.systemd.services);
 
   config.systemd.packages = lib.concatLists (lib.mapAttrsToList (name: cfg: let
@@ -177,12 +197,17 @@ in {
 
       echo '[Service]' > "$serviceFile"
 
-      # /bin/sh is special here, because the option value could contain a
-      # symlink and we need to properly resolve it.
+      # /bin/sh and /usr/bin/env are special here, because the option value
+      # could contain a symlink and we need to properly resolve it.
       ${lib.optionalString (cfg.confinement.binSh != null) ''
         binsh=${lib.escapeShellArg cfg.confinement.binSh}
         realprog="$(readlink -e "$binsh")"
         echo "BindReadOnlyPaths=$realprog:/bin/sh" >> "$serviceFile"
+      ''}
+      ${lib.optionalString (cfg.confinement.usrbinenv != null) ''
+        usrbinenv=${lib.escapeShellArg cfg.confinement.usrbinenv}
+        realprog="$(readlink -e "$usrbinenv")"
+        echo "BindReadOnlyPaths=$realprog:/usr/bin/env" >> "$serviceFile"
       ''}
 
       while read storePath; do
