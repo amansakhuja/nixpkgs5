@@ -231,11 +231,15 @@ let
 
     # Fully static packages.
     # Currently uses Musl on Linux (couldn’t get static glibc to work).
-    pkgsStatic = nixpkgsFun ({
+    pkgsStatic = let
+      useMusl = stdenv.hostPlatform.isLinux;
+    in nixpkgsFun ({
       overlays = [ (self': super': {
         pkgsStatic = super';
+      } // lib.optionalAttrs useMusl {
+        pkgsMusl = super';
       })] ++ overlays;
-    } // lib.optionalAttrs stdenv.hostPlatform.isLinux {
+    } // lib.optionalAttrs useMusl {
       crossSystem = {
         isStatic = true;
         parsed = stdenv.hostPlatform.parsed // {
