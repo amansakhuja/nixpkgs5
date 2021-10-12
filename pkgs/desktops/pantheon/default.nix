@@ -10,6 +10,7 @@ lib.makeScope pkgs.newScope (self: with self; {
     switchboard-plug-keyboard switchboard-plug-mouse-touchpad
     switchboard-plug-network switchboard-plug-notifications
     switchboard-plug-onlineaccounts switchboard-plug-pantheon-shell
+    switchboard-plug-parental-controls
     switchboard-plug-power switchboard-plug-printers
     switchboard-plug-security-privacy switchboard-plug-sharing
     switchboard-plug-sound switchboard-plug-wacom
@@ -178,6 +179,8 @@ lib.makeScope pkgs.newScope (self: with self; {
   switchboard-plug-pantheon-shell = callPackage ./apps/switchboard-plugs/pantheon-shell {
     inherit (gnome) gnome-desktop;
   };
+
+  switchboard-plug-parental-controls = callPackage ./apps/switchboard-plugs/parental-controls { };
 
   switchboard-plug-power = callPackage ./apps/switchboard-plugs/power { };
 
