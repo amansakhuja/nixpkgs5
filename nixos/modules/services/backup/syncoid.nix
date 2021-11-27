@@ -93,6 +93,9 @@ in
       description = ''
         SSH private key file to use to login to the remote system. Can be
         overridden in individual commands.
+        For more SSH tuning, you may use syncoid's `--sshoption`
+        in {option}`services.syncoid.commonArgs`
+        and/or in the `extraArgs` of a specific command.
       '';
     };
 
@@ -101,9 +104,8 @@ in
       # Permissions snapshot and destroy are in case --no-sync-snap is not used
       default = [ "bookmark" "hold" "send" "snapshot" "destroy" "mount" ];
       description = ''
-        Permissions granted for the {option}`services.syncoid.user` user
-        for local source datasets. See
-        <https://openzfs.github.io/openzfs-docs/man/8/zfs-allow.8.html>
+        Permissions granted for the syncoid user for local source datasets.
+        See <https://openzfs.github.io/openzfs-docs/man/8/zfs-allow.8.html>
         for available permissions.
       '';
     };
@@ -113,9 +115,8 @@ in
       default = [ "change-key" "compression" "create" "mount" "mountpoint" "receive" "rollback" ];
       example = [ "create" "mount" "receive" "rollback" ];
       description = ''
-        Permissions granted for the {option}`services.syncoid.user` user
-        for local target datasets. See
-        <https://openzfs.github.io/openzfs-docs/man/8/zfs-allow.8.html>
+        Permissions granted for the syncoid user for local target datasets.
+        See <https://openzfs.github.io/openzfs-docs/man/8/zfs-allow.8.html>
         for available permissions.
         Make sure to include the `change-key` permission if you send raw encrypted datasets,
         the `compression` permission if you send raw compressed datasets, and so on.
@@ -219,13 +220,9 @@ in
             '';
           };
 
-          useCommonArgs = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-            description = ''
-              Whether to add the configured common arguments to this command.
-            '';
-          };
+          useCommonArgs = lib.mkEnableOption ''
+            configured common arguments to this command
+          '' // { default = true; };
 
           service = lib.mkOption {
             type = lib.types.attrs;
