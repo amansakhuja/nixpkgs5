@@ -100,7 +100,7 @@ in
     };
 
     localSourceAllow = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = with lib.types; listOf str;
       # Permissions snapshot and destroy are in case --no-sync-snap is not used
       default = [ "bookmark" "hold" "send" "snapshot" "destroy" "mount" ];
       description = ''
@@ -111,8 +111,11 @@ in
     };
 
     localTargetAllow = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ "change-key" "compression" "create" "mount" "mountpoint" "receive" "rollback" ];
+      type = with lib.types; listOf str;
+      # Permission destroy is required to reset broken receive states (zfs receive -A),
+      # which syncoid does when it fails to resume a receive state,
+      # when the snapshot it refers to has been destroyed on the source.
+      default = [ "change-key" "compression" "create" "destroy" "mount" "mountpoint" "receive" "rollback" ];
       example = [ "create" "mount" "receive" "rollback" ];
       description = ''
         Permissions granted for the syncoid user for local target datasets.
@@ -125,7 +128,7 @@ in
     };
 
     commonArgs = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = with lib.types; listOf str;
       default = [ ];
       example = [ "--no-sync-snap" ];
       description = ''
