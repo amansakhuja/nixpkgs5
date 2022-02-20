@@ -110,9 +110,11 @@ import ./make-test-python.nix (
           "chown -R syncoid:syncoid /var/lib/syncoid/",
       )
 
-      assert len(source.succeed("zfs allow pool")) == 0, "Pool shouldn't have delegated permissions set before snapshotting"
-      assert len(source.succeed("zfs allow pool/sanoid")) == 0, "Sanoid dataset shouldn't have delegated permissions set before snapshotting"
-      assert len(source.succeed("zfs allow pool/syncoid")) == 0, "Syncoid dataset shouldn't have delegated permissions set before snapshotting"
+    source.succeed(
+        "mkdir -m 700 -p /var/lib/syncoid",
+        "cat '${snakeOilPrivateKey}' > /var/lib/syncoid/id_ecdsa",
+        "chmod 600 /var/lib/syncoid/id_ecdsa",
+    )
 
       # Take snapshot with sanoid
       source.succeed("touch /mnt/pool/sanoid/test.txt")
@@ -133,6 +135,17 @@ import ./make-test-python.nix (
       target.succeed("cat /mnt/pool/syncoid/test.txt")
 
       assert(len(source.succeed("zfs list -H -t snapshot pool/syncoid").splitlines()) == 1), "Syncoid should only retain one sync snapshot"
+
+      # Sync snapshots
+      target.wait_for_open_port(22)
+      source.succeed("touch /mnt/pool/syncoid/test.txt")
+      source.systemctl("start --wait syncoid-pool-sanoid.service")
+      target.succeed("cat /mnt/pool/sanoid/test.txt")
+      source.systemctl("start --wait syncoid-pool-syncoid.service")
+      target.succeed("cat /mnt/pool/syncoid/test.txt")
+      source.systemctl("start --wait syncoid-pool-sanoid{1,2}.service")
+      target.succeed("cat /mnt/pool/sanoid1/test.txt")
+      target.succeed("cat /mnt/pool/sanoid2/test.txt")
 
       source.systemctl("start --wait syncoid-pool.service")
       target.succeed("[[ -d /mnt/pool/full-pool/syncoid ]]")
