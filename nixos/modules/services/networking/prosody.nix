@@ -92,6 +92,15 @@ let
       description = lib.mdDoc "Push notifications to inform users of new messages or other pertinent information even when they have no XMPP clients online";
     };
 
+    cloud_notify_encrypted = mkOption {
+      type = types.bool;
+      default = false;
+      description = lib.mdDoc ''
+        Include encrypted text within cloud notifications for message preview with Siskin IM.
+        See <https://xeps.tigase.net/docs/push-notifications/encrypt/> for details.
+      '';
+    };
+
     pep = mkOption {
       type = types.bool;
       default = true;
