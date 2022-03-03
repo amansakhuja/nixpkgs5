@@ -101,6 +101,24 @@ let
       '';
     };
 
+    cloud_notify_priority_tag = mkOption {
+      type = types.bool;
+      default = false;
+      description = lib.mdDoc ''
+        Include a priority tag within cloud notifications for e.g. calls with Sisikin IM.
+        See <https://xeps.tigase.net/docs/push-notifications/priority/> for details.
+      '';
+    };
+
+    cloud_notify_filters = mkOption {
+      type = types.bool;
+      default = false;
+      description = lib.mdDoc ''
+        Allow filtering cloud notifications so e.g. unknown senders will not trigger a cloud message on Siskin IM.
+        See <https://xeps.tigase.net/docs/push-notifications/filters/unknown-senders/> for details.
+      '';
+    };
+
     pep = mkOption {
       type = types.bool;
       default = true;
