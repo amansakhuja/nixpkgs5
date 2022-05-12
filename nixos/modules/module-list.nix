@@ -936,6 +936,7 @@
   ./services/networking/unifi.nix
   ./services/video/unifi-video.nix
   ./services/video/rtsp-simple-server.nix
+  ./services/networking/url-bot-rs.nix
   ./services/networking/v2ray.nix
   ./services/networking/vsftpd.nix
   ./services/networking/wasabibackend.nix
