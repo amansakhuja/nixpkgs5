@@ -11,6 +11,13 @@ buildGoPackage rec {
     sha256 = "sha256-3gVUPfZs5GViEA3D7Zm5NdxhuEz9DhwPLoQqHFdGCrI=";
   };
 
+  patches = [
+    # patch git-lfs to install the git-lfs hook and configuration using the
+    # absolute path to the git-lfs command. Doing so makes the git-lfs
+    # installation pure as it won't depend on an impure PATH.
+    ./refer-to-nixhack.SelfPath-to-access-the-git-lfs-comm.patch
+  ];
+
   goPackagePath = "github.com/git-lfs/git-lfs";
 
   nativeBuildInputs = [ ronn installShellFiles ];
