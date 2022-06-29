@@ -5216,12 +5216,9 @@ with pkgs;
     pslSupport = true;
   };
 
-  curlHTTP3 = curl.override {
+  curl = curlMinimal.override ({
     openssl = quictls;
     http3Support = true;
-  };
-
-  curl = curlMinimal.override ({
     idnSupport = true;
     zstdSupport = true;
   } // lib.optionalAttrs (!stdenv.hostPlatform.isStatic) {
