@@ -49,8 +49,11 @@ in
       type = with lib.types; nullOr (coercedTo path toString str);
       default = null;
       description = ''
-        SSH private key file to use to login to the remote system. Can be
-        overridden in individual commands.
+        SSH private key file to use to login to the remote system.
+        It can be overridden in individual commands.
+        It is loaded using `LoadCredentialEncrypted=`
+        when its path is prefixed by a credential name and colon,
+        otherwise `LoadCredential=` is used.
         For more SSH tuning, you may use syncoid's `--sshoption`
         in {option}`services.syncoid.commonArgs`
         and/or in the `extraArgs` of a specific command.
@@ -227,7 +230,9 @@ in
     ];
 
     systemd.services = lib.mapAttrs'
-      (name: c:
+      (name: c: let
+          sshKeyCred = builtins.split ":" c.sshKey;
+        in
         lib.nameValuePair "syncoid-${escapeUnitName name}" (lib.mkMerge [
           {
             description = "Syncoid ZFS synchronization from ${c.source} to ${c.target}";
@@ -279,7 +284,7 @@ in
               ExecStart = lib.escapeShellArgs ([ "${cfg.package}/bin/syncoid" ]
                 ++ lib.optionals c.useCommonArgs cfg.commonArgs
                 ++ lib.optional c.recursive "--recursive"
-                ++ lib.optionals (c.sshKey != null) [ "--sshkey" "\${CREDENTIALS_DIRECTORY}/ssh-key" ]
+                ++ lib.optionals (c.sshKey != null) [ "--sshkey" "\${CREDENTIALS_DIRECTORY}/${if lib.length sshKeyCred > 1 then lib.head sshKeyCred else "sshKey"}" ]
                 ++ c.extraArgs
                 ++ [
                 "--sendoptions"
@@ -291,7 +296,6 @@ in
                 c.target
               ]);
               DynamicUser = true;
-              LoadCredential = [ "ssh-key:${c.sshKey}" ];
               # Prevent SSH control sockets of different syncoid services from interfering
               PrivateTmp = true;
               # Permissive access to /proc because syncoid
@@ -352,7 +356,11 @@ in
               # This is for BindPaths= and BindReadOnlyPaths=
               # to allow traversal of directories they create in RootDirectory=.
               UMask = "0066";
-            };
+            } //
+            (
+            if lib.length sshKeyCred > 1
+            then { LoadCredentialEncrypted = [ c.sshKey ]; }
+            else { LoadCredential = [ "sshKey:${c.sshKey}" ]; });
           }
           cfg.service
           c.service
