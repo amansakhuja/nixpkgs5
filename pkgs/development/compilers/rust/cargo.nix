@@ -23,8 +23,10 @@ rustPlatform.buildRustPackage {
   # changes hash of vendor directory otherwise
   dontUpdateAutotoolsGnuConfigScripts = true;
 
+  depsBuildBuild = [ pkg-config ];
+
   nativeBuildInputs = [
-    pkg-config cmake installShellFiles makeWrapper
+    pkg-config cmake installShellFiles makeWrapper zlib
     (lib.getDev pkgsHostHost.curl)
     zlib
   ];
