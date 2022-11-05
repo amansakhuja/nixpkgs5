@@ -3,7 +3,7 @@ import json
 import subprocess as sub
 import os
 import sys
-from typing import Iterator, Any, Literal, TypedDict
+from typing import Iterator, Any, Literal, NoReturn, TypedDict, cast
 from tempfile import NamedTemporaryFile
 
 debug: bool = True if os.environ.get("DEBUG", False) else False
@@ -19,6 +19,10 @@ Args = Iterator[str]
 
 def log(msg: str) -> None:
     print(msg, file=sys.stderr)
+
+
+def critical(msg: str) -> NoReturn:
+    sys.exit(f"ERROR: {msg}")
 
 
 def atomically_write(file_path: str, content: bytes) -> None:
@@ -51,17 +55,33 @@ def curl_github_args(token: str | None, url: str) -> Args:
     yield url
 
 
-def curl_result(output: bytes) -> Any | Literal["not found"]:
+def curl_gitlab_args(url: str) -> Args:
+    """Query the gitlab API via curl"""
+    yield bins["curl"]
+    if not debug:
+        yield "--silent"
+    # follow redirects
+    yield "--location"
+    yield url
+
+
+def github_curl_result(output: bytes) -> Any | Literal["not found"]:
     """Parse the curl result of the github API"""
     res: Any = json.loads(output)
     match res:
         case dict(res):
             message: str = res.get("message", "")
             if "rate limit" in message:
-                sys.exit("Rate limited by the Github API")
+                critical("Rate limited by the Github API")
             if "Not Found" in message:
                 return "not found"
     # if the result is another type, we can pass it on
+    return res
+
+
+def gitlab_curl_result(output: bytes) -> Any:
+    """Parse the curl result of the gitlab API"""
+    res: Any = json.loads(output)
     return res
 
 
@@ -86,50 +106,117 @@ def run_cmd(args: Args) -> bytes:
 
 Dir = str
 
+GithubRepo = TypedDict(
+    "GithubRepo", {
+        "orga": str,
+        "repo": str
+    }
+)
+
+GitlabRepo = TypedDict(
+    "GitlabRepo", {
+        "nixRepoAttrName": str,
+        "projectId": str
+    }
+)
+
+FetchRepoArg = TypedDict(
+    "FetchRepoArg", {
+        "type": str,
+        "outputDir": Dir,
+        "nixRepoAttrName": str
+    }
+)
+
 
 def fetchRepo() -> None:
     """fetch the given repo and write its nix-prefetch output to the corresponding grammar json file"""
-    match jsonArg:
-        case {
-            "orga": orga,
-            "repo": repo,
-            "outputDir": outputDir,
-            "nixRepoAttrName": nixRepoAttrName,
-        }:
-            token: str | None = os.environ.get("GITHUB_TOKEN", None)
-            out = run_cmd(
-                curl_github_args(
-                    token,
-                    url=f"https://api.github.com/repos/{quote(orga)}/{quote(repo)}/releases/latest"
-                )
-            )
-            release: str
-            match curl_result(out):
-                case "not found":
-                    # github sometimes returns an empty list even tough there are releases
-                    log(f"uh-oh, latest for {orga}/{repo} is not there, using HEAD")
-                    release = "HEAD"
-                case {"tag_name": tag_name}:
-                    release = tag_name
-                case _:
-                    sys.exit(f"git result for {orga}/{repo} did not have a `tag_name` field")
+    arg = cast(FetchRepoArg, jsonArg)
+    if debug:
+        log(f"Fetching repo {arg}")
+    match arg["type"]:
+        case "github":
+            res = fetchGithubRepo(cast(GithubRepo, jsonArg))
+        case "gitlab":
+            res = fetchGitlabRepo(cast(GitlabRepo, jsonArg))
+        case other:
+            critical(f'''Do not yet know how to handle the repo type "{other}"''')
+    attrName = jsonArg["nixRepoAttrName"]
+    atomically_write(
+        file_path=os.path.join(
+            arg["outputDir"],
+            f"{attrName}.json"
+        ),
+        content=res
+    )
 
-            log(f"Fetching latest release ({release}) of {orga}/{repo} …")
-            res = run_cmd(
-                nix_prefetch_git_args(
-                    url=f"https://github.com/{quote(orga)}/{quote(repo)}",
-                    version_rev=release
-                )
-            )
-            atomically_write(
-                file_path=os.path.join(
-                    outputDir,
-                    f"{nixRepoAttrName}.json"
-                ),
-                content=res
-            )
+
+def fetchGithubRepo(r: GithubRepo) -> bytes:
+    token: str | None = os.environ.get("GITHUB_TOKEN", None)
+    orga = r["orga"]
+    repo = r["repo"]
+    out = run_cmd(
+        curl_github_args(
+            token,
+            url=f"https://api.github.com/repos/{quote(orga)}/{quote(repo)}/releases/latest"
+        )
+    )
+    release: str
+    match github_curl_result(out):
+        case "not found":
+            # github sometimes returns an empty list even tough there are releases
+            log(f"uh-oh, latest for {orga}/{repo} is not there, using HEAD")
+            release = "HEAD"
+        case {"tag_name": tag_name}:
+            release = tag_name
         case _:
-            sys.exit("input json must have `orga` and `repo` keys")
+            critical(f"git result for {orga}/{repo} did not have a `tag_name` field")
+
+    log(f"Fetching latest release ({release}) of {orga}/{repo} …")
+    return run_cmd(
+        nix_prefetch_git_args(
+            url=f"https://github.com/{quote(orga)}/{quote(repo)}",
+            version_rev=release
+        )
+    )
+
+
+def fetchGitlabRepo(r: GitlabRepo) -> bytes:
+    projectId = r["projectId"]
+    nixRepoAttrName = r["nixRepoAttrName"]
+    out = run_cmd(
+        curl_gitlab_args(
+            url=f"https://gitlab.com/api/v4/projects/{quote(projectId)}/repository/tags?order_by=version&sort=desc"
+        )
+    )
+    release: str
+    projectName = f'''"{nixRepoAttrName}" (Gitlab projectId: {projectId})'''
+    match gitlab_curl_result(out):
+        case list([]):
+            log(f"uh-oh, no release find for for {projectName}, using HEAD")
+            release = "HEAD"
+        case list([{"name": tag_name}, *_]):
+            release = tag_name
+        case _:
+            critical(f"tag list for {projectName} did not have a `name` field: {out.decode()}")
+    out = run_cmd(
+        curl_gitlab_args(
+            url=f"https://gitlab.com/api/v4/projects/{quote(projectId)}"
+        )
+    )
+    url: str
+    match gitlab_curl_result(out):
+        case {"http_url_to_repo": url}:
+            url = url
+        case _:
+            critical(f"repository result for {projectName} did not have a `http_url_to_repo` field: {out.decode()}")
+    log(f"Fetching latest release ({release}) of {projectName} …")
+    return run_cmd(
+        nix_prefetch_git_args(
+            url,
+            version_rev=release
+        )
+    )
 
 
 def fetchOrgaLatestRepos(orga: str) -> set[str]:
@@ -141,9 +228,9 @@ def fetchOrgaLatestRepos(orga: str) -> set[str]:
             url=f"https://api.github.com/orgs/{quote(orga)}/repos?per_page=100"
         )
     )
-    match curl_result(out):
+    match github_curl_result(out):
         case "not found":
-            sys.exit(f"github organization {orga} not found")
+            critical(f"github organization {orga} not found")
         case list(repos):
             res: list[str] = []
             for repo in repos:
@@ -151,8 +238,8 @@ def fetchOrgaLatestRepos(orga: str) -> set[str]:
                 if name:
                     res.append(name)
             return set(res)
-        case _:
-            sys.exit("github result was not a list of repos, but {other}")
+        case other:
+            critical(f"github result was not a list of repos, but {other}")
 
 
 def checkTreeSitterRepos(latest_github_repos: set[str]) -> None:
@@ -163,29 +250,21 @@ def checkTreeSitterRepos(latest_github_repos: set[str]) -> None:
     unknown = latest_github_repos - (known | ignored)
 
     if unknown:
-        sys.exit(f"These repositories are neither known nor ignored:\n{unknown}")
+        critical(f"These repositories are neither known nor ignored:\n{unknown}")
 
 
-Grammar = TypedDict(
-    "Grammar",
-    {
-        "nixRepoAttrName": str,
-        "orga": str,
-        "repo": str
-    }
-)
+NixRepoAttrName = str
 
 
 def printAllGrammarsNixFile() -> None:
     """Print a .nix file that imports all grammars."""
-    allGrammars: list[dict[str, Grammar]] = jsonArg["allGrammars"]
+    repoAttrNames: list[NixRepoAttrName] = jsonArg["repoAttrNames"]
     outputDir: Dir = jsonArg["outputDir"]
 
     def file() -> Iterator[str]:
         yield "{ lib }:"
         yield "{"
-        for grammar in allGrammars:
-            n = grammar["nixRepoAttrName"]
+        for n in repoAttrNames:
             yield f"  {n} = lib.importJSON ./{n}.json;"
         yield "}"
         yield ""
@@ -214,4 +293,4 @@ match mode:
     case "print-all-grammars-nix-file":
         printAllGrammarsNixFile()
     case _:
-        sys.exit(f"mode {mode} unknown")
+        critical(f"mode {mode} unknown")
