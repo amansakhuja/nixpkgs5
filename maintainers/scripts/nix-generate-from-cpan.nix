@@ -9,9 +9,7 @@ stdenv.mkDerivation {
     perl GetoptLongDescriptive CPANPLUS Readonly LogLog4perl
   ];
 
-  phases = [ "installPhase" ];
-
-  installPhase =
+  buildCommand =
     ''
       mkdir -p $out/bin
       cp ${./nix-generate-from-cpan.pl} $out/bin/nix-generate-from-cpan
