@@ -282,6 +282,11 @@
       </listitem>
       <listitem>
         <para>
+          Curl is now built with the HTTP 3 protocol enabled by default.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
           PHP now defaults to PHP 8.1, updated from 8.0.
         </para>
       </listitem>
