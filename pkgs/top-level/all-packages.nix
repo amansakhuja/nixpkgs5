@@ -38402,6 +38402,8 @@ with pkgs;
 
   seafile-shared = callPackage ../misc/seafile-shared { };
 
+  seafdav = callPackage ../servers/seafdav { };
+
   ser2net = callPackage ../servers/ser2net {};
 
   serviio = callPackage ../servers/serviio {};
