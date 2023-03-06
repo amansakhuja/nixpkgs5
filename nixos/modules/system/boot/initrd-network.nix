@@ -12,10 +12,11 @@ let
                       then "$(ls /sys/class/net/ | grep -v ^lo$)"
                       else lib.concatMapStringsSep " " lib.escapeShellArg dhcpInterfaces;
 
-  udhcpcScript = pkgs.writeScript "udhcp-script"
-    ''
-      #! /bin/sh
-      if [ "$1" = bound ]; then
+
+  udhcpcScript = pkgs.writeScript "udhcp-script" ''
+    #! /bin/sh
+    case "$1" in
+      bound|renew)
         ip address add "$ip/$mask" dev "$interface"
         if [ -n "$mtu" ]; then
           ip link set mtu "$mtu" dev "$interface"
@@ -36,8 +37,14 @@ let
             echo "nameserver $server" >> /etc/resolv.conf
           done
         fi
-      fi
-    '';
+        ;;
+      deconfig)
+        ip link set "$interface" up
+        ip addr flush dev "$interface"
+        ip route flush dev "$interface"
+        ;;
+    esac
+  '';
 
   udhcpcArgs = toString cfg.udhcpc.extraArgs;
 
@@ -118,29 +125,32 @@ in
         done
       ''
 
-      # Otherwise, use DHCP.
+      # Configure interfaces via dhcp
       + optionalString doDhcp ''
-        # Bring up all interfaces.
         for iface in ${dhcpIfShellExpr}; do
-          echo "bringing up network interface $iface..."
-          ip link set "$iface" up && ifaces="$ifaces $iface"
-        done
+          ifaces="$ifaces $iface"
 
-        # Acquire DHCP leases.
-        for iface in ${dhcpIfShellExpr}; do
           echo "acquiring IP address via DHCP on $iface..."
-          udhcpc --quit --now -i $iface -O staticroutes --script ${udhcpcScript} ${udhcpcArgs}
+          udhcpc --background --pidfile="/.udhcpc.$iface.pid" -i "$iface" -O staticroutes --script ${udhcpcScript} ${udhcpcArgs}
         done
       ''
 
       + cfg.postCommands);
 
-    boot.initrd.postMountCommands = mkIf cfg.flushBeforeStage2 ''
-      for iface in $ifaces; do
-        ip address flush "$iface"
-        ip link set "$iface" down
-      done
-    '';
+    boot.initrd.postMountCommands =
+      optionalString doDhcp ''
+        for iface in $ifaces; do
+          if [ -f "/.udhcpc.$iface.pid" ]; then
+            kill "$(cat "/.udhcpc.$iface.pid")"
+          fi
+        done
+      '' +
+      optionalString cfg.flushBeforeStage2 ''
+        for iface in $ifaces; do
+          ip address flush "$iface"
+          ip link set "$iface" down
+        done
+      '';
 
   };
 
