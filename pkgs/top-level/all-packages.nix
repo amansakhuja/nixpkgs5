@@ -23112,10 +23112,6 @@ with pkgs;
 
   poppler = callPackage ../development/libraries/poppler { lcms = lcms2; };
 
-  poppler_gi = lowPrio (poppler.override {
-    introspectionSupport = true;
-  });
-
   poppler_min = poppler.override { # TODO: maybe reduce even more
     # this is currently only used by texlive.bin.
     minimal = true;
