@@ -14900,6 +14900,12 @@
     githubId = 1437166;
     name = "Xia Bin";
   };
+  socksy = {
+    email = "ben+nix@lovell.io";
+    github = "socksy";
+    githubId = 511549;
+    name = "Ben Lovell";
+  };
   softinio = {
     email = "code@softinio.com";
     github = "softinio";
