@@ -17914,6 +17914,11 @@
     githubId = 7121530;
     name = "Wolf Honoré";
   };
+  whyvert = {
+    github = "whyvert";
+    githubId = "91154413";
+    name = "Whyvert";
+  };
   wildsebastian = {
     name = "Sebastian Wild";
     email = "sebastian@wild-siena.com";
