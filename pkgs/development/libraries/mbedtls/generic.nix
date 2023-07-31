@@ -8,6 +8,7 @@
 , ninja
 , perl # Project uses Perl for scripting and testing
 , python3
+, gitUpdater
 
 , enableThreading ? true # Threading can be disabled to increase security https://tls.mbed.org/kb/development/thread-safety-and-multi-threading
 }:
@@ -41,6 +42,12 @@ stdenv.mkDerivation rec {
     # https://github.com/Mbed-TLS/mbedtls/releases/tag/v3.3.0 below "Requirement changes".
     "-DGEN_FILES=off"
   ];
+
+  passthru.updateScript = gitUpdater {
+    rev-prefix = "${pname}-";
+    ignoredVersions = "^[^${lib.versions.major version}]";
+    file = "pkgs/development/libraries/mbedtls/${lib.versions.major version}.nix";
+  };
 
   meta = with lib; {
     homepage = "https://www.trustedfirmware.org/projects/mbed-tls/";
