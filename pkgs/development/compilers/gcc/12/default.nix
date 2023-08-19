@@ -345,6 +345,9 @@ lib.pipe ((callFile ../common/builder.nix {}) ({
       platforms
       maintainers
     ;
+    broken = stdenv.targetPlatform.isMips64 &&
+             stdenv.targetPlatform.parsed.abi.name == "gnu" &&
+             !(stdenv.targetPlatform.gcc ? abi);
   };
 }
 
@@ -354,4 +357,3 @@ lib.pipe ((callFile ../common/builder.nix {}) ({
   (callPackage ../common/libgcc.nix   { inherit version langC langCC langJit targetPlatform hostPlatform withoutTargetLibc enableShared; })
   (callPackage ../common/checksum.nix { inherit langC langCC; })
 ]
-
