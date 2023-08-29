@@ -22143,8 +22143,6 @@ with pkgs;
 
   htmlcxx = callPackage ../development/libraries/htmlcxx { };
 
-  http-parser = callPackage ../development/libraries/http-parser { };
-
   httpref = callPackage ../development/tools/misc/httpref { };
 
   hubble = callPackage ../applications/networking/cluster/hubble { };
