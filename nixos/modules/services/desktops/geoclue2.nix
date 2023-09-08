@@ -172,6 +172,19 @@ in
         '';
       };
 
+      extraConfig = mkOption {
+        type = (pkgs.formats.ini { }).type;
+        default = { };
+        description = lib.mdDoc ''
+          Extra configuration settings for geoclue2.
+        '';
+        example = lib.literalExpression ''
+          {
+            network-nmea.nmea-socket = "/run/gnss-share.sock";
+          }
+        '';
+      };
+
     };
 
   };
@@ -239,31 +252,35 @@ in
     };
 
     environment.etc."geoclue/geoclue.conf".text =
-      generators.toINI { } ({
-        agent = {
-          whitelist = concatStringsSep ";"
-            (optional cfg.enableDemoAgent "geoclue-demo-agent" ++ defaultWhitelist);
-        };
-        network-nmea = {
-          enable = cfg.enableNmea;
-        };
-        "3g" = {
-          enable = cfg.enable3G;
-        };
-        cdma = {
-          enable = cfg.enableCDMA;
-        };
-        modem-gps = {
-          enable = cfg.enableModemGPS;
-        };
-        wifi = {
-          enable = cfg.enableWifi;
-          url = cfg.geoProviderUrl;
-          submit-data = boolToString cfg.submitData;
-          submission-url = cfg.submissionUrl;
-          submission-nick = cfg.submissionNick;
-        };
-      } // mapAttrs' appConfigToINICompatible cfg.appConfig);
+      generators.toINI { } (lib.foldl' lib.recursiveUpdate { } [
+        {
+          agent = {
+            whitelist = concatStringsSep ";"
+              (optional cfg.enableDemoAgent "geoclue-demo-agent" ++ defaultWhitelist);
+          };
+          network-nmea = {
+            enable = cfg.enableNmea;
+          };
+          "3g" = {
+            enable = cfg.enable3G;
+          };
+          cdma = {
+            enable = cfg.enableCDMA;
+          };
+          modem-gps = {
+            enable = cfg.enableModemGPS;
+          };
+          wifi = {
+            enable = cfg.enableWifi;
+            url = cfg.geoProviderUrl;
+            submit-data = boolToString cfg.submitData;
+            submission-url = cfg.submissionUrl;
+            submission-nick = cfg.submissionNick;
+          };
+        }
+        (mapAttrs' appConfigToINICompatible cfg.appConfig)
+        (cfg.extraConfig)
+      ]);
   };
 
   meta = with lib; {
