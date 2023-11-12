@@ -771,9 +771,12 @@ let
 
         password = autoOrderRules [
           { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
+          { name = "pwquality"; enable = config.security.pam.pwquality.enable; control = "required"; modulePath = "${lib.getLib config.security.pam.pwquality.package}/lib/security/pam_pwquality.so"; }
           { name = "unix"; control = "sufficient"; modulePath = "pam_unix.so"; settings = {
             nullok = true;
             yescrypt = true;
+            # ensures that pam_unix uses the password provided by pam_pwquality.
+            use_authtok = config.security.pam.pwquality.enable;
           }; }
           { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; }
           { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; }
