@@ -43,7 +43,7 @@ stdenv.mkDerivation rec {
     cp --remove-destination $out/bin/byobu $out/bin/byobu-tmux
 
     for i in $out/bin/byobu*; do
-      # Don't wrap byobu-launch. 
+      # Don't wrap byobu-launch.
       # See: https://github.com/NixOS/nixpkgs/issues/131353
       if [ "$(basename $i)" == "byobu-launch" ];
       then
