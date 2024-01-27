@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , buildPythonPackage
 , fetchFromGitHub
 , pytestCheckHook
@@ -83,6 +84,20 @@ buildPythonPackage rec {
   env.HOME = "/tmp";
 
   pythonImportsCheck = [ "libretranslate" ];
+
+  passthru = {
+    static-compressed = pkgs.runCommand "libretranslate-data-compressed" {
+      nativeBuildInputs = with pkgs; [ brotli xorg.lndir ];
+    } ''
+      mkdir -p $out/share/libretranslate/static
+      lndir ${pkgs.libretranslate}/share/libretranslate/static $out/share/libretranslate/static
+
+      # Create static gzip and brotli files
+      find -L $out -type f -regextype posix-extended -iregex '.*\.(css|ico|js|svg|ttf)' \
+        -exec gzip --best --keep --force {} ';' \
+        -exec brotli --best --keep --no-copy-stat {} ';'
+    '';
+  };
 
   meta = with lib; {
     description = "Free and Open Source Machine Translation API. Self-hosted, no limits, no ties to proprietary services";
