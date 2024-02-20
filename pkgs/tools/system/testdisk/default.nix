@@ -33,6 +33,8 @@ assert enableQt -> qwt != null;
 
   enableParallelBuilding = true;
 
+  outputs = [ "out" "doc" "man" ];
+
   buildInputs = [
     ncurses
     libuuid

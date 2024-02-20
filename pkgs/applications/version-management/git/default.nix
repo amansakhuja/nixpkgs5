@@ -45,7 +45,7 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-IjTze0U/+ORnLCGtQNQcxzk8mo3N/mQL7HrFtTWPMNI=";
   };
 
-  outputs = [ "out" ] ++ lib.optional withManual "doc";
+  outputs = [ "out" ] ++ lib.optionals withManual [ "doc" "man" ];
   separateDebugInfo = true;
 
   hardeningDisable = [ "format" ];

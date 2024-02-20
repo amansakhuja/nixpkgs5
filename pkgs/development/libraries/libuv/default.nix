@@ -32,8 +32,6 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-U68BmIQNpmIy3prS7LkYl+wvDJQNikoeFiKh50yQFoA=";
   };
 
-  outputs = [ "out" "dev" ];
-
   postPatch = let
     toDisable = [
       "getnameinfo_basic" "udp_send_hang_loop" # probably network-dependent
@@ -83,6 +81,8 @@ stdenv.mkDerivation (finalAttrs: {
     in lib.optionalString (finalAttrs.finalPackage.doCheck) ''
       sed '/${tdRegexp}/d' -i test/test-list.h
     '';
+
+  outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ automake autoconf libtool pkg-config ];
 

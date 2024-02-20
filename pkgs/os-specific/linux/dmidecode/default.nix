@@ -9,6 +9,8 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-eddnNe6OJRluKnIpZM+Wg/WglYFQNTeISyVrATicwHM=";
   };
 
+  outputs = [ "out" "doc" "man" ];
+
   makeFlags = [
     "prefix=$(out)"
     "CC=${stdenv.cc.targetPrefix}cc"

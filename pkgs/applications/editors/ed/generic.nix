@@ -18,6 +18,8 @@
 stdenv.mkDerivation {
   inherit pname version src patches;
 
+  outputs = [ "out" "info" "man" ];
+
   nativeBuildInputs = [ lzip ];
 
   configureFlags = [

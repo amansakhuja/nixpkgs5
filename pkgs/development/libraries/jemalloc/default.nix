@@ -28,6 +28,8 @@ stdenv.mkDerivation rec {
     })
   ];
 
+  outputs = [ "out" "doc" "man" ];
+
   configureFlags =
     # see the comment on stripPrefix
     lib.optional stripPrefix "--with-jemalloc-prefix="
