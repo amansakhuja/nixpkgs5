@@ -683,7 +683,10 @@ let
           (let dp9ik = config.security.pam.dp9ik; in { name = "p9"; enable = dp9ik.enable; control = dp9ik.control; modulePath = "${pkgs.pam_dp9ik}/lib/security/pam_p9.so"; args = [
             dp9ik.authserver
           ]; })
-          { name = "fprintd"; enable = cfg.fprintAuth; control = "sufficient"; modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so"; }
+          (let fprint = config.security.pam.fprint; in { name = "fprintd"; enable = cfg.fprintAuth; control = "sufficient"; modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so"; settings = {
+            inherit (fprint) timeout;
+            max-tries = fprint.maxTries;
+          }; })
         ] ++
           # Modules in this block require having the password set in PAM_AUTHTOK.
           # pam_unix is marked as 'sufficient' on NixOS which means nothing will run
@@ -1075,6 +1078,26 @@ in
         description = lib.mdDoc ''
           This controls the hostname for the 9front authentication server
           that users will be authenticated against.
+        '';
+      };
+    };
+
+    security.pam.fprint = {
+      maxTries = mkOption {
+        type = types.int;
+        default = 3;
+        description = lib.mdDoc ''
+          The number of attempts at fingerprint authentication to try
+          before returning an authentication failure. The minimum number
+          of tries is 1.
+        '';
+      };
+      timeout = mkOption {
+        type = types.int;
+        default = 30;
+        description = lib.mdDoc ''
+          The amount of time (in seconds) before returning an authentication
+          failure, with 10 seconds being the minimum.
         '';
       };
     };
