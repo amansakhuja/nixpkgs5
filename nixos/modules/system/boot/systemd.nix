@@ -367,11 +367,13 @@ in
       '';
     };
 
-    systemd.kbrequestUnit = mkOption {
-      type = types.str;
+    kbrequestUnit = mkOption {
+      default = null;
+      type = types.nullOr types.str;
       example = "rescue.target";
       description = ''
-        Target that should be started when Alt+ArrowUp is pressed on the console.
+        Target that should be started when Alt+ArrowUp is pressed on the console;
+        see {manpage}`systemd.special(7)`.
       '';
     };
 
