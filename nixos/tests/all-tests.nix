@@ -526,6 +526,7 @@ in {
   mautrix-meta-postgres = handleTest ./matrix/mautrix-meta-postgres.nix {};
   mautrix-meta-sqlite = handleTest ./matrix/mautrix-meta-sqlite.nix {};
   mattermost = handleTest ./mattermost.nix {};
+  mautrix-discord = handleTest ./matrix/mautrix-discord.nix {};
   mealie = handleTest ./mealie.nix {};
   mediamtx = handleTest ./mediamtx.nix {};
   mediatomb = handleTest ./mediatomb.nix {};
