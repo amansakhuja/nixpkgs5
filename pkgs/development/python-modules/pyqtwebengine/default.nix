@@ -8,8 +8,6 @@
   qtbase,
   qtsvg,
   qtwebengine,
-  qtwebchannel,
-  qtdeclarative,
   wrapQtAppsHook,
   darwin,
   buildPackages,
@@ -60,13 +58,9 @@ buildPythonPackage (
         python.pythonOnBuildForHost.pkgs.sip
       ]
       ++ [
-        qtbase
-        qtsvg
-        qtwebengine
         pyqt-builder
         pythonPackages.setuptools
       ]
-      ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [ qtdeclarative ]
       ++ lib.optionals (stdenv.isDarwin && stdenv.isAarch64) [ autoSignDarwinBinariesHook ];
 
     buildInputs =
@@ -75,10 +69,6 @@ buildPythonPackage (
         qtbase
         qtsvg
         qtwebengine
-      ]
-      ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-        qtwebchannel
-        qtdeclarative
       ];
 
     propagatedBuildInputs = [ pyqt5 ];
@@ -108,12 +98,5 @@ buildPythonPackage (
       license = licenses.gpl3;
       hydraPlatforms = lib.lists.intersectLists qtwebengine.meta.platforms platforms.mesaPlatforms;
     };
-  }
-  // lib.optionalAttrs (stdenv.buildPlatform != stdenv.hostPlatform) {
-    # TODO: figure out why the env hooks aren't adding these inclusions automatically
-    env.NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
-      "-I${lib.getDev qtbase}/include/QtPrintSupport/"
-      "-I${lib.getDev qtwebchannel}/include/QtWebChannel/"
-    ];
   }
 )
