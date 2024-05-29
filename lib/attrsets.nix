@@ -680,6 +680,35 @@ rec {
     :::
   */
   filterAttrsRecursive =
+    f:
+    set:
+    filterAttrsRecursiveCond (as: true) f set;
+
+  /**
+    Like `filterAttrsRecursive', but it takes an additional predicate that tells it whether to recurse into an attribute set.
+    If the predicate returns false, `filterAttrsRecursiveCond' does not recurse, but instead apply the filtering function.
+    If the predicate returns true, it does recurse, and does not apply the filtering function.
+
+    :::{#filter-attrs-recursive-cond-example .example}
+    # Filter over an leaf attributes defined by a condition
+
+    Filter derivations according to their `name` attribute.
+    Derivations are identified as attribute sets that contain `{ type = "derivation"; }`.
+    ```nix
+    filterAttrsRecursiveCond
+      (as: !(as ? "type" && as.type == "derivation"))
+      (x: x.name != "foo")
+      attrs
+    ```
+    :::
+
+    # Type:
+    ```
+    filterAttrsRecursiveCond :: (AttrSet -> Bool) -> (String -> a -> Bool) -> AttrSet -> AttrSet
+    ```
+  */
+  filterAttrsRecursiveCond =
+    cond:
     pred:
     set:
     listToAttrs (
@@ -687,12 +716,14 @@ rec {
         let v = set.${name}; in
         if pred name v then [
           (nameValuePair name (
-            if isAttrs v then filterAttrsRecursive pred v
-            else v
+            if isAttrs v && cond v
+              then filterAttrsRecursiveCond cond pred v
+              else v
           ))
         ] else []
       ) (attrNames set)
     );
+
 
    /**
     Like [`lib.lists.foldl'`](#function-library-lib.lists.foldl-prime) but for attribute sets.
