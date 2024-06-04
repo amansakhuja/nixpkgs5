@@ -2,6 +2,8 @@
 , pappl
 , cups
 , pkg-config
+# Enables support for untested printers. It makes sense to default this to true, as it's unlikely to result in any issues
+, enableExperimental ? true
 }:
 
 stdenv.mkDerivation rec {
@@ -25,6 +27,8 @@ stdenv.mkDerivation rec {
     pappl
     cups
   ];
+
+  configureFlags = lib.optional enableExperimental "--enable-experimental";
 
   doInstallCheck = true;
   installCheckPhase = ''
