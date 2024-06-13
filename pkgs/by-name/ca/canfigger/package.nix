@@ -22,13 +22,13 @@ stdenv.mkDerivation rec {
     ninja
   ];
 
-  meta = with lib; {
-    description = "A lightweight library designed to parse configuration files";
+  meta = {
+    description = "Lightweight library designed to parse configuration files";
     homepage = "https://github.com/andy5995/canfigger";
     changelog = "https://github.com/andy5995/canfigger/blob/${src.rev}/ChangeLog.txt";
-    license = licenses.gpl3Only;
-    maintainers = with maintainers; [ iynaix ];
+    license = lib.licenses.gpl3Only;
+    maintainers = with lib.maintainers; [ iynaix ];
     mainProgram = "canfigger";
-    platforms = platforms.all;
+    platforms = lib.platforms.all;
   };
 }
