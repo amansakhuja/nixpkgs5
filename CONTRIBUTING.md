@@ -193,7 +193,7 @@ The last checkbox is about whether it fits the guidelines in this `CONTRIBUTING.
 
 To run the main types of tests locally:
 
-- Run [NixOS tests](https://nixos.org/manual/nixos/unstable/#sec-nixos-tests) with `nix-build nixos/tests/NAME.nix`, where `NAME` is the name of a specific test file
+- Run [NixOS tests](https://nixos.org/manual/nixos/unstable/#sec-nixos-tests) with `nix-build -A nixosTests.<NAME>`, where `NAME` is the name of a specific test file
 - Run [global package tests](https://nixos.org/manual/nixpkgs/unstable/#sec-package-tests) with `nix-build --attr PACKAGE pkgs/test/default.nix`, where `PACKAGE` is the package name
 - Run package-internal tests with `nix-build --attr pkgs.PACKAGE.passthru.tests`
 - Run library tests with `nix-build lib/tests/NAME.nix`
