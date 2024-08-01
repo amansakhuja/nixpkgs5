@@ -309,7 +309,7 @@ in {
     enableCompressedAssets = mkOption {
       type = types.bool;
       default = true;
-      description = lib.mdDoc "Whether to use gzip and brotli pre-compressed artifacts for lower CPU usage and transfer size but bigger storage size.";
+      description = "Whether to use gzip and brotli pre-compressed artifacts for lower CPU usage and transfer size but bigger storage size.";
     };
 
     maxUploadSize = mkOption {
