@@ -1,4 +1,5 @@
 { lib, stdenvNoCC, zopfli, brotli, fetchurl, nixosTests
+, xorg
 , nextcloud28Packages
 , nextcloud29Packages
 }:
@@ -24,10 +25,16 @@ let
 
     outputs = [ "out" "compressed" ];
 
-    nativeBuildInputs = [ zopfli brotli ];
+    nativeBuildInputs = [ xorg.lndir zopfli brotli ];
 
-    buildPhase = ''
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/
+      cp -R . $out/
+
       # Create missing static gzip and brotli files
+      mkdir $compressed
+      lndir $out/ $compressed/
       shopt -s globstar
       for f in apps/** core/** dist/** resources/** themes/**; do
         if [ -f "$f" ]; then
@@ -40,12 +47,7 @@ let
           esac
         fi
       done
-    '';
 
-    installPhase = ''
-      runHook preInstall
-      mkdir -p $out/
-      cp -R . $out/
       runHook postInstall
     '';
 

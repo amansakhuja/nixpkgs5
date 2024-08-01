@@ -872,10 +872,7 @@ in {
         in
           mkDefault (
             if cfg.enableCompressedAssets then
-              symlinkJoin {
-                inherit (pkg) name version;
-                paths = [ pkg.out pkg.compressed ];
-              }
+              pkg.compressed
             else pkg
           );
 
