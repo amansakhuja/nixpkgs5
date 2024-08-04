@@ -37,6 +37,7 @@ lib.makeOverridable (lib.fetchers.withNormalizedHash { } (
 , allowedRequisites ? null
 , publicKeys ? []
 , verifyCommit ? false
+, verifyTag ? false
 }:
 
 /* NOTE:
@@ -103,7 +104,7 @@ fetchresult = stdenvNoCC.mkDerivation {
 
   inherit url fetchLFS fetchSubmodules deepClone branchName nonConeMode postFetch;
   rev = revWithTag;
-  leaveDotGit = leaveDotGit || verifyCommit;
+  leaveDotGit = leaveDotGit || verifyCommit || verifyTag;
 
   postHook = if netrcPhase == null then null else ''
     ${netrcPhase}
@@ -112,6 +113,16 @@ fetchresult = stdenvNoCC.mkDerivation {
     export NETRC=$PWD/.netrc
     export HOME=$PWD
   '';
+
+  # if verifyTag enabled assume rev to be a tag and include it in the .git directory
+  NIX_PREFETCH_GIT_CHECKOUT_HOOK = if verifyTag then ''
+    case "$rev" in
+      refs/tags/*)
+        clean_git -C "$dir" fetch origin "$rev:$rev";;
+      *)
+        clean_git -C "$dir" fetch origin "refs/tags/$rev:refs/tags/$rev";;
+    esac
+    '' else null;
 
   impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ netrcImpureEnvVars ++ [
     "GIT_PROXY_COMMAND" "NIX_GIT_SSL_CAINFO" "SOCKS_SERVER"
@@ -130,22 +141,32 @@ gpgWithKeys = writeShellApplication {
   name = "gpgWithKeys";
   runtimeInputs = [gnupg];
   text = ''
-    gpg --homedir /build --no-default-keyring --keyring ${gpgKeyring} "$@"
+    gpg --always-trust --homedir /build --no-default-keyring --keyring ${gpgKeyring} "$@"
     '';
 };
 allowedSignersFile = writeText "allowed signers" (lib.concatMapStrings (k: "* ${k.type} ${k.key}\n") keysPartitioned.wrong);
 in
-if verifyCommit then
+if verifyCommit || verifyTag then
 runCommand name {
   buildInputs = [git openssh gpgWithKeys];
-  inherit leaveDotGit;
+  inherit verifyCommit verifyTag leaveDotGit;
     } ''
-  git \
-      -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
-      -c safe.directory='*' \
-      -c gpg.program="gpgWithKeys" \
-      -C "${fetchresult}" \
-      verify-commit ${rev}
+  if test "$verifyCommit" == 1; then
+      git \
+        -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
+        -c safe.directory='*' \
+        -c gpg.program="gpgWithKeys" \
+        -C "${fetchresult}" \
+        verify-commit ${rev}
+  fi
+  if test "$verifyTag" == 1; then
+      git \
+        -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
+        -c safe.directory='*' \
+        -c gpg.program="gpgWithKeys" \
+        -C "${fetchresult}" \
+        verify-tag ${rev}
+  fi
   cp -r --no-preserve=all "${fetchresult}" $out
   if test "$leaveDotGit" != 1; then
       rm -rf "$out"/.git
