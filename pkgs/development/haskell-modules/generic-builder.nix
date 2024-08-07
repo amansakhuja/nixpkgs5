@@ -2,6 +2,7 @@
 , jailbreak-cabal, hscolour, cpphs, runCommand
 , ghcWithHoogle, ghcWithPackages
 , nodejs
+, devShellTools
 }:
 
 let
@@ -841,6 +842,9 @@ stdenv.mkDerivation ({
       } "echo $nativeBuildInputs $buildInputs > $out";
 
     env = envFunc { };
+
+    # Specialise the devShell attribute, so we get our improved shell.
+    devShell = env.devShell;
 
   };
 

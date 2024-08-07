@@ -1,4 +1,4 @@
-{ lib, stdenv, buildEnv }:
+{ lib, stdenv, buildEnv, devShellTools }:
 
 # A special kind of derivation that is only meant to be consumed by the
 # nix-shell.
@@ -11,6 +11,7 @@
 , nativeBuildInputs ? [ ]
 , propagatedBuildInputs ? [ ]
 , propagatedNativeBuildInputs ? [ ]
+, passthru ? { }
 , ...
 }@attrs:
 let
@@ -34,7 +35,7 @@ let
   ];
 in
 
-stdenv.mkDerivation ({
+stdenv.mkDerivation (finalAttrs: {
   inherit name;
 
   buildInputs = mergeInputs "buildInputs";
@@ -47,6 +48,7 @@ stdenv.mkDerivation ({
 
   phases = [ "buildPhase" ];
 
+  # TODO: Perhaps mkShell could *be* its own devShell, by setting isDevShell = true;
   buildPhase = ''
     { echo "------------------------------------------------------------";
       echo " WARNING: the existence of this path is not guaranteed.";
@@ -59,4 +61,28 @@ stdenv.mkDerivation ({
   '';
 
   preferLocalBuild = true;
+
+  passthru = {
+    devShell =
+      let
+        inherit (finalAttrs.finalPackage) drvAttrs;
+      in
+      devShellTools.buildShellEnv {
+        inherit drvAttrs;
+
+        # The default prefix is "build shell", but this shell is not derived
+        # directly from a derivation, so we set a more generic title.
+        promptPrefix = "nix";
+
+        # Change the default name
+        promptName =
+          if
+            # name was passed originally
+            attrs?name
+            # or with overrideAttrs
+            || drvAttrs.name != "nix-shell"
+          then null
+          else "mkShell";
+      };
+  } // passthru;
 } // rest)

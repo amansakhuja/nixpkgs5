@@ -4,17 +4,25 @@
 # because every time you change any file and do another `nix develop`,
 # it would create another copy of the entire ~500MB tree in the store.
 # See https://github.com/NixOS/nix/pull/6530 for the future
-{
-  system ? builtins.currentSystem,
-}:
+#
+# Note: We use a pinned Nixpkgs so that the tools are readily available even
+# when making changes that would otherwise require a new build of those tools.
+# If you'd like to test out changes to the tools themselves, you can pass
+#
+#     nix-shell --arg nixpkgs ./.
+#
 let
   pinnedNixpkgs = builtins.fromJSON (builtins.readFile ci/pinned-nixpkgs.json);
+in
+{
+  system ? builtins.currentSystem,
 
-  nixpkgs = fetchTarball {
+  nixpkgs ? fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${pinnedNixpkgs.rev}.tar.gz";
     sha256 = pinnedNixpkgs.sha256;
-  };
-
+  },
+}:
+let
   pkgs = import nixpkgs {
     inherit system;
     config = {};
@@ -22,6 +30,7 @@ let
   };
 in
 pkgs.mkShellNoCC {
+  name = "nixpkgs";
   packages = [
     # The default formatter for Nix code
     # https://github.com/NixOS/nixfmt
