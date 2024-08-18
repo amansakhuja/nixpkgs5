@@ -14,29 +14,7 @@ fixCmakeFiles() {
         done
 }
 
-cmakeConfigurePhase() {
-    runHook preConfigure
-
-    # default to CMake defaults if unset
-    : ${cmakeBuildDir:=build}
-
-    export CTEST_OUTPUT_ON_FAILURE=1
-    if [ -n "${enableParallelChecking-1}" ]; then
-        export CTEST_PARALLEL_LEVEL=$NIX_BUILD_CORES
-    fi
-
-    if [ -z "${dontFixCmake-}" ]; then
-        fixCmakeFiles .
-    fi
-
-    if [ -z "${dontUseCmakeBuildDir-}" ]; then
-        mkdir -p "$cmakeBuildDir"
-        cd "$cmakeBuildDir"
-        : ${cmakeDir:=..}
-    else
-        : ${cmakeDir:=.}
-    fi
-
+genCmakeDefaultFlags() {
     declare -ga cmakeDefaultFlags=()
 
     # The docdir flag needs to include PROJECT_NAME as per GNU guidelines,
@@ -126,6 +104,32 @@ cmakeConfigurePhase() {
     if [ "${buildPhase-}" = ninjaBuildPhase ]; then
         cmakeDefaultFlags+=("-GNinja")
     fi
+}
+
+cmakeConfigurePhase() {
+    runHook preConfigure
+
+    # default to CMake defaults if unset
+    : ${cmakeBuildDir:=build}
+
+    export CTEST_OUTPUT_ON_FAILURE=1
+    if [ -n "${enableParallelChecking-1}" ]; then
+        export CTEST_PARALLEL_LEVEL=$NIX_BUILD_CORES
+    fi
+
+    if [ -z "${dontFixCmake-}" ]; then
+        fixCmakeFiles .
+    fi
+
+    if [ -z "${dontUseCmakeBuildDir-}" ]; then
+        mkdir -p "$cmakeBuildDir"
+        cd "$cmakeBuildDir"
+        : ${cmakeDir:=..}
+    else
+        : ${cmakeDir:=.}
+    fi
+
+    genCmakeDefaultFlags
 
     local flagsArray=()
     concatTo flagsArray cmakeDefaultFlags cmakeFlags cmakeFlagsArray
