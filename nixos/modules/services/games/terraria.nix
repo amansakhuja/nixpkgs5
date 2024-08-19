@@ -5,29 +5,65 @@
   pkgs,
   ...
 }:
+
 let
   cfg = config.services.terraria;
   opt = options.services.terraria;
+
   worldSizeMap = {
     small = 1;
     medium = 2;
     large = 3;
   };
-  valFlag =
-    name: val:
-    lib.optionalString (val != null) "-${name} \"${lib.escape [ "\\" "\"" ] (toString val)}\"";
-  boolFlag = name: val: lib.optionalString val "-${name}";
-  flags = [
-    (valFlag "port" cfg.port)
-    (valFlag "maxPlayers" cfg.maxPlayers)
-    (valFlag "password" cfg.password)
-    (valFlag "motd" cfg.messageOfTheDay)
-    (valFlag "world" cfg.worldPath)
-    (valFlag "autocreate" (builtins.getAttr cfg.autoCreatedWorldSize worldSizeMap))
-    (valFlag "banlist" cfg.banListPath)
-    (boolFlag "secure" cfg.secure)
-    (boolFlag "noupnp" cfg.noUPnP)
+
+  difficultyMap = {
+    normal = 0;
+    expert = 1;
+    master = 2;
+    journey = 3;
+  };
+
+  mkLine = name: val: (lib.optionalString (val == null) "# ") + "${name}=${toString val}";
+  mkTodo = name: "# ${name}= # TODO: add option";
+
+  # Based on https://terraria.wiki.gg/wiki/Server#Server_config_file
+  configLines = [
+    (mkLine "world" cfg.worldPath)
+    (mkLine "autocreate" (builtins.getAttr cfg.autoCreatedWorldSize worldSizeMap))
+    (mkLine "seed" cfg.autoCreatedWorldSeed)
+    (mkTodo "worldname")
+    (mkLine "difficulty" (builtins.getAttr cfg.autoCreatedWorldDifficulty difficultyMap))
+    (mkLine "maxplayers" cfg.maxPlayers)
+    (mkLine "port" cfg.port)
+    (mkLine "password" cfg.password)
+    (mkLine "motd" cfg.messageOfTheDay)
+    (mkTodo "worldpath")
+    (mkLine "banlist" cfg.banListPath)
+    (mkLine "secure" (if cfg.secure then "1" else "0"))
+    (mkLine "upnp" (if cfg.noUPnP then "0" else "1")) # should probably be inverted in the option name instead
+    (mkTodo "npcstream")
+    (mkTodo "priority")
+    (mkTodo "journeypermission_time_setfrozen")
+    (mkTodo "journeypermission_time_setdawn")
+    (mkTodo "journeypermission_time_setnoon")
+    (mkTodo "journeypermission_time_setdusk")
+    (mkTodo "journeypermission_time_setmidnight")
+    (mkTodo "journeypermission_godmode")
+    (mkTodo "journeypermission_wind_setstrength")
+    (mkTodo "journeypermission_rain_setstrength")
+    (mkTodo "journeypermission_time_setspeed")
+    (mkTodo "journeypermission_rain_setfrozen")
+    (mkTodo "journeypermission_wind_setfrozen")
+    (mkTodo "journeypermission_increaseplacementrange")
+    (mkTodo "journeypermission_setdifficulty")
+    (mkTodo "journeypermission_biomespread_setfrozen")
+    (mkTodo "journeypermission_setspawnrate")
   ];
+
+  configFile = pkgs.writeText "serverconfig.txt" ''
+    # This file was created by the services.terraria NixOS module
+    ${lib.concatStringsSep "\n" configLines}
+  '';
 
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${lib.escapeShellArg cfg.dataDir}/terraria.sock";
 
@@ -177,8 +213,8 @@ in
         Group = "terraria";
         Type = "forking";
         GuessMainPID = true;
-        UMask = 7;
-        ExecStart = "${tmuxCmd} new -d ${pkgs.terraria-server}/bin/TerrariaServer ${lib.concatStringsSep " " flags}";
+        UMask = "007";
+        ExecStart = "${tmuxCmd} new -d ${pkgs.terraria-server}/bin/TerrariaServer -config ${configFile}";
         ExecStop = "${stopScript} $MAINPID";
       };
     };
