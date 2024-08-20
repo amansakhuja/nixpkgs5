@@ -1,7 +1,8 @@
-{ lib, elixir, fetchFromGitHub, fetchMixDeps, mixRelease, nix-update-script }:
+{ lib, elixir, fetchFromGitHub, fetchMixDeps, mixRelease, nix-update-script, pkgsBuildHost }:
 # Based on ../elixir-ls/default.nix
 
 let
+  buildElixir = pkgsBuildHost.beam_minimal.packages.erlang.elixir;
   pname = "ex_doc";
   version = "0.34.1";
   src = fetchFromGitHub {
@@ -24,13 +25,13 @@ mixRelease {
 
   configurePhase = ''
     runHook preConfigure
-    mix deps.compile --no-deps-check
+    ${buildElixir}/bin/mix deps.compile --no-deps-check
     runHook postConfigure
   '';
 
   buildPhase = ''
     runHook preBuild
-    mix do escript.build
+    ${buildElixir}/bin/mix do escript.build
     runHook postBuild
   '';
 
