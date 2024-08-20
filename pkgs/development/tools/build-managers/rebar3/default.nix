@@ -1,11 +1,12 @@
 { lib, stdenv, fetchFromGitHub, fetchgit,
   fetchHex, erlang, makeWrapper,
-  writeScript, common-updater-scripts, coreutils, git, gnused, nix, rebar3-nix }:
+  writeScript, common-updater-scripts, coreutils, git, gnused, nix, pkgsBuildHost, rebar3-nix }:
 
 let
   version = "3.24.0";
   owner = "erlang";
   deps = import ./rebar-deps.nix { inherit fetchFromGitHub fetchgit fetchHex; };
+  escript = "${pkgsBuildHost.beam_minimal.interpreters.erlang}/bin/escript";
   rebar3 = stdenv.mkDerivation rec {
     pname = "rebar3";
     inherit version erlang;
@@ -36,7 +37,7 @@ let
     '';
 
     buildPhase = ''
-      HOME=. escript bootstrap
+      HOME=. ${escript} bootstrap
     '';
 
     checkPhase = ''
