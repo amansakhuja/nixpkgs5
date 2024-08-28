@@ -721,6 +721,13 @@ lib.mapAttrs mkLicense ({
     fullName = "ISC License";
   };
 
+  itf-ffl = {
+    fullName = "ITF Free Font License";
+    url = "https://fontshare.com/licenses/itf-ffl";
+    free = false;
+    redistributable = false;
+  };
+
   # Proprietary binaries; free to redistribute without modification.
   databricks = {
     fullName = "Databricks Proprietary License";
