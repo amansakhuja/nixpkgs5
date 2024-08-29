@@ -4,7 +4,11 @@
 
 rec {
   # Problem handler levels
-  problemHandlers = [ "error" "warn" "ignore" ];
+  problemHandlers = [
+    "error"
+    "warn"
+    "ignore"
+  ];
 
   # Take the maximum (highest severity) problem handler
   maxProblemHandler =
@@ -14,8 +18,7 @@ rec {
     else if a == "warn" || b == "warn" then
       "warn"
     else
-      "ignore"
-  ;
+      "ignore";
 
   # Currently known list of known problem kinds. Keep up to date with pkgs/top-level/config.nix
   problemKinds = [
@@ -40,7 +43,10 @@ rec {
   ];
   # Same thing but a set with null values (comes in handy at times)
   problemKindsUnique' = lib.pipe problemKindsUnique [
-    (map (name: { inherit name; value = null; }))
+    (map (name: {
+      inherit name;
+      value = null;
+    }))
     lib.listToAttrs
   ];
 
@@ -61,7 +67,7 @@ rec {
 
       # Take the problems plus add automatically generated ones
       problems =
-        (pkg.meta.problems or {})
+        (pkg.meta.problems or { })
         // lib.optionalAttrs (hasNoMaintainers pkg) {
           maintainerless = {
             message = "This package has no declared maintainer, i.e. an empty `meta.maintainers` attribute";
@@ -69,34 +75,37 @@ rec {
         };
 
       # Inject default values, since metaTypes can't do it for us currently
-      addDefaults = name: problem: { inherit name; kind = name; } // problem;
+      addDefaults =
+        name: problem:
+        {
+          inherit name;
+          kind = name;
+        }
+        // problem;
 
       # Determine the handler level from config for this problem
-      addHandler = problem:
+      addHandler =
+        problem:
         let
           handler =
             # Try to find an explicit handler
-            (handlers.${pkgName} or {}).${problem.name}
-            # Fall back, iterating through the matchers
-            or (
-              lib.pipe matchers [
+            (handlers.${pkgName} or { }).${problem.name}
+              # Fall back, iterating through the matchers
+              or (lib.pipe matchers [
                 # Find matches
-                (lib.filter
-                  (matcher:
-                    (if matcher.name != null then problem.name == matcher.name else true)
-                    && (if matcher.kind != null then problem.kind == matcher.kind else true)
-                    && (if matcher.package != null then pkgName == matcher.package else true)
-                  )
-                )
+                (lib.filter (
+                  matcher:
+                  (if matcher.name != null then problem.name == matcher.name else true)
+                  && (if matcher.kind != null then problem.kind == matcher.kind else true)
+                  && (if matcher.package != null then pkgName == matcher.package else true)
+                ))
                 # Extract handler level
                 (builtins.map (lib.getAttr "handler"))
                 # Take the strongest matched handler level
                 (lib.foldl' maxProblemHandler "ignore")
-              ]
-            );
+              ]);
         in
         problem // { inherit handler; };
     in
-    builtins.map addHandler
-      (lib.mapAttrsToList addDefaults problems);
+    builtins.map addHandler (lib.mapAttrsToList addDefaults problems);
 }

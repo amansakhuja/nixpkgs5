@@ -1,7 +1,7 @@
 {
   lib,
   nixVersions,
-  runCommandNoCC,
+  runCommand,
   removeReferencesTo,
   path,
 }:
@@ -12,11 +12,7 @@ lib.mapAttrs (
   name: _:
   let
     nixFile = "${./cases + "/${name}/default.nix"}";
-    result = runCommandNoCC "test-problems-${name}" {
-      nativeBuildInputs = [
-        removeReferencesTo
-      ];
-    } ''
+    result = runCommand "test-problems-${name}" { nativeBuildInputs = [ removeReferencesTo ]; } ''
       export NIX_STATE_DIR=$(mktemp -d)
       mkdir $out
 
@@ -41,7 +37,7 @@ lib.mapAttrs (
       echo "Command exited with code $(<$out/code)"
       remove-references-to -t ${nixFile} $out/*
     '';
-    checker = runCommandNoCC "test-problems-check-${name}" { } ''
+    checker = runCommand "test-problems-check-${name}" { } ''
       if ! diff ${result}/stderr ${./cases + "/${name}/expected-stderr"}; then
         echo "Output of $(< ${result}/command) does not match what was expected (${result}/stderr)"
         exit 1

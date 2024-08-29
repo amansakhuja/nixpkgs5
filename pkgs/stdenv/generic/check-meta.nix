@@ -353,19 +353,9 @@ let
     in
     builtins.trace msg true;
 
-   # Deep type-checking. Note that calling `type.check` is not enough: see `lib.mkOptionType`'s documentation.
-  # We don't include this in lib for now because this function is flawed: it accepts things like `mkIf true 42`.
-  typeCheck = type: value: let
-    merged = lib.mergeDefinitions [ ] type [
-      { file = lib.unknownModule; inherit value; }
-    ];
-    eval = builtins.tryEval (builtins.deepSeq merged.mergedValue null);
-  in eval.success;
-
-
   metaTypes = let
     types = import ./meta-types.nix { inherit lib; };
-    inherit (types) str union int attrs attrsOf any listOf bool;
+    inherit (types) str union int attrs attrsOf any listOf bool enum;
     platforms = listOf (union [ str (attrsOf any) ]);  # see lib.meta.platformMatch
   in {
     # These keys are documented
@@ -404,8 +394,11 @@ let
     insecure = bool;
     # This is checked in more detail further down
     problems = attrsOf (attrsOf any);
-    # TODO: refactor once something like Profpatsch's types-simple will land
-    # This is currently dead code due to https://github.com/NixOS/nix/issues/2532
+    problemTypes = {
+      kind = enum problemKindsManual;
+      message = str;
+      urls = listOf str;
+    };
     tests = {
       name = "test";
       verify = x: x == {} || ( # Accept {} for tests that are unsupported
@@ -437,15 +430,8 @@ let
     badPlatforms = platforms;
   };
 
-  # Type of a meta.problems.* value
-  problemTypes = with lib.types; {
-    # Only allow some problem kinds to be used here in `meta`
-    kind = enum problemKindsManual;
-    message = str;
-    urls = listOf str;
-  };
-
-  checkMetaAttr = let
+  # Check that a value matches a specific type. Returns an error message, or null if the check passed
+    checkMetaAttr = let
     # Map attrs directly to the verify function for performance
     metaTypes' = mapAttrs (_: t: t.verify) metaTypes;
   in k: v:
@@ -458,15 +444,7 @@ let
         }" ]
     else
       [ "key 'meta.${k}' is unrecognized; expected one of: \n  [${concatMapStringsSep ", " (x: "'${x}'") (attrNames metaTypes)}]" ];
-
-  checkMeta =
-    meta:
-    # Basic attribute checks
-    lib.optionals config.checkMeta (
-      lib.remove null (
-        lib.mapAttrsToList (checkMetaAttr "meta" metaTypes) meta
-      )
-    )
+  checkMeta = meta: optionals config.checkMeta (concatMap (attr: checkMetaAttr attr meta.${attr}) (attrNames meta)
 
     # Extended checks for problems, as they do not fit the module system
     ++ lib.optionals (meta ? problems) (
@@ -476,7 +454,7 @@ let
         (lib.mapAttrs (name: problem: { kind = name; } // problem))
         (lib.mapAttrsToList (
           name: problem:
-          lib.mapAttrsToList (checkMetaAttr "meta.problems.${name}" problemTypes) problem
+          lib.mapAttrsToList (checkMetaAttr "meta.problems.${name}" meta.problemTypes) problem
         ))
         (lib.concatLists)
         (lib.remove null)
@@ -511,11 +489,11 @@ let
         (lib.mapAttrsToList (
           kind: names:
           "keys [ ${
-            concatMapStringsSep " " (name: "'meta.problems.${name}'") names
+            lib.concatMapStringsSep " " (name: "'meta.problems.${name}'") names
           } ] all have the same problem kind, which is not allowed for kind '${kind}'"
         ))
       ]
-    );
+    ));
 
   checkOutputsToInstall = attrs: let
       expectedOutputs = attrs.meta.outputsToInstall or [];
@@ -533,21 +511,24 @@ let
   # reason is one of "unfree", "blocklisted", "broken", "insecure", ...
   # !!! reason strings are hardcoded into OfBorg, make sure to keep them in sync
   # Along with a boolean flag for each reason
-  checkValidity =
-    let
-      validYes = {
-        valid = "yes";
-        handled = true;
-      };
-    in
-    attrs:
+    checkValidity = attrs:
     # Check meta attribute types first, to make sure it is always called even when there are other issues
     # Note that this is not a full type check and functions below still need to by careful about their inputs!
-    let
-      res = checkMeta (attrs.meta or {});
-    in
-    if res != [] then
-      { valid = "no"; reason = "unknown-meta"; errormsg = "has an invalid meta attrset:${concatMapStrings (x: "\n  - " + x) res}\n"; }
+    let res = checkMeta (attrs.meta or {}); in if res != [] then
+      { valid = "no"; reason = "unknown-meta"; errormsg = "has an invalid meta attrset:${lib.concatMapStrings (x: "\n  - " + x) res}\n";
+        unfree = false; nonSource = false; broken = false; unsupported = false; insecure = false;
+      }
+    else {
+      unfree = hasUnfreeLicense attrs;
+      nonSource = hasNonSourceProvenance attrs;
+      broken = isMarkedBroken attrs;
+      unsupported = hasUnsupportedPlatform attrs;
+      insecure = isMarkedInsecure attrs;
+    } // (
+    # Check meta attribute types first, to make sure it is always called even when there are other issues
+    # Note that this is not a full type check and functions below still need to by careful about their inputs!
+    let res = checkMeta (attrs.meta or {}); in if res != [] then
+      { valid = "no"; reason = "unknown-meta"; errormsg = "has malformed metadata:${lib.concatMapStrings (x: "\n\t - " + x) res}"; }
     # --- Put checks that cannot be ignored here ---
     else if checkOutputsToInstall attrs then
       { valid = "no"; reason = "broken-outputs"; errormsg = "has invalid meta.outputsToInstall"; }
@@ -559,10 +540,12 @@ let
       { valid = "no"; reason = "blocklisted"; errormsg = "has a blocklisted license (‘${showLicense attrs.meta.license}’)"; }
     else if hasDeniedNonSourceProvenance attrs then
       { valid = "no"; reason = "non-source"; errormsg = "contains elements not built from source (‘${showSourceType attrs.meta.sourceProvenance}’)"; }
+
+    # --- Put checks that can be ignored here ---
     else if !allowBroken && attrs.meta.broken or false then
       { valid = "no"; reason = "broken"; errormsg = "is marked as broken"; }
     else if !allowUnsupportedSystem && hasUnsupportedPlatform attrs then
-      let toPretty' = toPretty {
+      let toPretty = lib.generators.toPretty {
             allowPrettyValues = true;
             indent = "  ";
           };
@@ -570,8 +553,8 @@ let
            errormsg = ''
              is not available on the requested hostPlatform:
                hostPlatform.config = "${hostPlatform.config}"
-               package.meta.platforms = ${toPretty' (attrs.meta.platforms or [])}
-               package.meta.badPlatforms = ${toPretty' (attrs.meta.badPlatforms or [])}
+               package.meta.platforms = ${toPretty (attrs.meta.platforms or [])}
+               package.meta.badPlatforms = ${toPretty (attrs.meta.badPlatforms or [])}
             '';
          }
     else if !(hasAllowedInsecure attrs) then
@@ -602,8 +585,7 @@ let
         ;
       }
     # -----
-    else validYes;
-
+    else { valid = "yes"; });
 
   # The meta attribute is passed in the resulting attribute set,
   # but it's not part of the actual derivation, i.e., it's not
