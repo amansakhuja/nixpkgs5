@@ -309,6 +309,16 @@
       },
       "name": "-deprecated-rust-beta"
     },
+    "8327": {
+      "compatible": [
+        "idea-community",
+        "idea-ultimate"
+      ],
+      "builds": {
+        "242.21829.142": "https://plugins.jetbrains.com/files/8327/585232/MinecraftDev-2024.2-1.8.1.zip"
+      },
+      "name": "minecraft-development"
+    },
     "8554": {
       "compatible": [
         "goland",
@@ -616,6 +626,16 @@
       },
       "name": "github-copilot"
     },
+    "18032": {
+      "compatible": [
+        "idea-community",
+        "idea-ultimate"
+      ],
+      "builds": {
+        "242.21829.142": "https://plugins.jetbrains.com/files/18032/594467/vineflower-intellij-plugin-1.2.0.zip"
+      },
+      "name": "vineflower"
+    },
     "18444": {
       "compatible": [
         "clion",
@@ -646,6 +666,37 @@
         "242.21829.153": "https://plugins.jetbrains.com/files/18444/165585/NetBeans6.5Keymap.zip"
       },
       "name": "netbeans-6-5-keymap"
+    },
+    "20123": {
+      "compatible": [
+        "clion",
+        "datagrip",
+        "goland",
+        "idea-community",
+        "idea-ultimate",
+        "mps",
+        "phpstorm",
+        "pycharm-community",
+        "pycharm-professional",
+        "rider",
+        "ruby-mine",
+        "rust-rover",
+        "webstorm"
+      ],
+      "builds": {
+        "241.18034.1093": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "241.18968.39": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.385": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.413": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.424": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.425": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.427": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.20224.431": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.21829.142": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.21829.149": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip",
+        "242.21829.153": "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip"
+      },
+      "name": "gdscript"
     },
     "20146": {
       "compatible": [
@@ -711,7 +762,9 @@
     "https://plugins.jetbrains.com/files/14059/82616/darcula-pitch-black.jar": "sha256-eXInfAqY3yEZRXCAuv3KGldM1pNKEioNwPB0rIGgJFw=",
     "https://plugins.jetbrains.com/files/164/590339/IdeaVIM-2.16.0.zip": "sha256-uMIrYoZE16X/K96HuDJx8QMh6wUbi4+qSw+HJAq7ukI=",
     "https://plugins.jetbrains.com/files/17718/590469/github-copilot-intellij-1.5.20.6554.zip": "sha256-QNVo6sLKwj+jJ2PMcJ3P5cAr1LwhFpH2+uglWO9ncQE=",
+    "https://plugins.jetbrains.com/files/18032/594467/vineflower-intellij-plugin-1.2.0.zip": "sha256-w92j6LAHFAikFAIrOUg8a5C7odVD624nIcQT050hLDo=",
     "https://plugins.jetbrains.com/files/18444/165585/NetBeans6.5Keymap.zip": "sha256-KrzZTKZMQqoEMw+vDUv2jjs0EX0leaPBkU8H/ecq/oI=",
+    "https://plugins.jetbrains.com/files/20123/563619/GdScript-2.5.6.zip": "sha256-pHmcD0gITA5E9vwHajnHfk+x7V6ijpXoTc4f/4xGRT4=",
     "https://plugins.jetbrains.com/files/20146/537545/Mermaid-0.0.22_IJ.232.zip": "sha256-DUiIQYIzYoXmgtBakSLtMB+xxJMaR70Jgg9erySa3wQ=",
     "https://plugins.jetbrains.com/files/2162/542984/StringManipulation-9.14.1.zip": "sha256-OqeQCqFe8iW/8NPg+9i+UKh+twIPQ9uLZrItMukCi7k=",
     "https://plugins.jetbrains.com/files/22407/591052/intellij-rust-241.38968.39.zip": "sha256-Pgtj1czuScTmog7oh/2aME9jv4KlhT/ep6hwjSB73Ak=",
@@ -728,6 +781,7 @@
     "https://plugins.jetbrains.com/files/7322/595111/python-ce-242.21829.142.zip": "sha256-DwQNhbNO1zk75lcf35spNnzo0u103UAhXignhO+grek=",
     "https://plugins.jetbrains.com/files/7391/561441/asciidoctor-intellij-plugin-0.42.2.zip": "sha256-oKczkLHAk2bJRNRgToVe0ySEJGF8+P4oWqQ33olwzWw=",
     "https://plugins.jetbrains.com/files/7391/591338/asciidoctor-intellij-plugin-0.43.1.zip": "sha256-AGP8YY6NG/hy7xIDoiJy3GZHRB9stVNYYoHtqOmYCx0=",
+    "https://plugins.jetbrains.com/files/8327/585232/MinecraftDev-2024.2-1.8.1.zip": "sha256-DoL+BctbcXT55bjcvmtx5wqfPK+VoAunyfvupoV459c=",
     "https://plugins.jetbrains.com/files/8554/579645/featuresTrainer-242.20224.175.zip": "sha256-5gYFQjYWFro/nDxCn8q51GkLLv3JkJDS7jr70xhM0Q0=",
     "https://plugins.jetbrains.com/files/8554/588322/featuresTrainer-242.21829.14.zip": "sha256-pL+j0K6U0DZibnmcIE6kY9Kj/+5g8akuHeuppuZiEII=",
     "https://plugins.jetbrains.com/files/8607/587258/NixIDEA-0.4.0.15.zip": "sha256-j5/LgTrFJ4OEIlocX4jcjgYzHlBId1nh1NfE2qLc1HQ=",
