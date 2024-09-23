@@ -1,10 +1,11 @@
 { pkgs
+, pkgsBuildBuild
 , lib
 , stdenv
+, callPackage
 , fetchFromGitHub
 , makeWrapper
 , gawk
-, gnum4
 , gnused
 , libxml2
 , libxslt
@@ -37,7 +38,6 @@
 , sha256 ? null
 , rev ? "OTP-${version}"
 , src ? fetchFromGitHub { inherit rev sha256; owner = "erlang"; repo = "otp"; }
-, enableHipe ? true
 , enableDebugInfo ? false
 , enableThreads ? true
 , enableSmpSupport ? true
@@ -83,9 +83,11 @@ assert javacSupport -> openjdk11 != null;
 assert ex_docSupport -> ex_doc != null;
 
 let
-  inherit (lib) optional optionals optionalAttrs optionalString;
+  inherit (lib) optionals optionalAttrs optionalString;
+  erlBuilder = pkgsBuildBuild.beam_minimal.interpreters."erlang_${lib.versions.major version}";
   wxPackages2 = if stdenv.isDarwin then [ wxGTK ] else wxPackages;
 
+  isCross = stdenv.hostPlatform != stdenv.buildPlatform;
 in
 stdenv.mkDerivation ({
   # name is used instead of pname to
@@ -98,13 +100,21 @@ stdenv.mkDerivation ({
 
   inherit src version;
 
-  nativeBuildInputs = [ autoconf makeWrapper perl gnum4 libxslt libxml2 ];
+  strictDeps = true;
+
+  nativeBuildInputs = [
+    autoconf
+    makeWrapper
+    libxml2
+  ];
+
+  depsBuildBuild = [ perl libxslt ] ++ optionals isCross [ erlBuilder ];
 
   buildInputs = [ ncurses opensslPackage ]
     ++ optionals wxSupport wxPackages2
     ++ optionals odbcSupport odbcPackages
     ++ optionals javacSupport javacPackages
-    ++ optional systemdSupport systemd
+    ++ optionals systemdSupport [ systemd ]
     ++ optionals stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [ AGL Carbon Cocoa WebKit ]);
 
   debugInfo = enableDebugInfo;
@@ -114,9 +124,10 @@ stdenv.mkDerivation ({
 
   postPatch = ''
     patchShebangs make
-
-    ${postPatch}
-  '' + optionalString (lib.versionOlder "25" version) ''
+  '' + optionalString isCross ''
+    substituteInPlace erts/emulator/Makefile.in \
+      --replace-fail '`utils/find_cross_ycf`' '${pkgsBuildBuild.beam_minimal.interpreters.erlang}/lib/erlang/erts-*/bin/yielding_c_fun'
+  '' + postPatch + optionalString (lib.versionOlder "25" version) ''
     substituteInPlace lib/os_mon/src/disksup.erl \
       --replace-fail '"sh ' '"${runtimeShell} '
   '';
@@ -126,9 +137,7 @@ stdenv.mkDerivation ({
   # derivation. Next, patch the first line to use the escript that will be
   # built during the build phase of this derivation. Finally, building the
   # documentation requires the erlang-logo.png asset.
-  preConfigure = ''
-    ./otp_build autoconf
-  '' + optionalString ex_docSupport ''
+  preConfigure = optionalString ex_docSupport ''
     mkdir -p $out/bin
     cp ${ex_doc}/bin/.ex_doc-wrapped $out/bin/ex_doc
     sed -i "1 s:^.*$:#!$out/bin/escript:" $out/bin/ex_doc
@@ -140,17 +149,17 @@ stdenv.mkDerivation ({
 
   configureFlags = [ "--with-ssl=${lib.getOutput "out" opensslPackage}" ]
     ++ [ "--with-ssl-incl=${lib.getDev opensslPackage}" ] # This flag was introduced in R24
-    ++ optional enableThreads "--enable-threads"
-    ++ optional enableSmpSupport "--enable-smp-support"
-    ++ optional enableKernelPoll "--enable-kernel-poll"
-    ++ optional enableHipe "--enable-hipe"
-    ++ optional javacSupport "--with-javac"
-    ++ optional odbcSupport "--with-odbc=${unixODBC}"
-    ++ optional wxSupport "--enable-wx"
-    ++ optional systemdSupport "--enable-systemd"
-    ++ optional stdenv.isDarwin "--enable-darwin-64bit"
+    ++ optionals enableThreads [ "--enable-threads" ]
+    ++ optionals enableSmpSupport [ "--enable-smp-support" ]
+    ++ optionals enableKernelPoll [ "--enable-kernel-poll" ]
+    ++ optionals javacSupport [ "--with-javac" ]
+    ++ optionals odbcSupport [ "--with-odbc=${unixODBC}" ]
+    ++ optionals wxSupport [ "--enable-wx" ]
+    ++ optionals systemdSupport [ "--enable-systemd" ]
+    ++ optionals stdenv.isDarwin [ "--enable-darwin-64bit" ]
     # make[3]: *** [yecc.beam] Segmentation fault: 11
-    ++ optional (stdenv.isDarwin && stdenv.isx86_64) "--disable-jit"
+    ++ optionals (stdenv.isDarwin && stdenv.isx86_64) [ "--disable-jit" ]
+    ++ optionals isCross [ "erl_xcomp_sysroot=${stdenv.cc.libc}" ]
     ++ configureFlags;
 
   # install-docs will generate and install manpages and html docs
