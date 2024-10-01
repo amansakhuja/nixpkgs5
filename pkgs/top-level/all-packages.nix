@@ -7183,6 +7183,8 @@ with pkgs;
 
   evtx = callPackage ../tools/security/evtx { };
 
+  foundry = callPackage ../development/tools/foundry { };
+
   luckybackup = libsForQt5.callPackage ../tools/backup/luckybackup {
     ssh = openssh;
   };
