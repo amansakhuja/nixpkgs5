@@ -79,9 +79,12 @@ stdenv.mkDerivation rec {
     cp resources/linux-icons/CraftOS-PC.desktop $out/share/applications/CraftOS-PC.desktop
   '';
 
-  passthru.tests = {
-    eval-hello-world = callPackage ./test-eval-hello-world { };
-    eval-periphemu = callPackage ./test-eval-periphemu { };
+  passthru = {
+    updateScript = ./update.sh;
+    tests = {
+      eval-hello-world = callPackage ./test-eval-hello-world { };
+      eval-periphemu = callPackage ./test-eval-periphemu { };
+    };
   };
 
   meta = with lib; {
