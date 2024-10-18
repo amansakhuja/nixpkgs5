@@ -450,7 +450,7 @@ in
       # kinds of weird issues (most noticeably, waiting for host disk device
       # nodes).
       "/sys" = { fsType = "sysfs"; options = [ "nosuid" "noexec" "nodev" ]; };
-
+    } // optionalAttrs (!config.boot.isNspawnContainer) {
       "/proc" = { fsType = "proc"; options = [ "nosuid" "noexec" "nodev" ]; };
       "/run" = { fsType = "tmpfs"; options = [ "nosuid" "nodev" "strictatime" "mode=755" "size=${config.boot.runSize}" ]; };
       "/dev" = { fsType = "devtmpfs"; options = [ "nosuid" "strictatime" "mode=755" "size=${config.boot.devSize}" ]; };
