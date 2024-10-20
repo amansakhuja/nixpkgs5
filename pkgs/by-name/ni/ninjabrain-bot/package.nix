@@ -39,7 +39,7 @@ maven.buildMavenPackage rec {
     runHook preInstall
 
     install -m444 -D target/ninjabrainbot-${version}-jar-with-dependencies.jar $out/share/java/ninjabrain-bot.jar
-    makeWrapper ${jre}/bin/java $out/bin/ninjabrain-bot \
+    makeWrapper ${lib.getExe jre} $out/bin/ninjabrain-bot \
       --add-flags "-jar $out/share/java/ninjabrain-bot.jar" \
       --prefix LD_LIBRARY_PATH ":" ${lib.makeLibraryPath linkedLibraries}
 
@@ -51,13 +51,13 @@ maven.buildMavenPackage rec {
       name = "ninjabrain-bot";
       type = "Application";
       exec = "ninjabrain-bot";
-      comment = "Accurate stronghold calculator for Minecraft speedrunning.";
+      comment = "Accurate stronghold calculator for Minecraft speedrunning";
       desktopName = "Ninjabrain Bot";
     })
   ];
 
   meta = {
-    description = "Accurate stronghold calculator for Minecraft speedrunning.";
+    description = "Accurate stronghold calculator for Minecraft speedrunning";
     homepage = "https://github.com/Ninjabrain1/Ninjabrain-Bot";
     license = lib.licenses.unfree;
     maintainers = with lib.maintainers; [ emilio-barradas ];
