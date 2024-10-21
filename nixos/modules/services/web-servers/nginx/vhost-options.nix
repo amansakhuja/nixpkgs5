@@ -260,7 +260,7 @@ with lib;
 
       includeSubdomains = mkOption {
         type = types.bool;
-        default = true;
+        default = false;
         description = ''
           If HTTP Strict Transport Security (HSTS) is enabled by
           `strictTransportSecurity.enable`, also specify the `includeSubdomains`
