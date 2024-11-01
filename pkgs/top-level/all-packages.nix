@@ -7203,6 +7203,8 @@ with pkgs;
 
   xjobs = callPackage ../tools/misc/xjobs { };
 
+  wfdb = callPackage ../tools/misc/wfdb { };
+
   xob = callPackage ../tools/X11/xob { };
 
   z-lua = callPackage ../tools/misc/z-lua { };
