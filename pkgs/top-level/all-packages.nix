@@ -7491,6 +7491,8 @@ with pkgs;
 
   flamerobin = callPackage ../applications/misc/flamerobin { };
 
+  dpcmd = callPackage ../tools/misc/dpcmd { };
+
   flashrom = callPackage ../tools/misc/flashrom { };
 
   flexoptix-app = callPackage ../tools/misc/flexoptix-app { };
