@@ -86,14 +86,15 @@ in
 
   passthru = {
     updateScript = nix-update-script { };
-    tests = {
-      pgvecto-rs = nixosTests.pgvecto-rs;
-    };
+    tests = nixosTests.postgresql.pgvecto-rs.passthru.override postgresql;
   };
 
   meta = with lib; {
     # Upstream removed support for PostgreSQL 12 and 13 on 0.3.0: https://github.com/tensorchord/pgvecto.rs/issues/343
-    broken = stdenv.hostPlatform.isDarwin || (versionOlder postgresql.version "14");
+    broken = stdenv.hostPlatform.isDarwin || (versionOlder postgresql.version "14") ||
+      # PostgreSQL 17 support issue upstream: https://github.com/tensorchord/pgvecto.rs/issues/607
+      # Check after next package update.
+      versionAtLeast postgresql.version "17" && version == "0.3.0";
     description = "Scalable, Low-latency and Hybrid-enabled Vector Search in Postgres";
     homepage = "https://github.com/tensorchord/pgvecto.rs";
     license = licenses.asl20;
