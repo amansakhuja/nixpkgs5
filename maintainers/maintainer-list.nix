@@ -1926,6 +1926,12 @@
     githubId = 21687187;
     name = "Mirza Arnaut";
   };
+  asamonik = {
+    email = "mail@asamonik.at";
+    github = "asamonik";
+    githubId = 49288593;
+    name = "Andreas";
+  };
   asbachb = {
     email = "asbachb-nixpkgs-5c2a@impl.it";
     matrix = "@asbachb:matrix.org";
