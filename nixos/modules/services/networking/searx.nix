@@ -310,6 +310,7 @@ in
             User = "searx";
             RuntimeDirectory = "searx";
             RuntimeDirectoryMode = "750";
+            RuntimeDirectoryPreserve = "yes";
           }
           // optionalAttrs (cfg.environmentFile != null) {
             EnvironmentFile = cfg.environmentFile;
