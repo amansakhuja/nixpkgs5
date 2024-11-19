@@ -55,22 +55,11 @@ stdenv.mkDerivation rec {
     '') testInputs}
   '';
 
-  nativeBuildInputs = [ jdk ant makeWrapper stripJavaArchivesHook ];
-
-  buildPhase = ''
-    runHook preBuild
-    ant
-    runHook postBuild
-  '';
+  nativeBuildInputs = [ jdk ant ant.hook makeWrapper stripJavaArchivesHook ];
 
   inherit doCheck;
 
-  checkPhase = ''
-    runHook preCheck
-    ant run.tests
-    ant run.func-tests
-    runHook postCheck
-  '';
+  antCheckFlags = [ "run.tests" "run.func-tests" ];
 
   installPhase = ''
     runHook preInstall
