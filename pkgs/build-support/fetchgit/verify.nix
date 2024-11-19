@@ -1,11 +1,21 @@
-{ lib, runCommand, writeShellApplication, writeText, git, openssh, gnupg }: (
-  { name
-  , rev
-  , verifyCommit
-  , verifyTag
-  , publicKeys
-  , leaveDotGit
-  , fetchresult
+{
+  lib,
+  runCommand,
+  writeShellApplication,
+  writeText,
+  git,
+  openssh,
+  gnupg,
+}:
+(
+  {
+    name,
+    rev,
+    verifyCommit,
+    verifyTag,
+    publicKeys,
+    leaveDotGit,
+    fetchresult,
   }:
   let
     # split gpg keys from ssh keys
@@ -29,37 +39,43 @@
       '';
     };
     # create "allowed signers" file for ssh key verification: https://man.openbsd.org/ssh-keygen.1#ALLOWED_SIGNERS
-    allowedSignersFile = writeText "allowed signers" (lib.concatMapStrings (k: "* ${k.type} ${k.key}\n") sshKeys);
+    allowedSignersFile = writeText "allowed signers" (
+      lib.concatMapStrings (k: "* ${k.type} ${k.key}\n") sshKeys
+    );
   in
   runCommand name
-  {
-    buildInputs = [ git openssh gpgWithKeys ];
-    inherit verifyCommit verifyTag leaveDotGit;
-  } ''
-    if test "$verifyCommit" == 1; then
-        git \
-          -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
-          -c safe.directory='*' \
-          -c gpg.program="gpgWithKeys" \
-          -C "${fetchresult}" \
-          verify-commit ${rev}
-    fi
+    {
+      buildInputs = [
+        git
+        openssh
+        gpgWithKeys
+      ];
+      inherit verifyCommit verifyTag leaveDotGit;
+    }
+    ''
+      if test "$verifyCommit" == 1; then
+          git \
+            -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
+            -c safe.directory='*' \
+            -c gpg.program="gpgWithKeys" \
+            -C "${fetchresult}" \
+            verify-commit ${rev}
+      fi
 
-    if test "$verifyTag" == 1; then
-        git \
-          -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
-          -c safe.directory='*' \
-          -c gpg.program="gpgWithKeys" \
-          -C "${fetchresult}" \
-          verify-tag ${rev}
-    fi
+      if test "$verifyTag" == 1; then
+          git \
+            -c gpg.ssh.allowedSignersFile="${allowedSignersFile}" \
+            -c safe.directory='*' \
+            -c gpg.program="gpgWithKeys" \
+            -C "${fetchresult}" \
+            verify-tag ${rev}
+      fi
 
-    if test "$leaveDotGit" != 1; then
-        cp -r --no-preserve=all "${fetchresult}" $out
-        rm -rf "$out"/.git
-    else
-        ln "${fetchresult}" $out
-    fi
-  ''
+      if test "$leaveDotGit" != 1; then
+          cp -r --no-preserve=all "${fetchresult}" $out
+          rm -rf "$out"/.git
+      else
+          ln "${fetchresult}" $out
+      fi
+    ''
 )
-
