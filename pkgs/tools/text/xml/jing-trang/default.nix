@@ -12,15 +12,13 @@ stdenv.mkDerivation rec {
     fetchSubmodules = true;
   };
 
-  buildInputs = [ jdk_headless ant saxon ];
+  buildInputs = [ jdk_headless ant ant.hook saxon ];
 
   CLASSPATH = "lib/saxon.jar";
 
   patches = [
     ./no-git-during-build.patch
   ];
-
-  preBuild = "ant";
 
   installPhase = ''
     mkdir -p "$out"/{share/java,bin}
