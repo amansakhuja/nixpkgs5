@@ -47,13 +47,13 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "easyeffects";
-  version = "7.1.8";
+  version = "7.1.9";
 
   src = fetchFromGitHub {
     owner = "wwmm";
     repo = "easyeffects";
     rev = "refs/tags/v${version}";
-    hash = "sha256-eDjtmr100WOCd0k0p3rUEtu6O9LlSGs43oaIXT07ikI=";
+    hash = "sha256-It+kldlhThWF9y/rTgKt9QlIouH1cQcCtSHQTsaGjfo=";
   };
 
   nativeBuildInputs = [
@@ -113,6 +113,11 @@ stdenv.mkDerivation rec {
         --set LADSPA_PATH "${lib.makeSearchPath "lib/ladspa" ladspaPlugins}"
       )
     '';
+
+  patches = [
+    # Remove when lsp-plugins is >= 1.2.17. (https://github.com/wwmm/easyeffects/issues/3394)
+    ./0001-Revert-Merge-pull-request-3340-from-violetmage-viole.patch
+  ];
 
   separateDebugInfo = true;
 

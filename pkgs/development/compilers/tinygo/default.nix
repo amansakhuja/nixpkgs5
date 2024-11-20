@@ -28,13 +28,13 @@ in
 
 buildGoModule rec {
   pname = "tinygo";
-  version = "0.33.0";
+  version = "0.34.0";
 
   src = fetchFromGitHub {
     owner = "tinygo-org";
     repo = "tinygo";
     rev = "v${version}";
-    hash = "sha256-YqjMk7EF/fyOhsMLcG56FGHfOZSdaFhUbiiHk+SXajY=";
+    hash = "sha256-jntixwHGg9buWQuu9I47DHUxK1xJbDRHxRMEwKoOhHo=";
     fetchSubmodules = true;
     # The public hydra server on `hydra.nixos.org` is configured with
     # `max_output_size` of 3GB. The purpose of this `postFetch` step
@@ -45,7 +45,7 @@ buildGoModule rec {
     '';
   };
 
-  vendorHash = "sha256-cTqrvh0w3KQg3P1lCfAez0kqAMBJHQbqS3sx8uqGvEs=";
+  vendorHash = "sha256-aY1gX++Dc5/G6VFXnP7sBdekk2IKHlenOC0erlB/Quw=";
 
   patches = [
     ./0001-GNUmakefile.patch
@@ -54,7 +54,7 @@ buildGoModule rec {
   nativeCheckInputs = [ binaryen ];
   nativeBuildInputs = [ makeWrapper lld ];
   buildInputs = [ llvm clang.cc ]
-    ++ lib.optionals stdenv.isDarwin [ xar ];
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ xar ];
 
   doCheck = (stdenv.buildPlatform.canExecute stdenv.hostPlatform);
   inherit tinygoTests;
@@ -112,7 +112,7 @@ buildGoModule rec {
 
   # GDB upstream does not support ARM darwin
   runtimeDeps = [ go clang.cc lld avrdude openocd binaryen ]
-    ++ lib.optionals (!(stdenv.isDarwin && stdenv.isAarch64)) [ gdb ];
+    ++ lib.optionals (!(stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64)) [ gdb ];
 
   installPhase = ''
     runHook preInstall

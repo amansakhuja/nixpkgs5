@@ -1,13 +1,16 @@
 # Do not edit manually, run ./update-providers.py
 
 {
-  version = "2.2.3";
+  version = "2.3.2";
   providers = {
-    airplay = [
+    airplay = ps: [
     ];
-    apple_music = [
+    apple_music = ps: [
     ]; # missing pywidevine
-    builtin = [
+    bluesound = ps: with ps; [
+      pyblu
+    ];
+    builtin = ps: [
     ];
     chromecast = ps: with ps; [
       pychromecast
@@ -18,11 +21,11 @@
     dlna = ps: with ps; [
       async-upnp-client
     ];
-    fanarttv = [
+    fanarttv = ps: [
     ];
-    filesystem_local = [
+    filesystem_local = ps: [
     ];
-    filesystem_smb = [
+    filesystem_smb = ps: [
     ];
     fully_kiosk = ps: with ps; [
       python-fullykiosk
@@ -30,24 +33,28 @@
     hass = ps: with ps; [
       hass-client
     ];
-    hass_players = [
+    hass_players = ps: [
     ];
     jellyfin = ps: with ps; [
       aiojellyfin
     ];
-    musicbrainz = [
+    musicbrainz = ps: [
     ];
     opensubsonic = ps: with ps; [
       py-opensonic
     ];
+    player_group = ps: [
+    ];
     plex = ps: with ps; [
       plexapi
     ];
-    qobuz = [
+    qobuz = ps: [
     ];
     radiobrowser = ps: with ps; [
       radios
     ];
+    siriusxm = ps: [
+    ]; # missing sxm
     slimproto = ps: with ps; [
       aioslimproto
     ];
@@ -55,28 +62,27 @@
       bidict
       snapcast
     ];
-    sonos = ps: with ps; [
+    sonos = ps: [
+    ]; # missing aiosonos
+    sonos_s1 = ps: with ps; [
       defusedxml
       soco
-      sonos-websocket
     ];
-    soundcloud = [
+    soundcloud = ps: [
     ]; # missing soundcloudpy
     spotify = ps: with ps; [
       pkce
     ];
-    template_player_provider = [
+    template_player_provider = ps: [
     ];
-    test = [
+    test = ps: [
     ];
-    theaudiodb = [
+    theaudiodb = ps: [
     ];
     tidal = ps: with ps; [
       tidalapi
     ];
-    tunein = [
-    ];
-    ugp = [
+    tunein = ps: [
     ];
     ytmusic = ps: with ps; [
       yt-dlp

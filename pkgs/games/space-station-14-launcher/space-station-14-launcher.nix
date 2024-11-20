@@ -23,7 +23,7 @@
 , gdk-pixbuf
 }:
 let
-  version = "0.28.1";
+  version = "0.29.1";
   pname = "space-station-14-launcher";
 in
 buildDotnetModule rec {
@@ -36,7 +36,7 @@ buildDotnetModule rec {
     owner = "space-wizards";
     repo = "SS14.Launcher";
     rev = "v${version}";
-    hash = "sha256-5g/twJgQ7i6yQBYP7U6bn1UMU09WkJeolgCl+0pGT2Y=";
+    hash = "sha256-Gajs8zINWBJ3BvAPKYan0bCRbEVscz56pyE9WOLiOqU=";
     fetchSubmodules = true;
   };
 

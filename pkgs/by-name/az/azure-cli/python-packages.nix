@@ -54,6 +54,7 @@ let
             humanfriendly
             jmespath
             knack
+            microsoft-security-utilities-secret-masker
             msal-extensions
             msal
             msrestazure
@@ -69,7 +70,7 @@ let
 
         nativeCheckInputs = with self; [ pytest ];
 
-        doCheck = stdenv.isLinux;
+        doCheck = stdenv.hostPlatform.isLinux;
 
         # ignore tests that does network call, or assume powershell
         checkPhase = ''
@@ -81,6 +82,7 @@ let
             --ignore=azure/cli/core/tests/test_generic_update.py \
             --ignore=azure/cli/core/tests/test_cloud.py \
             --ignore=azure/cli/core/tests/test_extension.py \
+            --ignore=azure/cli/core/tests/test_util.py \
             -k 'not metadata_url and not test_send_raw_requests and not test_format_styled_text_legacy_powershell'
         '';
 
@@ -119,15 +121,21 @@ let
         overrideAzureMgmtPackage super.azure-mgmt-batchai "7.0.0b1" "zip"
           "sha256-mT6vvjWbq0RWQidugR229E8JeVEiobPD3XA/nDM3I6Y=";
 
+      azure-mgmt-billing =
+        (overrideAzureMgmtPackage super.azure-mgmt-billing "6.0.0" "zip"
+          "sha256-1PXFpBiKRW/h6zK2xF9VyiBpx0vkHrdpIYQLOfL1wH8="
+        ).overridePythonAttrs
+          (attrs: {
+            propagatedBuildInputs = attrs.propagatedBuildInputs or [ ] ++ [
+              self.msrest
+              self.msrestazure
+            ];
+          });
+
       # AttributeError: type object 'CustomDomainsOperations' has no attribute 'disable_custom_https'
       azure-mgmt-cdn =
         overrideAzureMgmtPackage super.azure-mgmt-cdn "12.0.0" "zip"
           "sha256-t8PuIYkjS0r1Gs4pJJJ8X9cz8950imQtbVBABnyMnd0=";
-
-      # ImportError: cannot import name 'SqlDedicatedGatewayServiceResourceCreateUpdateProperties' from 'azure.mgmt.cosmosdb.models'
-      azure-mgmt-cosmosdb =
-        overrideAzureMgmtPackage super.azure-mgmt-cosmosdb "9.5.1" "tar.gz"
-          "sha256-TlXTlz8RzwLPeoBVruhmFSM9fL47siegfBdrrIvH7wI=";
 
       # ValueError: The operation 'azure.mgmt.devtestlabs.operations#VirtualMachinesOperations.delete' is invalid.
       azure-mgmt-devtestlabs =
@@ -163,18 +171,13 @@ let
 
       # AttributeError: module 'azure.mgmt.rdbms.postgresql_flexibleservers.operations' has no attribute 'BackupsOperations'
       azure-mgmt-rdbms =
-        overrideAzureMgmtPackage super.azure-mgmt-rdbms "10.2.0b16" "tar.gz"
-          "sha256-HDktzv8MOs5VRQArbS3waMhjbwVgZMmvch7PXen5DjE=";
+        overrideAzureMgmtPackage super.azure-mgmt-rdbms "10.2.0b17" "tar.gz"
+          "sha256-1nnRkyr4Im79B7DDqGz/FOrPAToFaGhE+a7r5bZMuOQ=";
 
-      # ModuleNotFoundError: No module named 'azure.mgmt.resource.deploymentstacks'
-      azure-mgmt-resource =
-        overrideAzureMgmtPackage super.azure-mgmt-resource "23.1.1" "tar.gz"
-          "sha256-ILawBrVE/bGWB/P2o4EQViXgu2D78wNvOYhcRkbTND4=";
-
-      # ImportError: cannot import name 'Replica' from 'azure.mgmt.signalr.models'
+      # ImportError: cannot import name 'IPRule' from 'azure.mgmt.signalr.models'
       azure-mgmt-signalr =
-        overrideAzureMgmtPackage super.azure-mgmt-signalr "2.0.0b1" "tar.gz"
-          "sha256-oK2ceBEoQ7gAeG6mye+x8HPzQU9bUNRPVJtRW2GL4xg=";
+        overrideAzureMgmtPackage super.azure-mgmt-signalr "2.0.0b2" "tar.gz"
+          "sha256-05PUV8ouAKq/xhGxVEWIzDop0a7WDTV5mGVSC4sv9P4=";
 
       # ImportError: cannot import name 'AdvancedThreatProtectionName' from 'azure.mgmt.sql.models'
       azure-mgmt-sql =

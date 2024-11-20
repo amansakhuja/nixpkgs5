@@ -10,7 +10,6 @@
   falcon,
   fastapi,
   fetchFromGitHub,
-  fetchpatch,
   flask,
   flask-sockets,
   gunicorn,
@@ -33,37 +32,28 @@
 
 buildPythonPackage rec {
   pname = "slack-bolt";
-  version = "1.18.1";
+  version = "1.21.2";
   pyproject = true;
 
-  disabled = pythonOlder "3.7";
+  disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "slackapi";
     repo = "bolt-python";
     rev = "refs/tags/v${version}";
-    hash = "sha256-UwVStemFVA4hgqnSpCKpQGwLYG+p5z7MwFXXnIhrvNk=";
+    hash = "sha256-4zEg60f3wtLnzrZU4mZMJmF6hO0EiHDTx6iw4WDsx0U=";
   };
 
   postPatch = ''
-    substituteInPlace setup.py \
-      --replace-fail "pytest-runner==5.2" ""
+    substituteInPlace pyproject.toml \
+      --replace-fail '"pytest-runner==5.2",' ""
   '';
-
-  patches = [
-    # moto >=5 support, https://github.com/slackapi/bolt-python/pull/1046
-    (fetchpatch {
-      name = "moto-support.patch";
-      url = "https://github.com/slackapi/bolt-python/commit/69c2015ef49773de111f184dca9668aefac9e7c0.patch";
-      hash = "sha256-KW7KPeOqanV4n1UOv4DCadplJsqsPY+ju4ry0IvUqpA=";
-    })
-  ];
 
   build-system = [ setuptools ];
 
   dependencies = [ slack-sdk ];
 
-  passthru.optional-dependencies = {
+  optional-dependencies = {
     async = [
       aiohttp
       websockets
@@ -94,7 +84,7 @@ buildPythonPackage rec {
     docker
     pytest-asyncio
     pytestCheckHook
-  ] ++ lib.flatten (builtins.attrValues passthru.optional-dependencies);
+  ] ++ lib.flatten (builtins.attrValues optional-dependencies);
 
   preCheck = ''
     export HOME="$(mktemp -d)"

@@ -42,8 +42,8 @@ let
 
   # Please keep the version x.y.0.z and do not update to x.y.76.z because the
   # source of the latter disappears much faster.
-  version = "8.127.0.200";
-  revision = "359";
+  version = "8.132.0.201";
+  revision = "373";
 
   rpath =
     lib.makeLibraryPath [
@@ -96,14 +96,14 @@ let
       xorg.libXScrnSaver
       xorg.libxcb
     ]
-    + ":${stdenv.cc.cc.lib}/lib64";
+    + ":${lib.getLib stdenv.cc.cc}/lib64";
 
   src =
     if stdenv.hostPlatform.system == "x86_64-linux" then
       fetchurl {
         name = "skypeforlinux-${version}-${revision}.snap";
         url = "https://api.snapcraft.io/api/v1/snaps/download/QRDEfjn4WJYnm0FzDKwqqRZZI77awQEV_${revision}.snap";
-        hash = "sha512-C0UQ9mUhrt3CXBPG1BEz4CjjYfy/mRkgrBpjTxhYpeACJq0rNwTUMacicF7BHDgllQmfAdr2/feLyqbsr9HTBQ==";
+        hash = "sha512-Hrb/MlCYTvQ/4kicsnBfdKtnUPP8nFi1TKQ4zl3dtvwUWl9QGXX//sNQoBOj6b9KkgpCi6pI04wIWp/zdRMl6Q==";
       }
     else
       throw "Skype for linux is not supported on ${stdenv.hostPlatform.system}";

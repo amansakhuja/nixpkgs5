@@ -13,21 +13,21 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "git-workspace";
-  version = "1.5.0";
+  version = "1.7.0";
 
   src = fetchFromGitHub {
     owner = "orf";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-qAJv4iCw9gkO9yPVQUqla7UWpNkPjPBa4IGQfOyd8k0=";
+    sha256 = "sha256-cAAEbeA7+lnFH5vr+cfOlkhRjZJnIWX7AoKnow68k3I=";
   };
 
-  cargoHash = "sha256-p+mZN0TXxntT22vp6uBRc6kBTzVN3/Oy7D4v3ihwV8Y=";
+  cargoHash = "sha256-xLsN9yiAo7HP2HpixZ5SUu0Wnv07nL9D8t+JPT6uKb0=";
 
   nativeBuildInputs = [ pkg-config ];
 
   buildInputs = [ openssl ]
-    ++ lib.optionals stdenv.isDarwin [ libiconv Security ];
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ libiconv Security ];
 
   passthru = {
     updateScript = nix-update-script { };

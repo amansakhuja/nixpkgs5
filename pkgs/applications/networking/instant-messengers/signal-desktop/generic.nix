@@ -8,8 +8,7 @@
 , asar
 , rsync
 , python3
-, wrapGAppsHook3
-, makeWrapper
+, buildPackages
 , nixosTests
 , gtk3
 , atk
@@ -127,7 +126,9 @@ stdenv.mkDerivation rec {
     asar
     python3
     autoPatchelfHook
-    (wrapGAppsHook3.override { inherit makeWrapper; })
+    # override doesn't preserve splicing https://github.com/NixOS/nixpkgs/issues/132651
+    # Has to use `makeShellWrapper` from `buildPackages` even though `makeShellWrapper` from the inputs is spliced because `propagatedBuildInputs` would pick the wrong one because of a different offset.
+    (buildPackages.wrapGAppsHook3.override { makeWrapper = buildPackages.makeShellWrapper; })
   ];
 
   buildInputs = [
@@ -156,6 +157,7 @@ stdenv.mkDerivation rec {
     libXrender
     libXtst
     libappindicator-gtk3
+    libpulseaudio
     libnotify
     libuuid
     mesa # for libgbm
@@ -173,7 +175,6 @@ stdenv.mkDerivation rec {
     libnotify
     libdbusmenu
     pipewire
-    stdenv.cc.cc
     xdg-utils
     wayland
   ];
@@ -235,7 +236,7 @@ stdenv.mkDerivation rec {
 
     # Fix the desktop link
     substituteInPlace $out/share/applications/${pname}.desktop \
-      --replace "/opt/${dir}/${pname}" $out/bin/${pname} \
+      --replace-fail "/opt/${dir}/${pname}" ${meta.mainProgram} \
       --replace-fail "StartupWMClass=Signal" "StartupWMClass=signal"
 
     # Note: The following path contains bundled libraries:
@@ -272,7 +273,7 @@ stdenv.mkDerivation rec {
       emily
     ];
     mainProgram = pname;
-    platforms = [ "x86_64-linux" "aarch64-linux" ];
+    platforms = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
   };
 }

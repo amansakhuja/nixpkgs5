@@ -1,6 +1,17 @@
-{ stdenv, lib, buildMozillaMach, callPackage, fetchurl, fetchpatch, nixosTests, icu73, fetchpatch2, config }:
+{ stdenv, lib, buildMozillaMach, callPackage, fetchurl, icu73, fetchpatch2, config }:
 
 let
+  icu73' = icu73.overrideAttrs (attrs: {
+    # standardize vtzone output
+    # Work around ICU-22132 https://unicode-org.atlassian.net/browse/ICU-22132
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=1790071
+    patches = attrs.patches ++ [(fetchpatch2 {
+      url = "https://hg.mozilla.org/mozilla-central/raw-file/fb8582f80c558000436922fb37572adcd4efeafc/intl/icu-patches/bug-1790071-ICU-22132-standardize-vtzone-output.diff";
+      stripLen = 3;
+      hash = "sha256-MGNnWix+kDNtLuACrrONDNcFxzjlUcLhesxwVZFzPAM=";
+    })];
+  });
+
   common = { version, sha512, updateScript }: (buildMozillaMach rec {
     pname = "thunderbird";
     inherit version updateScript;
@@ -15,6 +26,10 @@ let
       # The file to be patched is different from firefox's `no-buildconfig-ffx90.patch`.
       ./no-buildconfig.patch
     ];
+
+    extraPassthru = {
+      icu73 = icu73';
+    };
 
     meta = with lib; {
       changelog = "https://www.thunderbird.net/en-US/thunderbird/${version}/releasenotes/";
@@ -34,34 +49,28 @@ let
 
     pgoSupport = false; # console.warn: feeds: "downloadFeed: network connection unavailable"
 
-    icu73 = icu73.overrideAttrs (attrs: {
-      # standardize vtzone output
-      # Work around ICU-22132 https://unicode-org.atlassian.net/browse/ICU-22132
-      # https://bugzilla.mozilla.org/show_bug.cgi?id=1790071
-      patches = attrs.patches ++ [(fetchpatch2 {
-        url = "https://hg.mozilla.org/mozilla-central/raw-file/fb8582f80c558000436922fb37572adcd4efeafc/intl/icu-patches/bug-1790071-ICU-22132-standardize-vtzone-output.diff";
-        stripLen = 3;
-        hash = "sha256-MGNnWix+kDNtLuACrrONDNcFxzjlUcLhesxwVZFzPAM=";
-      })];
-    });
+    icu73 = icu73';
   };
 
 in rec {
-  thunderbird = thunderbird-128;
+  # Upstream claims -latest is "for testing purposes only". Stick to -esr until this changes.
+  thunderbird = thunderbird-esr;
 
-  thunderbird-115 = common {
-    version = "115.15.0";
-    sha512 = "b161b99e09b6d1ba833f77264e35034ad199438b4fc88d244a6b68c84693fa2e90fbab60dafb827a2e23b37c484f9843a58751d93826ba7cdd0391114d253de2";
+  thunderbird-latest = common {
+    version = "132.0.1";
+    sha512 = "ff2ff1344c3ab6594fba2e03d3f0548221934b94972819cfb6de9cea0bf9bac4ec67d14e7c6b9ae854ecdbc472b814a5f6f7204a9ce71ddac6167ff536a6276a";
 
     updateScript = callPackage ./update.nix {
-      attrPath = "thunderbirdPackages.thunderbird-115";
-      versionPrefix = "115";
+      attrPath = "thunderbirdPackages.thunderbird-latest";
     };
   };
 
+  # Eventually, switch to an updateScript without versionPrefix hardcoded...
+  thunderbird-esr = thunderbird-128;
+
   thunderbird-128 = common {
-    version = "128.1.1esr";
-    sha512 = "91e17d63383b05a7565838c61eda3b642f1bb3b4c43ae78a8810dd6d9ba2e5f10939be17598dd5e87bdf28d6f70ff9e154e54218aaf161bd89a5a6d30b504427";
+    version = "128.4.3esr";
+    sha512 = "18691722f6376f3dc0658c01164fcdbf6008fc31eff8c1bd403d34f188db0e7850883315a96fc07289d207c9977d732628d3945736aa191fefd0a01735e3037d";
 
     updateScript = callPackage ./update.nix {
       attrPath = "thunderbirdPackages.thunderbird-128";
@@ -72,5 +81,6 @@ in rec {
 }
  // lib.optionalAttrs config.allowAliases {
   thunderbird-102 = throw "Thunderbird 102 support ended in September 2023";
+  thunderbird-115 = throw "Thunderbird 115 support ended in October 2024";
 }
 

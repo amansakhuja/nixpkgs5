@@ -1,6 +1,7 @@
 { lib
 , fetchFromGitHub
 , buildDotnetModule
+, dotnetCorePackages
 }:
 
 buildDotnetModule rec {
@@ -11,9 +12,10 @@ buildDotnetModule rec {
     owner = "github";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-F1sxT9wh/K6VP7n1SlmmvmHlcgxDJw6Rht2hPIiRFjE=";
+    hash = "sha256-F1sxT9wh/K6VP7n1SlmmvmHlcgxDJw6Rht2hPIiRFjE=";
   };
 
+  dotnet-sdk = dotnetCorePackages.sdk_6_0;
   projectFile = "src/gei/gei.csproj";
   nugetDeps = ./deps.nix; # File generated with `nix-build -A gh-gei.passthru.fetch-deps`.
 

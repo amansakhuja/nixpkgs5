@@ -19,13 +19,13 @@
 assert blas.implementation == "openblas" && lapack.implementation == "openblas";
 stdenv.mkDerivation (finalAttrs: {
   pname = "kaldi";
-  version = "0-unstable-2024-07-25";
+  version = "0-unstable-2024-10-04";
 
   src = fetchFromGitHub {
     owner = "kaldi-asr";
     repo = "kaldi";
-    rev = "122a3f239ed2f24271eb61b9aa3060fa06b820ac";
-    sha256 = "sha256-tUb4YeYXFWpxV4GONoxo2QwRqbBemqm2sFP6jkoiBWA=";
+    rev = "4a8b7f673275597fef8a15b160124bd0985b59bd";
+    sha256 = "sha256-CY40zkVP0ZTjOBjnmVyFdqaHdAxuGGH82GzudoA5MyM=";
   };
 
   cmakeFlags = [
@@ -39,7 +39,7 @@ stdenv.mkDerivation (finalAttrs: {
   buildInputs = [
     openblas
     icu
-  ] ++ lib.optionals stdenv.isDarwin [
+  ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
     Accelerate
   ];
 

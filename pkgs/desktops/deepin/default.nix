@@ -1,8 +1,7 @@
 {
   lib,
-  pkgs,
   config,
-  libsForQt5,
+  pkgs,
 }:
 let
   packages =
@@ -39,6 +38,7 @@ let
       dtk6log = callPackage ./library/dtk6log { };
       qt6platform-plugins = callPackage ./library/qt6platform-plugins { };
       qt6integration = callPackage ./library/qt6integration { };
+      qt6mpris = callPackage ./library/qt6mpris { };
 
       #### CORE
       deepin-kwin = callPackage ./core/deepin-kwin { };
@@ -117,4 +117,4 @@ let
       go-dbus-factory = throw "Then 'deepin.go-dbus-factory' package was removed, use 'go mod' to manage it"; # added 2024-05-31
     };
 in
-lib.makeScope libsForQt5.newScope packages
+lib.makeScope pkgs.newScope packages

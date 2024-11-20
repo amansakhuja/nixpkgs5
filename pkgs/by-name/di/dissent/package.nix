@@ -1,4 +1,5 @@
 { buildGoModule
+, fetchFromGitLab
 , fetchFromGitHub
 , gobject-introspection
 , gst_all_1
@@ -12,6 +13,19 @@
 , wrapGAppsHook4
 }:
 
+let
+  libspelling_2_1 = libspelling.overrideAttrs {
+    version = "0.2.1";
+
+    src = fetchFromGitLab {
+      domain = "gitlab.gnome.org";
+      owner = "GNOME";
+      repo = "libspelling";
+      rev = "refs/tags/0.2.1";
+      hash = "sha256-0OGcwPGWtYYf0XmvzXEaQgebBOW/6JWcDuF4MlQjCZQ=";
+    };
+  };
+in
 buildGoModule rec {
   pname = "dissent";
   version = "0.0.30";
@@ -39,11 +53,15 @@ buildGoModule rec {
     libadwaita
     libcanberra-gtk3
     sound-theme-freedesktop
-    libspelling
+    # gotk4-spelling fails to build with libspelling >= 0.3.0
+    # https://github.com/diamondburned/gotk4-spelling/issues/1
+    libspelling_2_1
     gtksourceview5
   ];
 
   postInstall = ''
+    substituteInPlace nix/so.libdb.dissent.service \
+      --replace-warn "/usr/bin/dissent" "$out/bin/dissent"
     install -D -m 444 -t $out/share/applications nix/so.libdb.dissent.desktop
     install -D -m 444 -t $out/share/icons/hicolor/scalable/apps internal/icons/hicolor/scalable/apps/so.libdb.dissent.svg
     install -D -m 444 -t $out/share/icons/hicolor/symbolic/apps internal/icons/symbolic/apps/so.libdb.dissent-symbolic.svg

@@ -35,11 +35,11 @@
   vulkanSupport ? false,
   sdlSupport ? false,
   usbSupport ? false,
-  mingwSupport ? stdenv.isDarwin,
+  mingwSupport ? stdenv.hostPlatform.isDarwin,
   waylandSupport ? false,
   x11Support ? false,
   embedInstallers ? false, # The Mono and Gecko MSI installers
-  moltenvk ? darwin.moltenvk # Allow users to override MoltenVK easily
+  moltenvk # Allow users to override MoltenVK easily
 }:
 
 let wine-build = build: release:

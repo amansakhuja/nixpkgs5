@@ -1,25 +1,29 @@
-{ lib
-, buildNpmPackage
-, fetchurl
+{
+  lib,
+  buildNpmPackage,
+  fetchurl,
 }:
 let
-  version = "0.16.14";
-in buildNpmPackage {
+  version = "0.17.5";
+in
+buildNpmPackage {
   pname = "svelte-language-server";
   inherit version;
 
   src = fetchurl {
     url = "https://registry.npmjs.org/svelte-language-server/-/svelte-language-server-${version}.tgz";
-    hash = "sha256-vBnNrzjnWmlZZ1C5WO4VwlTI9+bNmxgFpLFzzExnW+U=";
+    hash = "sha256-HcJYSwTiHoKjQmw+iE8/g51cZYIQIznmY8MBrttJrbA=";
   };
 
-  npmDepsHash = "sha256-TiabvRCxMccsuIFm7t8vhXstX4WRSbndKnm1nKRmBfw=";
+  npmDepsHash = "sha256-V1Nsc/+9+Eo5qmxDsXu54pfsdXP04IXpFERhoojooGA=";
 
   postPatch = ''
     ln -s ${./package-lock.json} package-lock.json
   '';
 
   dontNpmBuild = true;
+
+  npmFlags = [ "--legacy-peer-deps" ];
 
   passthru.updateScript = ./update.sh;
 

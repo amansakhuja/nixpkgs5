@@ -30,12 +30,12 @@ let
         lib.optionalString (val != null) "${val}";
       os' = prefix: val:
         lib.optionalString (val != null) (prefix + "${val}");
-      flatten = key: value:
+      toQueryString = key: value:
         "&${key}=${value}";
     in
       "--stream.stream=\"${opt.type}://" + os opt.location + "?" + os' "name=" name
         + os' "&sampleformat=" opt.sampleFormat + os' "&codec=" opt.codec
-        + lib.concatStrings (lib.mapAttrsToList lib.flatten opt.query) + "\"";
+        + lib.concatStrings (lib.mapAttrsToList toQueryString opt.query) + "\"";
 
   optionalNull = val: ret:
     lib.optional (val != null) ret;
@@ -79,6 +79,8 @@ in {
           Whether to enable snapserver.
         '';
       };
+
+      package = lib.options.mkPackageOption pkgs "snapcast" { };
 
       listenAddress = lib.mkOption {
         type = lib.types.str;
@@ -186,7 +188,8 @@ in {
 
       http.docRoot = lib.mkOption {
         type = with lib.types; nullOr path;
-        default = null;
+        default = pkgs.snapweb;
+        defaultText = lib.literalExpression "pkgs.snapweb";
         description = ''
           Path to serve from the HTTP servers root.
         '';
@@ -285,7 +288,7 @@ in {
 
       serviceConfig = {
         DynamicUser = true;
-        ExecStart = "${pkgs.snapcast}/bin/snapserver --daemon ${optionString}";
+        ExecStart = "${cfg.package}/bin/snapserver --daemon ${optionString}";
         Type = "forking";
         LimitRTPRIO = 50;
         LimitRTTIME = "infinity";
@@ -294,6 +297,7 @@ in {
         ProtectKernelTunables = true;
         ProtectControlGroups = true;
         ProtectKernelModules = true;
+        Restart = "on-failure";
         RestrictAddressFamilies = "AF_INET AF_INET6 AF_UNIX AF_NETLINK";
         RestrictNamespaces = true;
         RuntimeDirectory = name;

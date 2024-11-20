@@ -44,6 +44,7 @@
   nss,
   pango,
   pipewire,
+  vulkan-loader,
   wayland, # ozone/wayland
 
   # Command line programs
@@ -152,6 +153,7 @@ let
       speechd-minimal
       systemd
       util-linux
+      vulkan-loader
       wayland
       wget
     ]
@@ -164,11 +166,11 @@ let
 
   linux = stdenv.mkDerivation (finalAttrs: {
     inherit pname meta passthru;
-    version = "128.0.6613.137";
+    version = "131.0.6778.69";
 
     src = fetchurl {
       url = "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${finalAttrs.version}-1_amd64.deb";
-      hash = "sha256-Ggah8tabckPemWtKehx8So1Y55J0UdhAFf5rPRSwV6Q=";
+      hash = "sha256-7aE6RZE5kB3DaJFUDdc2Ter8SsZZM0JzYmKn1hF1BUs=";
     };
 
     # With strictDeps on, some shebangs were not being patched correctly
@@ -209,9 +211,12 @@ let
       exe=$out/bin/google-chrome-$dist
 
       mkdir -p $out/bin $out/share
+      cp -v -a opt/* $out/share
+      cp -v -a usr/share/* $out/share
 
-      cp -a opt/* $out/share
-      cp -a usr/share/* $out/share
+      # replace bundled vulkan-loader
+      rm -v $out/share/google/$appname/libvulkan.so.1
+      ln -v -s -t "$out/share/google/$appname" "${lib.getLib vulkan-loader}/lib/libvulkan.so.1"
 
       substituteInPlace $out/share/google/$appname/google-$appname \
         --replace-fail 'CHROME_WRAPPER' 'WRAPPER'
@@ -247,6 +252,9 @@ let
         --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
         --add-flags ${lib.escapeShellArg commandLineArgs}
 
+      # Make sure that libGL and libvulkan are found by ANGLE libGLESv2.so
+      patchelf --set-rpath $rpath $out/share/google/$appname/lib*GL*
+
       for elf in $out/share/google/$appname/{chrome,chrome-sandbox,chrome_crashpad_handler}; do
         patchelf --set-rpath $rpath $elf
         patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $elf
@@ -258,11 +266,11 @@ let
 
   darwin = stdenvNoCC.mkDerivation (finalAttrs: {
     inherit pname meta passthru;
-    version = "128.0.6613.138";
+    version = "131.0.6778.70";
 
     src = fetchurl {
-      url = "http://dl.google.com/release2/chrome/gtm24cqmnwgcp7dtscvlmsbrwa_128.0.6613.138/GoogleChrome-128.0.6613.138.dmg";
-      hash = "sha256-wd6n3AeKxKdz+5X9XxTi1QHzmByzKRgIWcc3iBHhtZs=";
+      url = "http://dl.google.com/release2/chrome/acwi7l3xj4g6lag6mccophfiv2aa_131.0.6778.70/GoogleChrome-131.0.6778.70.dmg";
+      hash = "sha256-Gikqdh9g3FAnWBLrxMtbomKceIaMsz/GnguiEUpKJW0=";
     };
 
     dontPatch = true;
@@ -309,4 +317,4 @@ let
     mainProgram = "google-chrome-stable";
   };
 in
-if stdenvNoCC.isDarwin then darwin else linux
+if stdenvNoCC.hostPlatform.isDarwin then darwin else linux

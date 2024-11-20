@@ -1,19 +1,16 @@
 {
   lib,
-  buildPythonApplication,
   buildPythonPackage,
   fetchFromGitHub,
-  makeWrapper,
   pytestCheckHook,
-  python,
   pythonOlder,
-  ruff,
   setuptools,
   click-default-group,
   numpy,
   openai,
   pip,
   pluggy,
+  puremagic,
   pydantic,
   python-ulid,
   pyyaml,
@@ -25,7 +22,7 @@
 let
   llm = buildPythonPackage rec {
     pname = "llm";
-    version = "0.15";
+    version = "0.17.1";
     pyproject = true;
 
     build-system = [ setuptools ];
@@ -36,7 +33,7 @@ let
       owner = "simonw";
       repo = "llm";
       rev = "refs/tags/${version}";
-      hash = "sha256-PPmbqY9+OYGs4U3z3LHs7a3BjQ0AlRY6J+SKmCY3bXk=";
+      hash = "sha256-6OO0SIIxChM5HRJoUM4CYGbsINmc3i+iyL/oahLHhrY=";
     };
 
     patches = [ ./001-disable-install-uninstall-commands.patch ];
@@ -47,6 +44,7 @@ let
       openai
       pip
       pluggy
+      puremagic
       pydantic
       python-ulid
       pyyaml

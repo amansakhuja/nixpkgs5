@@ -12,6 +12,7 @@
   langchain-core,
   langchain,
   langsmith,
+  pydantic-settings,
   pyyaml,
   requests,
   sqlalchemy,
@@ -37,19 +38,24 @@
 
 buildPythonPackage rec {
   pname = "langchain-community";
-  version = "0.2.16";
+  version = "0.3.6";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "langchain-ai";
     repo = "langchain";
-    rev = "refs/tags/langchain-community==${version}";
-    hash = "sha256-0FKbx/ZPX7sioof5pMdqpnVWc46+eOiTIseyxwYK49E=";
+    rev = "refs/tags/langchain-core==${version}";
+    hash = "sha256-ACR+JzKcnYXROGOQe6DlZeqcYd40KlesgXSUOybOT20=";
   };
 
   sourceRoot = "${src.name}/libs/community";
 
   build-system = [ poetry-core ];
+
+  pythonRelaxDeps = [
+    "pydantic-settings"
+    "tenacity"
+  ];
 
   dependencies = [
     aiohttp
@@ -57,6 +63,7 @@ buildPythonPackage rec {
     langchain-core
     langchain
     langsmith
+    pydantic-settings
     pyyaml
     requests
     sqlalchemy
@@ -87,7 +94,7 @@ buildPythonPackage rec {
   pytestFlagsArray = [ "tests/unit_tests" ];
 
   passthru = {
-    updateScript = langchain-core.updateScript;
+    inherit (langchain-core) updateScript;
   };
 
   __darwinAllowLocalNetworking = true;

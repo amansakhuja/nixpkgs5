@@ -12,6 +12,7 @@
 
   # dependencies
   aiohttp,
+  httpx-sse,
   langchain-core,
   langchain-text-splitters,
   langsmith,
@@ -27,6 +28,7 @@
 
   # tests
   freezegun,
+  httpx,
   lark,
   pandas,
   pytest-asyncio,
@@ -41,14 +43,14 @@
 
 buildPythonPackage rec {
   pname = "langchain";
-  version = "0.2.16";
+  version = "0.3.7";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "langchain-ai";
     repo = "langchain";
     rev = "refs/tags/langchain==${version}";
-    hash = "sha256-8n5eImRXOG/3tN/59Gd2/GpoGpt7P2ABj0T4pJi6xrk=";
+    hash = "sha256-TaK8lnPxKUqwvKLtQIfzg2l8McQ1fd0g9vocHM0+kjY=";
   };
 
   sourceRoot = "${src.name}/libs/langchain";
@@ -57,8 +59,11 @@ buildPythonPackage rec {
 
   buildInputs = [ bash ];
 
+  pythonRelaxDeps = [ "tenacity" ];
+
   dependencies = [
     aiohttp
+    httpx-sse
     langchain-core
     langchain-text-splitters
     langsmith
@@ -75,6 +80,7 @@ buildPythonPackage rec {
 
   nativeCheckInputs = [
     freezegun
+    httpx
     lark
     pandas
     pytest-asyncio

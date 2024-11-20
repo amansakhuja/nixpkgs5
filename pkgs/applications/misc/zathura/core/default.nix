@@ -15,6 +15,9 @@
   gtk,
   girara,
   gettext,
+  gnome,
+  libheif,
+  libjxl,
   libxml2,
   check,
   sqlite,
@@ -25,6 +28,7 @@
   file,
   librsvg,
   gtk-mac-integration,
+  webp-pixbuf-loader,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -79,20 +83,33 @@ stdenv.mkDerivation (finalAttrs: {
     appstream-glib
   ];
 
-  buildInputs = [
-    gtk
-    girara
-    libintl
-    sqlite
-    glib
-    file
-    librsvg
-    check
-    json-glib
-    texlive.bin.core
-  ] ++ lib.optional stdenv.isLinux libseccomp ++ lib.optional stdenv.isDarwin gtk-mac-integration;
+  buildInputs =
+    [
+      gtk
+      girara
+      libintl
+      sqlite
+      glib
+      file
+      librsvg
+      check
+      json-glib
+      texlive.bin.core
+    ]
+    ++ lib.optional stdenv.hostPlatform.isLinux libseccomp
+    ++ lib.optional stdenv.hostPlatform.isDarwin gtk-mac-integration;
 
-  doCheck = !stdenv.isDarwin;
+  # add support for more image formats
+  env.GDK_PIXBUF_MODULE_FILE = gnome._gdkPixbufCacheBuilder_DO_NOT_USE {
+    extraLoaders = [
+      libheif.out
+      libjxl
+      librsvg
+      webp-pixbuf-loader
+    ];
+  };
+
+  doCheck = !stdenv.hostPlatform.isDarwin;
 
   passthru.updateScript = gitUpdater { };
 

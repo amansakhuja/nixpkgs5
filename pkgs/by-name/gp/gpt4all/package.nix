@@ -3,6 +3,7 @@
 , stdenv
 , fetchFromGitHub
 , fetchurl
+, fetchpatch
 , cmake
 , qt6
 , fmt
@@ -11,15 +12,16 @@
 , wayland
 , cudaSupport ? config.cudaSupport
 , cudaPackages ? { }
+, autoAddDriverRunpath
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "gpt4all";
-  version = "3.2.1";
+  version = "3.4.2";
 
   src = fetchFromGitHub {
     fetchSubmodules = true;
-    hash = "sha256-h6hcqafTjQsqVlpnqVeohh38A67VSGrW3WrCErjaKIQ=";
+    hash = "sha256-QzU22y6tt3UhazVSPcFuKejH4AV+mw7JExH61NtAKoM=";
     owner = "nomic-ai";
     repo = "gpt4all";
     rev = "v${finalAttrs.version}";
@@ -27,11 +29,17 @@ stdenv.mkDerivation (finalAttrs: {
 
   embed_model = fetchurl {
     url = "https://gpt4all.io/models/gguf/nomic-embed-text-v1.5.f16.gguf";
-    sha256 = "f7af6f66802f4df86eda10fe9bbcfc75c39562bed48ef6ace719a251cf1c2fdb";
+    hash = "sha256-969vZoAvTfhu2hD+m7z8dcOVYr7Ujvas5xmiUc8cL9s=";
   };
 
   patches = [
     ./embedding-local.patch
+    (fetchpatch {
+      url = "https://aur.archlinux.org/cgit/aur.git/plain/004-fix-build-with-qt-6.8.0.diff?h=gpt4all-chat&id=d14b12cb63fae95e578aa839a570189a23833051";
+      sha256 = "3Zur9KFn45f4dgAzOF7p1q42IdLqXwioN4zMiBbWbVU=";
+      # remove the `gpt4all-chat` part of the paths as sourceRoot is gpt4all-chat
+      stripLen = 1;
+    })
   ];
 
   sourceRoot = "${finalAttrs.src.name}/gpt4all-chat";
@@ -41,6 +49,7 @@ stdenv.mkDerivation (finalAttrs: {
     qt6.wrapQtAppsHook
   ] ++ lib.optionals cudaSupport [
     cudaPackages.cuda_nvcc
+    autoAddDriverRunpath
   ];
 
   buildInputs = [
@@ -56,17 +65,20 @@ stdenv.mkDerivation (finalAttrs: {
     vulkan-headers
     wayland
   ] ++ lib.optionals cudaSupport (
-      with cudaPackages;
-      [
-        cuda_cccl
-        cuda_cudart
-        libcublas
-      ]);
+    with cudaPackages;
+    [
+      cuda_cccl
+      cuda_cudart
+      libcublas
+    ]
+  );
 
   cmakeFlags = [
     "-DKOMPUTE_OPT_USE_BUILT_IN_VULKAN_HEADER=OFF"
     "-DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON"
     "-DKOMPUTE_OPT_USE_BUILT_IN_FMT=OFF"
+    "-DGGML_VULKAN=ON"
+    "-DGGML_KOMPUTE=ON"
   ] ++ lib.optionals (!cudaSupport) [
     "-DLLMODEL_CUDA=OFF"
   ];

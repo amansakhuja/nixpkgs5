@@ -43,7 +43,7 @@ let
       ++ optionals (versionOlder version "19.0.0") [ "i686-linux" ];
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     # https://www.electronjs.org/docs/latest/tutorial/electron-timelines
-    knownVulnerabilities = optional (versionOlder version "30.0.0") "Electron version ${version} is EOL";
+    knownVulnerabilities = optional (versionOlder version "31.0.0") "Electron version ${version} is EOL";
   };
 
   fetcher = vers: tag: hash: fetchurl {
@@ -97,7 +97,7 @@ let
     xorg.libxkbfile
     pango
     pciutils
-    stdenv.cc.cc.lib
+    stdenv.cc.cc
     systemd
   ]
     ++ lib.optionals (lib.versionAtLeast version "9.0.0") [ libdrm mesa ]
@@ -166,5 +166,5 @@ in
   stdenv.mkDerivation (finalAttrs:
     lib.recursiveUpdate
       (common stdenv.hostPlatform)
-      ((if stdenv.isDarwin then darwin else linux) finalAttrs)
+      ((if stdenv.hostPlatform.isDarwin then darwin else linux) finalAttrs)
   )
