@@ -2,7 +2,8 @@
   lib,
   buildPythonPackage,
   poetry-core,
-  fetchPypi,
+  fetchFromGitHub,
+  pytestCheckHook,
   msgspec,
   numpy,
   pandas,
@@ -17,9 +18,11 @@ buildPythonPackage rec {
   pname = "saiph";
   version = "2.0.0";
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-+qwiLP+uac9PPyZ0wYs4WbDRSaS77nRqS2PazZvjTug=";
+  src = fetchFromGitHub {
+    owner = "octopize";
+    repo = "saiph";
+    rev = "saiph-v" + version;
+    hash = "sha256-Qj94N2Y5n9bXXij1twqlh1fCcbrA6L9zazAT1Tsfmsw=";
   };
 
   pyproject = true;
@@ -36,6 +39,12 @@ buildPythonPackage rec {
     scikit-learn
     scipy
     toolz
+  ];
+
+  pythonImportsCheck = [ "saiph" ];
+
+  nativeCheckInputs = [
+    pytestCheckHook
   ];
 
   meta = with lib; {
