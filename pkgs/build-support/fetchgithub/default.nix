@@ -51,12 +51,18 @@ let
 
   gitRepoUrl = "${baseUrl}.git";
 
+  newRev =
+    if lib.hasPrefix "refs/" rev || builtins.match "^[0-9a-f]+$" rev != null then
+      rev
+    else
+      "refs/tags/${rev}";
+
   fetcherArgs = (if useFetchGit
     then {
       inherit rev deepClone fetchSubmodules sparseCheckout fetchLFS; url = gitRepoUrl;
     } // lib.optionalAttrs (leaveDotGit != null) { inherit leaveDotGit; }
     else {
-      url = "${baseUrl}/archive/${rev}.tar.gz";
+      url = "${baseUrl}/archive/${newRev}.tar.gz";
 
       passthru = {
         inherit gitRepoUrl;
