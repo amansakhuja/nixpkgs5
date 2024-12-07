@@ -1,4 +1,4 @@
-{lib, stdenvNoCC, git, git-lfs, cacert, runCommand, writeShellApplication, writeText, openssh, gnupg}: let
+{lib, stdenvNoCC, git, git-lfs, cacert, callPackage}: let
   urlToName = url: rev: let
     inherit (lib) removeSuffix splitString last;
     base = last (splitString ":" (baseNameOf (removeSuffix "/" url)));
@@ -137,7 +137,7 @@ fetchresult = stdenvNoCC.mkDerivation {
 };
 in
 if verifyCommit || verifyTag then
-  (import ./verify.nix { inherit lib runCommand writeShellApplication writeText git openssh gnupg; } { inherit name rev verifyCommit verifyTag publicKeys leaveDotGit fetchresult; })
+  callPackage ./verify.nix { } { inherit name rev verifyCommit verifyTag publicKeys leaveDotGit fetchresult; }
 else
   fetchresult
 ))
