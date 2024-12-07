@@ -10,7 +10,7 @@
 (
   {
     name,
-    rev,
+    revWithTag,
     verifyCommit,
     verifyTag,
     publicKeys,
@@ -59,7 +59,7 @@
             -c safe.directory='*' \
             -c gpg.program="gpgWithKeys" \
             -C "${fetchresult}" \
-            verify-commit ${rev}
+            verify-commit ${revWithTag}
       fi
 
       if test "$verifyTag" == 1; then
@@ -68,7 +68,7 @@
             -c safe.directory='*' \
             -c gpg.program="gpgWithKeys" \
             -C "${fetchresult}" \
-            verify-tag ${rev}
+            verify-tag ${revWithTag}
       fi
 
       if test "$leaveDotGit" != 1; then

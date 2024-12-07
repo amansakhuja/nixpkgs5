@@ -64,30 +64,29 @@ lib.makeOverridable (lib.fetchers.withNormalizedHash { } (
 
 assert deepClone -> leaveDotGit;
 assert nonConeMode -> (sparseCheckout != []);
-
-let
-  revWithTag =
-    let
-      warningMsg = "fetchgit requires one of either `rev` or `tag` to be provided (not both).";
-      otherIsNull = other: lib.assertMsg (other == null) warningMsg;
-    in
-    if tag != null then
-      assert (otherIsNull rev);
-      "refs/tags/${tag}"
-    else if rev != null then
-      assert (otherIsNull tag);
-      rev
-    else
-      # FIXME fetching HEAD if no rev or tag is provided is problematic at best
-      "HEAD";
-in
+assert lib.assertMsg (verifyTag -> (tag != null)) "`verifyTag` is only support when fetching via `tag`.";
 
 if builtins.isString sparseCheckout then
   # Changed to throw on 2023-06-04
   throw "Please provide directories/patterns for sparse checkout as a list of strings. Passing a (multi-line) string is not supported any more."
 else let
+resultName = if name != null then name else urlToName url revWithTag;
+revWithTag =
+  let
+    warningMsg = "fetchgit requires one of either `rev` or `tag` to be provided (not both).";
+    otherIsNull = other: lib.assertMsg (other == null) warningMsg;
+  in
+  if tag != null then
+    assert (otherIsNull rev);
+    "refs/tags/${tag}"
+  else if rev != null then
+    assert (otherIsNull tag);
+    rev
+  else
+    # FIXME fetching HEAD if no rev or tag is provided is problematic at best
+    "HEAD";
 fetchresult = stdenvNoCC.mkDerivation {
-  name = if name != null then name else urlToName url revWithTag;
+  name = resultName;
   builder = ./builder.sh;
   fetcher = ./nix-prefetch-git;
 
@@ -114,14 +113,9 @@ fetchresult = stdenvNoCC.mkDerivation {
     export HOME=$PWD
   '';
 
-  # if verifyTag enabled assume rev to be a tag and include it in the .git directory
+  # if verifyTag enabled, then rev is asserted to be a tag and will be included in the .git directory
   NIX_PREFETCH_GIT_CHECKOUT_HOOK = if verifyTag then ''
-    case "$rev" in
-      refs/tags/*)
-        clean_git -C "$dir" fetch origin "$rev:$rev";;
-      *)
-        clean_git -C "$dir" fetch origin "refs/tags/$rev:refs/tags/$rev";;
-    esac
+    clean_git -C "$dir" fetch origin "$rev:$rev"
     '' else null;
 
   impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ netrcImpureEnvVars ++ [
@@ -135,9 +129,10 @@ fetchresult = stdenvNoCC.mkDerivation {
     gitRepoUrl = url;
   };
 };
+verifySignature = callPackage ./verify.nix { };
 in
 if verifyCommit || verifyTag then
-  callPackage ./verify.nix { } { inherit name rev verifyCommit verifyTag publicKeys leaveDotGit fetchresult; }
+  verifySignature { inherit revWithTag verifyCommit verifyTag publicKeys leaveDotGit fetchresult; name = resultName; }
 else
   fetchresult
 ))
