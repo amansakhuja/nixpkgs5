@@ -3711,9 +3711,13 @@ with pkgs;
 
   haguichi = callPackage ../tools/networking/haguichi { };
 
-  hashcat = callPackage ../tools/security/hashcat {
-    inherit (darwin.apple_sdk.frameworks) Foundation IOKit Metal OpenCL;
+  hashcat = callPackage ../by-name/ha/hashcat/package.nix {
+    acceleration = null;
+    inherit (darwin.apple_sdk.frameworks)  IOKit Metal OpenCL;
   };
+  hashcat-rocm = callPackage ../by-name/ha/hashcat/package.nix { acceleration = "rocm"; };
+  hashcat-cuda = callPackage ../by-name/ha/hashcat/package.nix { acceleration = "cuda"; };
+
 
   haskell-language-server = callPackage ../development/tools/haskell/haskell-language-server/withWrapper.nix { };
 
