@@ -57,10 +57,10 @@ let
     preferLocalBuild = true;
   } ''
     mkdir -p $out/bin
-    for i in changePassword.php createAndPromote.php resetUserEmail.php userOptions.php edit.php nukePage.php update.php; do
-      makeWrapper ${php}/bin/php $out/bin/mediawiki-$(basename $i .php) \
+    for i in changePassword createAndPromote renameUser resetUserEmail userOptions edit nukePage update; do
+      makeWrapper ${php}/bin/php $out/bin/mediawiki-$i \
         --set MEDIAWIKI_CONFIG ${mediawikiConfig} \
-        --add-flags ${pkg}/share/mediawiki/maintenance/$i
+        --add-flags ${pkg}/share/mediawiki/maintenance/$i.php
     done
   '';
 
