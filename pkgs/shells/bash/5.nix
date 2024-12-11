@@ -14,6 +14,7 @@
 , forFHSEnv ? false
 
 , pkgsStatic
+, ncurses
 }:
 
 let
@@ -84,10 +85,9 @@ stdenv.mkDerivation rec {
   ] ++ lib.optionals stdenv.hostPlatform.isCygwin [
     "--without-libintl-prefix"
     "--without-libiconv-prefix"
-    "--with-installed-readline"
+    "--with-curses"
     "bash_cv_dev_stdin=present"
     "bash_cv_dev_fd=standard"
-    "bash_cv_termcap_lib=libncurses"
   ] ++ lib.optionals (stdenv.hostPlatform.libc == "musl") [
     "--disable-nls"
   ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
@@ -103,14 +103,11 @@ stdenv.mkDerivation rec {
     ++ lib.optional withDocs texinfo
     ++ lib.optional stdenv.hostPlatform.isDarwin stdenv.cc.bintools;
 
-  buildInputs = lib.optional interactive readline;
+  buildInputs = lib.optional interactive readline ++ lib.optionals stdenv.hostPlatform.isCygwin [ ncurses ];
 
   enableParallelBuilding = true;
 
-  makeFlags = lib.optionals stdenv.hostPlatform.isCygwin [
-    "LOCAL_LDFLAGS=-Wl,--export-all,--out-implib,libbash.dll.a"
-    "SHOBJ_LIBS=-lbash"
-  ];
+  makeFlags = [ ];
 
   nativeCheckInputs = [ util-linux ];
   doCheck = false; # dependency cycle, needs to be interactive
