@@ -44,6 +44,8 @@ let
 
     inherit (pkgs) python3;
 
+    inherit (config.boot.loader) timestampFormat;
+
     systemd = config.systemd.package;
 
     bootspecTools = pkgs.bootspec;

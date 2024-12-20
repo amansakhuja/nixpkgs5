@@ -732,6 +732,7 @@ in
             utillinux = pkgs.util-linux;
             btrfsprogs = pkgs.btrfs-progs;
             inherit (config.system.nixos) distroName;
+            inherit (config.boot.loader) timestampFormat;
           };
           perl = pkgs.perl.withPackages (p: with p; [
             FileSlurp FileCopyRecursive

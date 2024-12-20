@@ -14,6 +14,7 @@ let
     isExecutable = true;
     inherit (pkgs) bash;
     inherit (config.system.nixos) distroName;
+    inherit (config.boot.loader) timestampFormat;
     path = [
       pkgs.coreutils
       pkgs.gnused

@@ -16,5 +16,14 @@ with lib;
         Timeout (in seconds) until loader boots the default menu item. Use null if the loader menu should be displayed indefinitely.
       '';
     };
+
+    boot.loader.timestampFormat = mkOption {
+      default = "%F";
+      example = "%F %H:%M";
+      type = types.nullOr types.str;
+      description = ''
+        How to display timestamps in the boot menu, in strftime format. See [the strftime manpage](https://www.man7.org/linux/man-pages/man3/strftime.3.html)
+      '';
+    };
   };
 }
