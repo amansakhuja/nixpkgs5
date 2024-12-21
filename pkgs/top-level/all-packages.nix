@@ -7208,7 +7208,8 @@ with pkgs;
     ex_doc erlang-ls erlfmt elvis-erlang
     rebar rebar3 rebar3WithPlugins
     fetchHex
-    lfe lfe_2_1;
+    lfe lfe_2_1
+    credo;
   beamPackages = beam.packages.erlang // { __attrsFailEvaluation = true; };
 
   erlang_language_platform = callPackage ../by-name/er/erlang-language-platform/package.nix { };
