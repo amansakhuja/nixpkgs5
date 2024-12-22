@@ -20,7 +20,7 @@ with lib;
     boot.loader.timestampFormat = mkOption {
       default = "%F";
       example = "%F %H:%M";
-      type = types.nullOr types.str;
+      type = types.str;
       description = ''
         How to display timestamps in the boot menu, in strftime format. See [the strftime manpage](https://www.man7.org/linux/man-pages/man3/strftime.3.html)
       '';
