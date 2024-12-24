@@ -58,12 +58,18 @@ import ./make-test-python.nix (
               "pool/sanoid1" = {
                 source = "pool/sanoid";
                 target = "root@target:pool/sanoid1";
-                extraArgs = [ "--no-sync-snap" "--create-bookmark" ];
+                extraArgs = [
+                  "--no-sync-snap"
+                  "--create-bookmark"
+                ];
               };
               "pool/sanoid2" = {
                 source = "pool/sanoid";
                 target = "root@target:pool/sanoid2";
-                extraArgs = [ "--no-sync-snap" "--create-bookmark" ];
+                extraArgs = [
+                  "--no-sync-snap"
+                  "--create-bookmark"
+                ];
               };
 
               # Test pool without parent (regression test for https://github.com/NixOS/nixpkgs/pull/180111)
