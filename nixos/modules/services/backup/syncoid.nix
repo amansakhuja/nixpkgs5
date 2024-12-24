@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.services.syncoid;
-  inherit (config.networking) nftables;
 
   # Extract local dataset names (so no datasets containing "@")
   localDatasetName = d: lib.optionals (d != null) (
@@ -22,16 +21,6 @@ in
     enable = lib.mkEnableOption "Syncoid ZFS synchronization service";
 
     package = lib.mkPackageOption pkgs "sanoid" {};
-
-    nftables.enable = lib.mkEnableOption ''
-      maintaining an nftables set of the active syncoid UIDs.
-
-      This can be used like so (assuming `output-net`
-      is being called by the output chain):
-      ```
-      networking.nftables.ruleset = "table inet filter { chain output-net { skuid @nixos-syncoid-uids meta l4proto tcp accept } }";
-      ```
-    '';
 
     interval = lib.mkOption {
       type = lib.types.str;
@@ -223,12 +212,6 @@ in
   # Implementation
 
   config = lib.mkIf cfg.enable {
-    assertions = [
-      { assertion = cfg.nftables.enable -> config.networking.nftables.enable;
-        message = "config.networking.nftables.enable must be set when config.services.syncoid.nftables.enable is set";
-      }
-    ];
-
     systemd.services = lib.mapAttrs'
       (name: c: let
           sshKeyCred = builtins.split ":" c.sshKey;
@@ -288,11 +271,7 @@ in
                       dataset="$(dirname "$dataset")"
                     zfs allow "$USER" ${lib.escapeShellArg (lib.concatStringsSep "," c.localTargetAllow)} "$dataset"
                   '' + " " + lib.escapeShellArg dataset
-                  ) (localDatasetName c.target) ++
-                # Adding a user to an nftables set will not persist across a reboot,
-                # hence there is no need to cleanup residual dynamic users remaining in it after a crash.
-                lib.optional cfg.nftables.enable
-                  "+${pkgs.nftables}/bin/nft add element inet filter nixos-syncoid-uids { $USER }";
+                  ) (localDatasetName c.target);
               ExecStopPost = let
                   zfsUnallow = dataset: "+/run/booted-system/sw/bin/zfs unallow $USER " + lib.escapeShellArg dataset;
                 in
@@ -304,9 +283,7 @@ in
                 # since the dataset should have been created at this point.
                 lib.concatMap
                   (dataset: [ (zfsUnallow dataset) (zfsUnallow (builtins.dirOf dataset)) ])
-                  (localDatasetName c.target) ++
-                lib.optional cfg.nftables.enable
-                  "+${pkgs.nftables}/bin/nft delete element inet filter nixos-syncoid-uids { $USER }";
+                  (localDatasetName c.target);
               ExecStart = lib.escapeShellArgs ([ "${cfg.package}/bin/syncoid" ]
                 ++ lib.optionals c.useCommonArgs cfg.commonArgs
                 ++ lib.optional c.recursive "--recursive"
@@ -322,6 +299,7 @@ in
                 c.target
               ]);
               DynamicUser = true;
+              NFTSet = lib.optional config.networking.nftables.enable "user:inet:filter:nixos_syncoid_uids";
               # Prevent SSH control sockets of different syncoid services from interfering
               PrivateTmp = true;
               # Permissive access to /proc because syncoid
@@ -393,12 +371,12 @@ in
         ]))
       cfg.commands;
 
-    networking.nftables.ruleset = lib.optionalString cfg.nftables.enable (lib.mkBefore ''
+    networking.nftables.ruleset = lib.mkBefore ''
       table inet filter {
         # A set containing the dynamic UIDs of the syncoid services currently active
-        set nixos-syncoid-uids { type uid; }
+        set nixos_syncoid_uids { typeof meta skuid; }
       }
-    '');
+    '';
   };
 
   meta.maintainers = with lib.maintainers; [ julm lopsided98 ];
