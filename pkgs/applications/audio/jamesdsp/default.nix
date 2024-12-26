@@ -1,34 +1,38 @@
-{ copyDesktopItems
-, fetchFromGitHub
-, glibmm
-, gst_all_1
-, lib
-, libarchive
-, makeDesktopItem
-, pipewire
-, pkg-config
-, pulseaudio
-, qmake
-, qtbase
-, qtsvg
-, stdenv
-, usePipewire ? true
-, usePulseaudio ? false
-, wrapQtAppsHook
+{
+  copyDesktopItems,
+  fetchFromGitHub,
+  glibmm,
+  gst_all_1,
+  lib,
+  libarchive,
+  makeDesktopItem,
+  pipewire,
+  pkg-config,
+  pulseaudio,
+  qmake,
+  qtbase,
+  qtsvg,
+  qtwayland,
+  stdenv,
+  usePipewire ? true,
+  usePulseaudio ? false,
+  wrapQtAppsHook,
 }:
 
-assert lib.asserts.assertMsg (usePipewire != usePulseaudio) "You need to enable one and only one of pulseaudio or pipewire support";
+assert lib.asserts.assertMsg (
+  usePipewire != usePulseaudio
+) "You need to enable one and only one of pulseaudio or pipewire support";
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "jamesdsp";
-  version = "2.6.1";
+  version = "2.7.0";
 
   src = fetchFromGitHub {
     owner = "Audio4Linux";
     repo = "JDSP4Linux";
     fetchSubmodules = true;
     rev = finalAttrs.version;
-    hash = "sha256-XYJl94/PstWG5qaBQ2rXc/nG9bDeP3Q62zDYHmZvPaw=";
+    hash = "sha256-eVndqIqJ3DRceuFMT++g2riXq0CL5r+TWbvzvaYIfZ8=";
   };
 
   nativeBuildInputs = [
@@ -38,19 +42,23 @@ stdenv.mkDerivation (finalAttrs: {
     wrapQtAppsHook
   ];
 
-  buildInputs = [
-    glibmm
-    libarchive
-    qtbase
-    qtsvg
-  ] ++ lib.optionals usePipewire [
-    pipewire
-  ] ++ lib.optionals usePulseaudio [
-    pulseaudio
-    gst_all_1.gst-plugins-base
-    gst_all_1.gst-plugins-good
-    gst_all_1.gstreamer
-  ];
+  buildInputs =
+    [
+      glibmm
+      libarchive
+      qtbase
+      qtsvg
+      qtwayland
+    ]
+    ++ lib.optionals usePipewire [
+      pipewire
+    ]
+    ++ lib.optionals usePulseaudio [
+      pulseaudio
+      gst_all_1.gst-plugins-base
+      gst_all_1.gst-plugins-good
+      gst_all_1.gstreamer
+    ];
 
   preFixup = lib.optionalString usePulseaudio ''
     qtWrapperArgs+=(--prefix GST_PLUGIN_SYSTEM_PATH_1_0 : "$GST_PLUGIN_SYSTEM_PATH_1_0")
@@ -66,9 +74,16 @@ stdenv.mkDerivation (finalAttrs: {
       exec = "jamesdsp";
       icon = "jamesdsp";
       comment = "JamesDSP for Linux";
-      categories = [ "AudioVideo" "Audio" ];
+      categories = [
+        "AudioVideo"
+        "Audio"
+      ];
       startupNotify = false;
-      keywords = [ "equalizer" "audio" "effect" ];
+      keywords = [
+        "equalizer"
+        "audio"
+        "effect"
+      ];
     })
   ];
 
@@ -78,11 +93,15 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   meta = {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
-    description = "An audio effect processor for PipeWire clients";
+    broken = (stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isAarch64);
+    description = "Audio effect processor for PipeWire clients";
+    mainProgram = "jamesdsp";
     homepage = "https://github.com/Audio4Linux/JDSP4Linux";
     license = lib.licenses.gpl3Only;
-    maintainers = with lib.maintainers; [ pasqui23 rewine ];
+    maintainers = with lib.maintainers; [
+      pasqui23
+      rewine
+    ];
     platforms = lib.platforms.linux;
   };
 })

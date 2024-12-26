@@ -1,13 +1,14 @@
-{ lib
-, rustPlatform
-, fetchFromGitHub
-, pkg-config
-, openssl
-, stdenv
-, DiskArbitration
-, Foundation
-, IOKit
-, Security
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  pkg-config,
+  openssl,
+  stdenv,
+  DiskArbitration,
+  Foundation,
+  IOKit,
+  Security,
 }:
 
 rustPlatform.buildRustPackage rec {
@@ -21,16 +22,18 @@ rustPlatform.buildRustPackage rec {
     sha256 = "sha256-SrBtgirg52q7gM3GZsJsV8ASACvb4sYv5HDbyItpjbk=";
   };
 
-  cargoSha256 = "sha256-MFP3AqlfaclmZxRwaWFw6hsZwCQMRKJEyFEyUN+QLqo=";
+  cargoHash = "sha256-MFP3AqlfaclmZxRwaWFw6hsZwCQMRKJEyFEyUN+QLqo=";
 
   nativeBuildInputs = [ pkg-config ];
 
-  buildInputs = [ openssl ] ++ lib.optionals stdenv.isDarwin [
-    DiskArbitration
-    Foundation
-    IOKit
-    Security
-  ];
+  buildInputs =
+    [ openssl ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      DiskArbitration
+      Foundation
+      IOKit
+      Security
+    ];
 
   # build script tries to get information from git
   postPatch = ''
@@ -40,7 +43,8 @@ rustPlatform.buildRustPackage rec {
   VERGEN_GIT_SEMVER = "v${version}";
 
   meta = with lib; {
-    description = "A key and secret workflow (validation, invalidation, etc.) tool";
+    description = "Key and secret workflow (validation, invalidation, etc.) tool";
+    mainProgram = "keyscope";
     homepage = "https://github.com/spectralops/keyscope";
     changelog = "https://github.com/spectralops/keyscope/blob/v${version}/CHANGELOG.md";
     license = licenses.asl20;

@@ -1,45 +1,52 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, buildGo121Module
-, cmake
-, extra-cmake-modules
-, git
-, go_1_21
-, wrapQtAppsHook
-, qtbase
-, qtquickcontrols2
-, kconfig
-, kcoreaddons
-, kguiaddons
-, ki18n
-, kirigami2
-, kirigami-addons
-, knotifications
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  buildGo123Module,
+  cmake,
+  extra-cmake-modules,
+  git,
+  go_1_23,
+  wrapQtAppsHook,
+  qtbase,
+  qtdeclarative,
+  qtsvg,
+  qtwayland,
+  kconfig,
+  kcoreaddons,
+  kguiaddons,
+  ki18n,
+  kirigami,
+  kirigami-addons,
+  knotifications,
+  nlohmann_json,
+  qqc2-desktop-style,
 }:
 
 let
-  version = "0.9.0";
+  version = "0.18.2";
 
   src = fetchFromGitHub {
     owner = "f-koehler";
     repo = "KTailctl";
     rev = "v${version}";
-    hash = "sha256-nY6DEHkDVWIlvc64smXb9KshrhNgNLKiilYydbMKCqc=";
+    hash = "sha256-nxYgpIUNgWhWnrd5rqSH2r1QKhWPJwxlIQl6F9PmjpU=";
   };
 
-  goDeps = (buildGo121Module {
-    pname = "tailwrap";
-    inherit src version;
-    modRoot = "tailwrap";
-    vendorHash = "sha256-Y9xhoTf3vCtiNi5qOPg020EQmASo58BZI3rAoUEC8qE=";
-  }).goModules;
-in stdenv.mkDerivation {
+  goDeps =
+    (buildGo123Module {
+      pname = "ktailctl-go-wrapper";
+      inherit src version;
+      modRoot = "src/wrapper";
+      vendorHash = "sha256-UjgHfR+MJ8ROqOPIM0ZkqgFGVEkw8gKYlVQ6oxoIcgE=";
+    }).goModules;
+in
+stdenv.mkDerivation {
   pname = "ktailctl";
   inherit version src;
 
   postPatch = ''
-    cp -r --reflink=auto ${goDeps} tailwrap/vendor
+    cp -r --reflink=auto ${goDeps} src/wrapper/vendor
   '';
 
   # needed for go build to work
@@ -56,28 +63,32 @@ in stdenv.mkDerivation {
     cmake
     extra-cmake-modules
     git
-    go_1_21
+    go_1_23
     wrapQtAppsHook
   ];
 
   buildInputs = [
     qtbase
-    qtquickcontrols2
+    qtdeclarative
+    qtsvg
+    qtwayland
     kconfig
     kcoreaddons
     kguiaddons
     ki18n
-    kirigami2
+    kirigami
     kirigami-addons
     knotifications
+    nlohmann_json
+    qqc2-desktop-style
   ];
 
   meta = with lib; {
-    description = "A GUI to monitor and manage Tailscale on your Linux desktop";
+    description = "GUI to monitor and manage Tailscale on your Linux desktop";
     homepage = "https://github.com/f-koehler/KTailctl";
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ k900 ];
     mainProgram = "ktailctl";
-    platforms = platforms.all;
+    platforms = platforms.unix;
   };
 }

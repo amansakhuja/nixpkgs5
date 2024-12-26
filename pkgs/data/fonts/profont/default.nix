@@ -1,4 +1,9 @@
-{ lib, stdenv, fetchzip, xorg }:
+{
+  lib,
+  stdenv,
+  fetchzip,
+  xorg,
+}:
 
 stdenv.mkDerivation {
   pname = "profont";
@@ -6,17 +11,21 @@ stdenv.mkDerivation {
 
   # Note: stripRoot doesn't work because the archive
   # contains the metadata directory `__MACOSX`.
-  src = fetchzip {
-    url = "https://tobiasjung.name/downloadfile.php?file=profont-x11.zip";
-    sha256 = "12dbm87wvcpmn7nzgzwlk45cybp091diara8blqm6129ps27z6kb";
-    stripRoot = false;
-  } + /profont-x11;
+  src =
+    fetchzip {
+      url = "https://tobiasjung.name/downloadfile.php?file=profont-x11.zip";
+      sha256 = "12dbm87wvcpmn7nzgzwlk45cybp091diara8blqm6129ps27z6kb";
+      stripRoot = false;
+    }
+    + /profont-x11;
 
-  srcOtb = fetchzip {
-    url = "https://tobiasjung.name/downloadfile.php?file=profont-otb.zip";
-    sha256 = "18rfhfqrsj3510by0w1a7ak5as6r2cxh8xv02xc1y30mfa6g24x6";
-    stripRoot = false;
-  } + /profont-otb;
+  srcOtb =
+    fetchzip {
+      url = "https://tobiasjung.name/downloadfile.php?file=profont-otb.zip";
+      sha256 = "18rfhfqrsj3510by0w1a7ak5as6r2cxh8xv02xc1y30mfa6g24x6";
+      stripRoot = false;
+    }
+    + /profont-otb;
 
   dontBuild = true;
 
@@ -34,7 +43,7 @@ stdenv.mkDerivation {
 
   meta = with lib; {
     homepage = "https://tobiasjung.name/profont/";
-    description = "A monospaced font created to be a most readable font for programming";
+    description = "Monospaced font created to be a most readable font for programming";
     maintainers = with maintainers; [ myrl ];
     license = licenses.mit;
     platforms = platforms.all;

@@ -1,12 +1,16 @@
-{ lib
-, fetchFromGitHub
-, stdenv
-, swift
-, swiftpm
-, darwin
+{
+  lib,
+  fetchFromGitHub,
+  stdenv,
+  swift,
+  swiftpm,
+  swiftPackages,
+  darwin,
 }:
 
-stdenv.mkDerivation (final: {
+# Use the same stdenv, including clang, as Swift itself
+# Fixes build issues, see https://github.com/NixOS/nixpkgs/pull/296082 and https://github.com/NixOS/nixpkgs/issues/295322
+swiftPackages.stdenv.mkDerivation (final: {
   pname = "dark-mode-notify";
   version = "unstable-2022-07-18";
 

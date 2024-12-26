@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -7,13 +12,13 @@ let
 in
 {
   options.services.endlessh = {
-    enable = mkEnableOption (mdDoc "endlessh service");
+    enable = mkEnableOption "endlessh service";
 
     port = mkOption {
       type = types.port;
       default = 2222;
       example = 22;
-      description = mdDoc ''
+      description = ''
         Specifies on which port the endlessh daemon listens for SSH
         connections.
 
@@ -24,8 +29,12 @@ in
     extraOptions = mkOption {
       type = with types; listOf str;
       default = [ ];
-      example = [ "-6" "-d 9000" "-v" ];
-      description = mdDoc ''
+      example = [
+        "-6"
+        "-d 9000"
+        "-v"
+      ];
+      description = ''
         Additional command line options to pass to the endlessh daemon.
       '';
     };
@@ -33,7 +42,7 @@ in
     openFirewall = mkOption {
       type = types.bool;
       default = false;
-      description = lib.mdDoc ''
+      description = ''
         Whether to open a firewall port for the SSH listener.
       '';
     };
@@ -52,10 +61,15 @@ in
         in
         {
           Restart = "always";
-          ExecStart = with cfg; concatStringsSep " " ([
-            "${pkgs.endlessh}/bin/endlessh"
-            "-p ${toString port}"
-          ] ++ extraOptions);
+          ExecStart =
+            with cfg;
+            concatStringsSep " " (
+              [
+                "${pkgs.endlessh}/bin/endlessh"
+                "-p ${toString port}"
+              ]
+              ++ extraOptions
+            );
           DynamicUser = true;
           RootDirectory = rootDirectory;
           BindReadOnlyPaths = [ builtins.storeDir ];
@@ -82,17 +96,23 @@ in
           ProtectProc = "noaccess";
           ProcSubset = "pid";
           RemoveIPC = true;
-          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" ];
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+          ];
           RestrictNamespaces = true;
           RestrictRealtime = true;
           RestrictSUIDSGID = true;
           SystemCallArchitectures = "native";
-          SystemCallFilter = [ "@system-service" "~@resources" "~@privileged" ];
+          SystemCallFilter = [
+            "@system-service"
+            "~@resources"
+            "~@privileged"
+          ];
         };
     };
 
-    networking.firewall.allowedTCPPorts = with cfg;
-      optionals openFirewall [ port ];
+    networking.firewall.allowedTCPPorts = with cfg; optionals openFirewall [ port ];
   };
 
   meta.maintainers = with maintainers; [ azahi ];

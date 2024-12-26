@@ -1,46 +1,68 @@
-{ lib
-, mkDerivation
-, fetchFromGitHub
-, cmake
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  cmake,
 
-, withLibei ? true
+  withLibei ? true,
 
-, avahi
-, curl
-, libICE
-, libSM
-, libX11
-, libXdmcp
-, libXext
-, libXinerama
-, libXrandr
-, libXtst
-, libei
-, libportal
-, openssl
-, pkg-config
-, qtbase
-, qttools
-, wrapGAppsHook
+  avahi,
+  curl,
+  libICE,
+  libSM,
+  libX11,
+  libXdmcp,
+  libXext,
+  libXinerama,
+  libXrandr,
+  libXtst,
+  libei,
+  libportal,
+  openssl,
+  pkg-config,
+  qtbase,
+  qttools,
+  wrapGAppsHook3,
+  wrapQtAppsHook,
 }:
 
-mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "input-leap";
-  version = "unstable-2023-05-24";
+  version = "3.0.2";
 
   src = fetchFromGitHub {
     owner = "input-leap";
     repo = "input-leap";
-    rev = "5e2f37bf9ec17627ae33558d99f90b7608ace422";
-    hash = "sha256-55RqdRu/Hi2OTiLjAFJ6Gdgg9iO5NIIJCsOkUQjR9hk=";
+    rev = "v${version}";
+    hash = "sha256-YkBHvwN573qqQWe/p0n4C2NlyNQHSZNz2jyMKGPITF4=";
     fetchSubmodules = true;
   };
 
-  nativeBuildInputs = [ pkg-config cmake wrapGAppsHook qttools ];
-  buildInputs = [
-    curl qtbase avahi
-    libX11 libXext libXtst libXinerama libXrandr libXdmcp libICE libSM
-  ] ++ lib.optionals withLibei [ libei libportal ];
+  nativeBuildInputs = [
+    pkg-config
+    cmake
+    wrapGAppsHook3
+    wrapQtAppsHook
+    qttools
+  ];
+  buildInputs =
+    [
+      curl
+      qtbase
+      avahi
+      libX11
+      libXext
+      libXtst
+      libXinerama
+      libXrandr
+      libXdmcp
+      libICE
+      libSM
+    ]
+    ++ lib.optionals withLibei [
+      libei
+      libportal
+    ];
 
   cmakeFlags = [
     "-DINPUTLEAP_REVISION=${builtins.substring 0 8 src.rev}"
@@ -55,7 +77,7 @@ mkDerivation rec {
   '';
 
   postFixup = ''
-    substituteInPlace $out/share/applications/input-leap.desktop \
+    substituteInPlace $out/share/applications/io.github.input_leap.InputLeap.desktop \
       --replace "Exec=input-leap" "Exec=$out/bin/input-leap"
   '';
 
@@ -71,7 +93,12 @@ mkDerivation rec {
     '';
     homepage = "https://github.com/input-leap/input-leap";
     license = lib.licenses.gpl2Plus;
-    maintainers = with lib.maintainers; [ kovirobi phryneas twey shymega ];
+    maintainers = with lib.maintainers; [
+      kovirobi
+      phryneas
+      twey
+      shymega
+    ];
     platforms = lib.platforms.linux;
   };
 }

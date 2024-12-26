@@ -1,29 +1,33 @@
-{ lib
-, makeWrapper
-, buildGoModule
-, fetchFromGitHub
-, gopass
+{
+  lib,
+  makeWrapper,
+  buildGoModule,
+  fetchFromGitHub,
+  gopass,
 }:
 
 buildGoModule rec {
   pname = "gopass-hibp";
-  version = "1.15.10";
+  version = "1.15.15";
 
   src = fetchFromGitHub {
     owner = "gopasspw";
     repo = "gopass-hibp";
     rev = "v${version}";
-    hash = "sha256-v3FtWBi5H9LiFN/mowufonABr+aV3Z8MWBKiIUoy0NE=";
+    hash = "sha256-auY0Wg5ki4WIHtA172wJJj9VxQEHWMmQop5bIviinn8=";
   };
 
-  vendorHash = "sha256-c4kk1RrvB+c+8IfbIsLRvG7O3cy+u9l+pDZ52XX1AhI=";
+  vendorHash = "sha256-QgLQN5WjiDK/9AReoCXSWH+Mh7xF2NbUSJiiO/E8jpo=";
 
   subPackages = [ "." ];
 
   nativeBuildInputs = [ makeWrapper ];
 
   ldflags = [
-    "-s" "-w" "-X main.version=${version}" "-X main.commit=${src.rev}"
+    "-s"
+    "-w"
+    "-X main.version=${version}"
+    "-X main.commit=${src.rev}"
   ];
 
   postFixup = ''

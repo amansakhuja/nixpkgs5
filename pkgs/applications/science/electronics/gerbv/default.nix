@@ -1,14 +1,15 @@
-{ lib
-, stdenv
-, autoconf
-, automake
-, autoreconfHook
-, cairo
-, fetchFromGitHub
-, gettext
-, gtk2-x11
-, libtool
-, pkg-config
+{
+  lib,
+  stdenv,
+  autoconf,
+  automake,
+  autoreconfHook,
+  cairo,
+  fetchFromGitHub,
+  gettext,
+  gtk2-x11,
+  libtool,
+  pkg-config,
 }:
 
 stdenv.mkDerivation rec {
@@ -45,7 +46,8 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with lib; {
-    description = "A Gerber (RS-274X) viewer";
+    description = "Gerber (RS-274X) viewer";
+    mainProgram = "gerbv";
     homepage = "https://gerbv.github.io/";
     changelog = "https://github.com/gerbv/gerbv/releases/tag/v${version}";
     license = licenses.gpl2Plus;

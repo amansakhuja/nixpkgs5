@@ -30,10 +30,14 @@ buildDotnetModule rec {
   dotnet-runtime = dotnetCorePackages.runtime_6_0;
 
   projectFile = "ICSharpCode.ILSpyCmd/ICSharpCode.ILSpyCmd.csproj";
-  nugetDeps = ./deps.nix;
+  nugetDeps = ./deps.json;
+
+  # see: https://github.com/tunnelvisionlabs/ReferenceAssemblyAnnotator/issues/94
+  linkNugetPackages = true;
 
   meta = with lib; {
     description = "Tool for decompiling .NET assemblies and generating portable PDBs";
+    mainProgram = "ilspycmd";
     homepage = "https://github.com/icsharpcode/ILSpy";
     changelog = "https://github.com/icsharpcode/ILSpy/releases/tag/${src.rev}";
     license = with licenses; [

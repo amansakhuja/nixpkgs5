@@ -1,31 +1,37 @@
-{ lib, stdenv, fetchFromGitHub, fetchurl
-, callPackage
-, fetchpatch
-, cmake, pkg-config, dbus, makeWrapper
-, boost
-, elfutils # for libdw
-, git
-, glib
-, glm
-, gtest
-, libbfd
-, libcap
-, libdwarf
-, libGL
-, libglvnd
-, lxc
-, mesa
-, properties-cpp
-, protobuf
-, protobufc
-, python3
-, runtimeShell
-, SDL2
-, SDL2_image
-, systemd
-, writeText
-, writeShellScript
-, nixosTests
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  callPackage,
+  fetchpatch,
+  cmake,
+  pkg-config,
+  dbus,
+  makeWrapper,
+  boost,
+  elfutils, # for libdw
+  git,
+  glib,
+  glm,
+  gtest,
+  libbfd,
+  libcap,
+  libdwarf,
+  libGL,
+  libglvnd,
+  lxc,
+  libgbm,
+  properties-cpp,
+  protobuf,
+  protobufc,
+  python3,
+  runtimeShell,
+  SDL2,
+  SDL2_image,
+  systemd,
+  writeText,
+  writeShellScript,
+  nixosTests,
 }:
 
 let
@@ -50,7 +56,7 @@ stdenv.mkDerivation rec {
     owner = pname;
     repo = pname;
     rev = "ddf4c57ebbe3a2e46099087570898ab5c1e1f279";
-    sha256 = "sha256-QXWhatewiUDQ93cH1UZsYgbjUxpgB1ajtGFYZnKmabc=";
+    hash = "sha256-QXWhatewiUDQ93cH1UZsYgbjUxpgB1ajtGFYZnKmabc=";
     fetchSubmodules = true;
   };
 
@@ -58,6 +64,7 @@ stdenv.mkDerivation rec {
     cmake
     pkg-config
     makeWrapper
+    protobufc
   ];
 
   buildInputs = [
@@ -72,17 +79,21 @@ stdenv.mkDerivation rec {
     libdwarf
     libGL
     lxc
-    mesa
+    libgbm
     properties-cpp
-    protobuf protobufc
+    protobuf
     python3
-    SDL2 SDL2_image
+    SDL2
+    SDL2_image
     systemd
   ];
 
-  # Flag needed by GCC 12 but unrecognized by GCC 9 (aarch64-linux default now)
-  env.NIX_CFLAGS_COMPILE = toString (lib.optionals (with stdenv; cc.isGNU && lib.versionAtLeast cc.version "12") [
-    "-Wno-error=mismatched-new-delete"
+  env.CXXFLAGS = toString [ "-include cstdint" ];
+
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isGNU (toString [
+    "-Wno-error=redundant-move"
+    # Flag needed by GCC 12 but unrecognized by GCC 9 (aarch64-linux default now)
+    (lib.optionalString (lib.versionAtLeast stdenv.cc.version "12") "-Wno-error=mismatched-new-delete")
   ]);
 
   prePatch = ''
@@ -127,6 +138,8 @@ stdenv.mkDerivation rec {
     })
     # Ensures generated desktop files work on store path change
     ./0001-NixOS-Use-anbox-from-PATH-in-desktop-files.patch
+    # Allows android-emugl to build with gtest 1.13+
+    ./0002-NixOS-Build-android-emugl-with-cpp-14.patch
     # Provide window icons
     (fetchpatch {
       url = "https://github.com/samueldr/anbox/commit/2387f4fcffc0e19e52e58fb6f8264fbe87aafe4d.patch";
@@ -137,7 +150,12 @@ stdenv.mkDerivation rec {
   postInstall = ''
     wrapProgram $out/bin/anbox \
       --set SDL_VIDEO_X11_WMCLASS "anbox" \
-      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [libGL libglvnd]} \
+      --prefix LD_LIBRARY_PATH : ${
+        lib.makeLibraryPath [
+          libGL
+          libglvnd
+        ]
+      } \
       --prefix PATH : ${git}/bin
 
     mkdir -p $out/share/dbus-1/services
@@ -159,9 +177,13 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     homepage = "https://anbox.io";
     description = "Android in a box";
-    license = licenses.gpl2;
+    license = licenses.gpl2Only;
     maintainers = with maintainers; [ edwtjo ];
-    platforms = [ "armv7l-linux" "aarch64-linux" "x86_64-linux" ];
+    platforms = [
+      "armv7l-linux"
+      "aarch64-linux"
+      "x86_64-linux"
+    ];
   };
 
 }

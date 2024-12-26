@@ -1,26 +1,29 @@
-{ lib
-, stdenv
-, fetchFromRepoOrCz
-, copyPkgconfigItems
-, makePkgconfigItem
-, perl
-, texinfo
-, which
+{
+  lib,
+  copyPkgconfigItems,
+  fetchFromRepoOrCz,
+  makePkgconfigItem,
+  perl,
+  stdenv,
+  texinfo,
+  which,
 }:
 
-let
-  # avoid "malformed 32-bit x.y.z" error on mac when using clang
-  isCleanVer = version: builtins.match "^[0-9]\\.+[0-9]+\\.[0-9]+" version != null;
-in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "tcc";
-  version = "unstable-2022-07-15";
+  version = "0.9.27-unstable-2022-07-15";
 
   src = fetchFromRepoOrCz {
     repo = "tinycc";
     rev = "af1abf1f45d45b34f0b02437f559f4dfdba7d23c";
     hash = "sha256-jY0P2GErmo//YBaz6u4/jj/voOE3C2JaIDRmo0orXN8=";
   };
+
+  outputs = [
+    "out"
+    "info"
+    "man"
+  ];
 
   nativeBuildInputs = [
     copyPkgconfigItems
@@ -29,62 +32,81 @@ stdenv.mkDerivation rec {
     which
   ];
 
-  pkgconfigItems = [
-    (makePkgconfigItem rec {
-      name = "libtcc";
-      inherit version;
-      cflags = [ "-I${variables.includedir}" ];
-      libs = [
-        "-L${variables.libdir}"
-        "-Wl,--rpath ${variables.libdir}"
-        "-ltcc"
-      ];
-      variables = rec {
-        prefix = "${placeholder "out"}";
-        includedir = "${prefix}/include";
-        libdir = "${prefix}/lib";
+  strictDeps = true;
+
+  pkgconfigItems =
+    let
+      libtcc-pcitem = {
+        name = "libtcc";
+        inherit (finalAttrs) version;
+        cflags = [ "-I${libtcc-pcitem.variables.includedir}" ];
+        libs = [
+          "-L${libtcc-pcitem.variables.libdir}"
+          "-Wl,--rpath ${libtcc-pcitem.variables.libdir}"
+          "-ltcc"
+        ];
+        variables = {
+          prefix = "${placeholder "out"}";
+          includedir = "${placeholder "dev"}/include";
+          libdir = "${placeholder "lib"}/lib";
+        };
+        description = "Tiny C compiler backend";
       };
-      description = "Tiny C compiler backend";
-    })
-  ];
+    in
+    [
+      (makePkgconfigItem libtcc-pcitem)
+    ];
 
   postPatch = ''
     patchShebangs texi2pod.pl
   '';
 
-  configureFlags = [
-    "--cc=$CC"
-    "--ar=$AR"
-    "--crtprefix=${lib.getLib stdenv.cc.libc}/lib"
-    "--sysincludepaths=${lib.getDev stdenv.cc.libc}/include:{B}/include"
-    "--libpaths=${lib.getLib stdenv.cc.libc}/lib"
-    # build cross compilers
-    "--enable-cross"
-  ] ++ lib.optionals stdenv.hostPlatform.isMusl [
-    "--config-musl"
-  ];
+  configureFlags =
+    [
+      "--cc=$CC"
+      "--ar=$AR"
+      "--crtprefix=${lib.getLib stdenv.cc.libc}/lib"
+      "--sysincludepaths=${lib.getDev stdenv.cc.libc}/include:{B}/include"
+      "--libpaths=${lib.getLib stdenv.cc.libc}/lib"
+      # build cross compilers
+      "--enable-cross"
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isMusl [
+      "--config-musl"
+    ];
 
-  preConfigure = ''
-    ${
-      if stdenv.isDarwin && ! isCleanVer version
-      then "echo 'not overwriting VERSION since it would upset ld'"
-      else "echo ${version} > VERSION"
-    }
-    configureFlagsArray+=("--elfinterp=$(< $NIX_CC/nix-support/dynamic-linker)")
-  '';
+  preConfigure =
+    let
+      # To avoid "malformed 32-bit x.y.z" error on mac when using clang
+      versionIsClean = version: builtins.match "^[0-9]\\.+[0-9]+\\.[0-9]+" version != null;
+    in
+    ''
+      ${
+        if stdenv.hostPlatform.isDarwin && !versionIsClean finalAttrs.version then
+          "echo 'not overwriting VERSION since it would upset ld'"
+        else
+          "echo ${finalAttrs.version} > VERSION"
+      }
+      configureFlagsArray+=("--elfinterp=$(< $NIX_CC/nix-support/dynamic-linker)")
+    '';
 
-  outputs = [ "out" "info" "man" ];
+  env.NIX_CFLAGS_COMPILE = toString (
+    lib.optionals stdenv.cc.isClang [
+      "-Wno-error=implicit-int"
+      "-Wno-error=int-conversion"
+    ]
+  );
 
   # Test segfault for static build
   doCheck = !stdenv.hostPlatform.isStatic;
 
   checkTarget = "test";
   # https://www.mail-archive.com/tinycc-devel@nongnu.org/msg10142.html
-  preCheck = lib.optionalString (stdenv.isDarwin && stdenv.isx86_64) ''
+  preCheck = lib.optionalString (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) ''
     rm tests/tests2/{108,114}*
   '';
 
-  meta = with lib; {
+  meta = {
     homepage = "https://repo.or.cz/tinycc.git";
     description = "Small, fast, and embeddable C compiler and interpreter";
     longDescription = ''
@@ -108,13 +130,16 @@ stdenv.mkDerivation rec {
 
       With libtcc, you can use TCC as a backend for dynamic code generation.
     '';
-    license = licenses.lgpl21Only;
-    maintainers = with maintainers; [ joachifm AndersonTorres ];
-    platforms = platforms.unix;
+    license = with lib.licenses; [ lgpl21Only ];
+    mainProgram = "tcc";
+    maintainers = with lib.maintainers; [
+      joachifm
+      AndersonTorres
+    ];
+    platforms = lib.platforms.unix;
     # https://www.mail-archive.com/tinycc-devel@nongnu.org/msg10199.html
-    broken = stdenv.isDarwin && stdenv.isAarch64;
+    broken = stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64;
   };
-}
+})
 # TODO: more multiple outputs
 # TODO: self-compilation
-# TODO: provide expression for stable release

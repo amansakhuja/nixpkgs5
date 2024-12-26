@@ -1,6 +1,23 @@
-{ lib, stdenv, fetchurl, fetchFromGitHub, ncurses, texinfo, writeScript
-, common-updater-scripts, git, nix, nixfmt, coreutils, gnused, callPackage
-, file ? null, gettext ? null, enableNls ? true, enableTiny ? false }:
+{
+  lib,
+  stdenv,
+  fetchurl,
+  fetchFromGitHub,
+  ncurses,
+  texinfo,
+  writeScript,
+  common-updater-scripts,
+  git,
+  nix,
+  nixfmt-classic,
+  coreutils,
+  gnused,
+  callPackage,
+  file ? null,
+  gettext ? null,
+  enableNls ? true,
+  enableTiny ? false,
+}:
 
 assert enableNls -> (gettext != null);
 
@@ -9,22 +26,26 @@ let
     owner = "seitz";
     repo = "nanonix";
     rev = "bf8d898efaa10dce3f7972ff765b58c353b4b4ab";
-    sha256 = "0773s5iz8aw9npgyasb0r2ybp6gvy2s9sq51az8w7h52bzn5blnn";
+    hash = "sha256-1tJV7F+iwMPRV6FgnbTw+5m7vMhgaeXftYkr9GPR4xw=";
   };
 
-in stdenv.mkDerivation rec {
+in
+stdenv.mkDerivation rec {
   pname = "nano";
-  version = "7.2";
+  version = "8.3";
 
   src = fetchurl {
     url = "mirror://gnu/nano/${pname}-${version}.tar.xz";
-    sha256 = "hvNEJ2i9KHPOxpP4PN+AtLRErTzBR2C3Q2FHT8h6RSY=";
+    hash = "sha256-VRtxey4o9+kPdJMjaGobW7vYTPoTkGBNhUo8o3ePER4=";
   };
 
   nativeBuildInputs = [ texinfo ] ++ lib.optional enableNls gettext;
   buildInputs = [ ncurses ] ++ lib.optional (!enableTiny) file;
 
-  outputs = [ "out" "info" ];
+  outputs = [
+    "out"
+    "info"
+  ];
 
   configureFlags = [
     "--sysconfdir=/etc"
@@ -32,14 +53,20 @@ in stdenv.mkDerivation rec {
     (lib.enableFeature enableTiny "tiny")
   ];
 
-  postInstall = if enableTiny then null else ''
-    cp ${nixSyntaxHighlight}/nix.nanorc $out/share/nano/
-  '';
+  postInstall =
+    if enableTiny then
+      null
+    else
+      ''
+        cp ${nixSyntaxHighlight}/nix.nanorc $out/share/nano/
+      '';
 
   enableParallelBuilding = true;
 
   passthru = {
-    tests = { expect = callPackage ./test-with-expect.nix { }; };
+    tests = {
+      expect = callPackage ./test-with-expect.nix { };
+    };
 
     updateScript = writeScript "update.sh" ''
       #!${stdenv.shell}
@@ -48,7 +75,7 @@ in stdenv.mkDerivation rec {
         lib.makeBinPath [
           common-updater-scripts
           git
-          nixfmt
+          nixfmt-classic
           nix
           coreutils
           gnused
@@ -71,9 +98,13 @@ in stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://www.nano-editor.org/";
-    description = "A small, user-friendly console text editor";
+    description = "Small, user-friendly console text editor";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ joachifm nequissimus ];
+    maintainers = with maintainers; [
+      joachifm
+      nequissimus
+      sigmasquadron
+    ];
     platforms = platforms.all;
     mainProgram = "nano";
   };

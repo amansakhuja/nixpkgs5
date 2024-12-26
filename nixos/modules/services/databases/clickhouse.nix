@@ -1,8 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.services.clickhouse;
 in
-with lib;
 {
 
   ###### interface
@@ -11,25 +15,17 @@ with lib;
 
     services.clickhouse = {
 
-      enable = mkEnableOption (lib.mdDoc "ClickHouse database server");
+      enable = lib.mkEnableOption "ClickHouse database server";
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.clickhouse;
-        defaultText = lib.literalExpression "pkgs.clickhouse";
-        description = lib.mdDoc ''
-          ClickHouse package to use.
-        '';
-      };
+      package = lib.mkPackageOption pkgs "clickhouse" { };
 
     };
 
   };
 
-
   ###### implementation
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
 
     users.users.clickhouse = {
       name = "clickhouse";
@@ -78,7 +74,7 @@ with lib;
     environment.systemPackages = [ cfg.package ];
 
     # startup requires a `/etc/localtime` which only if exists if `time.timeZone != null`
-    time.timeZone = mkDefault "UTC";
+    time.timeZone = lib.mkDefault "UTC";
 
   };
 

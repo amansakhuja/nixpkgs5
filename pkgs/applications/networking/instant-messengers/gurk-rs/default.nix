@@ -1,46 +1,61 @@
-{ stdenv
-, lib
-, protobuf
-, rustPlatform
-, fetchFromGitHub
-, Cocoa
+{
+  stdenv,
+  lib,
+  protobuf,
+  rustPlatform,
+  fetchFromGitHub,
+  Cocoa,
+  pkgsBuildHost,
+  openssl,
+  pkg-config,
+  testers,
+  gurk-rs,
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "gurk-rs";
-  version = "0.4.0";
+  version = "0.5.2";
 
   src = fetchFromGitHub {
     owner = "boxdot";
-    repo = pname;
-    rev = "v${version}";
-    sha256 = "sha256-LN54XUu+54yGVCbi7ZwY22KOnfS67liioI4JeR3l92I=";
+    repo = "gurk-rs";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-ZVpI60pZZCLRnKdC80P8f63gE0+Vi1lelhyFPAhpHyU=";
   };
 
   postPatch = ''
     rm .cargo/config.toml
   '';
 
-  cargoLock = {
-    lockFile = ./Cargo.lock;
-    outputHashes = {
-      "curve25519-dalek-3.2.1" = "sha256-T/NGZddFQWq32eRu6FYfgdPqU8Y4Shi1NpMaX4GeQ54=";
-      "libsignal-protocol-0.1.0" = "sha256-gapAurbs/BdsfPlVvWWF7Ai1nXZcxCW8qc5gQdbnthM=";
-      "libsignal-service-0.1.0" = "sha256-C1Lhi/NRWyPT7omlAdjK7gVTLxmZjZVuZgmZ8dn/D3Y=";
-      "presage-0.5.0-dev" = "sha256-OtRrPcH4/o6Sq/day1WU6R8QgQ2xWkespkfFPqFeKWk=";
-    };
+  useFetchCargoVendor = true;
+
+  cargoHash = "sha256-jTZ2wJPXj3nU7GVTfne64eSra+JuKhNryCtRZMKOE44=";
+
+  nativeBuildInputs = [
+    protobuf
+    pkg-config
+  ];
+
+  buildInputs = [ openssl ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ Cocoa ];
+
+  NIX_LDFLAGS = lib.optionals (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) [
+    "-framework"
+    "AppKit"
+  ];
+
+  PROTOC = "${pkgsBuildHost.protobuf}/bin/protoc";
+
+  OPENSSL_NO_VENDOR = true;
+
+  useNextest = true;
+
+  passthru.tests.version = testers.testVersion {
+    package = gurk-rs;
   };
-
-  nativeBuildInputs = [ protobuf ];
-
-  buildInputs = lib.optionals stdenv.isDarwin [ Cocoa ];
-
-  NIX_LDFLAGS = lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [ "-framework" "AppKit" ];
-
-  PROTOC = "${protobuf}/bin/protoc";
 
   meta = with lib; {
     description = "Signal Messenger client for terminal";
+    mainProgram = "gurk";
     homepage = "https://github.com/boxdot/gurk-rs";
     license = licenses.agpl3Only;
     maintainers = with maintainers; [ devhell ];

@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -10,22 +15,15 @@ in
 
   options = {
     services.xserver.windowManager.ragnarwm = {
-      enable = mkEnableOption (lib.mdDoc "ragnarwm");
-      package = mkOption {
-        type = types.package;
-        default = pkgs.ragnarwm;
-        defaultText = literalExpression "pkgs.ragnarwm";
-        description = lib.mdDoc ''
-          The ragnar package to use.
-        '';
-      };
+      enable = mkEnableOption "ragnarwm";
+      package = mkPackageOption pkgs "ragnarwm" { };
     };
   };
 
   ###### implementation
 
   config = mkIf cfg.enable {
-    services.xserver.displayManager.sessionPackages = [ cfg.package ];
+    services.displayManager.sessionPackages = [ cfg.package ];
     environment.systemPackages = [ cfg.package ];
   };
 

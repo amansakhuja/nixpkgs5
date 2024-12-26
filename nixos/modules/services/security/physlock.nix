@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -17,7 +22,7 @@ in
       enable = mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc ''
+        description = ''
           Whether to enable the {command}`physlock` screen locking mechanism.
 
           Enable this and then run {command}`systemctl start physlock`
@@ -33,7 +38,7 @@ in
       allowAnyUser = mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc ''
+        description = ''
           Whether to allow any user to lock the screen. This will install a
           setuid wrapper to allow any user to start physlock as root, which
           is a minor security risk. Call the physlock binary to use this instead
@@ -44,7 +49,7 @@ in
       disableSysRq = mkOption {
         type = types.bool;
         default = true;
-        description = lib.mdDoc ''
+        description = ''
           Whether to disable SysRq when locked with physlock.
         '';
       };
@@ -52,7 +57,7 @@ in
       lockMessage = mkOption {
         type = types.str;
         default = "";
-        description = lib.mdDoc ''
+        description = ''
           Message to show on physlock login terminal.
         '';
       };
@@ -60,7 +65,7 @@ in
       muteKernelMessages = mkOption {
         type = types.bool;
         default = false;
-        description = lib.mdDoc ''
+        description = ''
           Disable kernel messages on console while physlock is running.
         '';
       };
@@ -70,7 +75,7 @@ in
         suspend = mkOption {
           type = types.bool;
           default = true;
-          description = lib.mdDoc ''
+          description = ''
             Whether to lock screen with physlock just before suspend.
           '';
         };
@@ -78,16 +83,16 @@ in
         hibernate = mkOption {
           type = types.bool;
           default = true;
-          description = lib.mdDoc ''
+          description = ''
             Whether to lock screen with physlock just before hibernate.
           '';
         };
 
         extraTargets = mkOption {
           type = types.listOf types.str;
-          default = [];
+          default = [ ];
           example = [ "display-manager.service" ];
-          description = lib.mdDoc ''
+          description = ''
             Other targets to lock the screen just before.
 
             Useful if you want to e.g. both autologin to X11 so that
@@ -103,7 +108,6 @@ in
 
   };
 
-
   ###### implementation
 
   config = mkIf cfg.enable (mkMerge [
@@ -115,31 +119,35 @@ in
       systemd.services.physlock = {
         enable = true;
         description = "Physlock";
-        wantedBy = optional cfg.lockOn.suspend   "suspend.target"
-                ++ optional cfg.lockOn.hibernate "hibernate.target"
-                ++ cfg.lockOn.extraTargets;
-        before   = optional cfg.lockOn.suspend   "systemd-suspend.service"
-                ++ optional cfg.lockOn.hibernate "systemd-hibernate.service"
-                ++ optional (cfg.lockOn.hibernate || cfg.lockOn.suspend) "systemd-suspend-then-hibernate.service"
-                ++ cfg.lockOn.extraTargets;
+        wantedBy =
+          optional cfg.lockOn.suspend "suspend.target"
+          ++ optional cfg.lockOn.hibernate "hibernate.target"
+          ++ cfg.lockOn.extraTargets;
+        before =
+          optional cfg.lockOn.suspend "systemd-suspend.service"
+          ++ optional cfg.lockOn.hibernate "systemd-hibernate.service"
+          ++ optional (cfg.lockOn.hibernate || cfg.lockOn.suspend) "systemd-suspend-then-hibernate.service"
+          ++ cfg.lockOn.extraTargets;
         serviceConfig = {
           Type = "forking";
-          ExecStart = "${pkgs.physlock}/bin/physlock -d${optionalString cfg.muteKernelMessages "m"}${optionalString cfg.disableSysRq "s"}${optionalString (cfg.lockMessage != "") " -p \"${cfg.lockMessage}\""}";
+          ExecStart = "${pkgs.physlock}/bin/physlock -d${optionalString cfg.muteKernelMessages "m"}${optionalString cfg.disableSysRq "s"}${
+            optionalString (cfg.lockMessage != "") " -p \"${cfg.lockMessage}\""
+          }";
         };
       };
 
-      security.pam.services.physlock = {};
+      security.pam.services.physlock = { };
 
     }
 
     (mkIf cfg.allowAnyUser {
 
-      security.wrappers.physlock =
-        { setuid = true;
-          owner = "root";
-          group = "root";
-          source = "${pkgs.physlock}/bin/physlock";
-        };
+      security.wrappers.physlock = {
+        setuid = true;
+        owner = "root";
+        group = "root";
+        source = "${pkgs.physlock}/bin/physlock";
+      };
 
     })
   ]);

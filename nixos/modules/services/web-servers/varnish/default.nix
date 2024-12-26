@@ -1,58 +1,63 @@
-{ config, lib, pkgs, ...}:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
 let
   cfg = config.services.varnish;
 
-  commandLine = "-f ${pkgs.writeText "default.vcl" cfg.config}" +
-      optionalString (cfg.extraModules != []) " -p vmod_path='${makeSearchPathOutput "lib" "lib/varnish/vmods" ([cfg.package] ++ cfg.extraModules)}' -r vmod_path";
+  commandLine =
+    "-f ${pkgs.writeText "default.vcl" cfg.config}"
+    +
+      optionalString (cfg.extraModules != [ ])
+        " -p vmod_path='${
+           makeSearchPathOutput "lib" "lib/varnish/vmods" ([ cfg.package ] ++ cfg.extraModules)
+         }' -r vmod_path";
 in
 {
   options = {
     services.varnish = {
-      enable = mkEnableOption (lib.mdDoc "Varnish Server");
+      enable = mkEnableOption "Varnish Server";
 
-      enableConfigCheck = mkEnableOption (lib.mdDoc "checking the config during build time") // { default = true; };
-
-      package = mkOption {
-        type = types.package;
-        default = pkgs.varnish;
-        defaultText = literalExpression "pkgs.varnish";
-        description = lib.mdDoc ''
-          The package to use
-        '';
+      enableConfigCheck = mkEnableOption "checking the config during build time" // {
+        default = true;
       };
+
+      package = mkPackageOption pkgs "varnish" { };
 
       http_address = mkOption {
         type = types.str;
         default = "*:6081";
-        description = lib.mdDoc ''
+        description = ''
           HTTP listen address and port.
         '';
       };
 
       config = mkOption {
         type = types.lines;
-        description = lib.mdDoc ''
+        description = ''
           Verbatim default.vcl configuration.
         '';
       };
 
       stateDir = mkOption {
         type = types.path;
-        default = "/var/spool/varnish/${config.networking.hostName}";
-        defaultText = literalExpression ''"/var/spool/varnish/''${config.networking.hostName}"'';
-        description = lib.mdDoc ''
-          Directory holding all state for Varnish to run.
+        default = "/run/varnish/${config.networking.hostName}";
+        defaultText = literalExpression ''"/run/varnish/''${config.networking.hostName}"'';
+        description = ''
+          Directory holding all state for Varnish to run. Note that this should be a tmpfs in order to avoid performance issues and crashes.
         '';
       };
 
       extraModules = mkOption {
         type = types.listOf types.package;
-        default = [];
+        default = [ ];
         example = literalExpression "[ pkgs.varnishPackages.geoip ]";
-        description = lib.mdDoc ''
+        description = ''
           Varnish modules (except 'std').
         '';
       };
@@ -61,7 +66,7 @@ in
         type = types.str;
         default = "";
         example = "-s malloc,256M";
-        description = lib.mdDoc ''
+        description = ''
           Command line switches for varnishd (run 'varnishd -?' to get list of options)
         '';
       };
@@ -75,11 +80,11 @@ in
       description = "Varnish";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      preStart = ''
+      preStart = mkIf (!(lib.hasPrefix "/run/" cfg.stateDir)) ''
         mkdir -p ${cfg.stateDir}
         chown -R varnish:varnish ${cfg.stateDir}
       '';
-      postStop = ''
+      postStop = mkIf (!(lib.hasPrefix "/run/" cfg.stateDir)) ''
         rm -rf ${cfg.stateDir}
       '';
       serviceConfig = {
@@ -90,6 +95,9 @@ in
         RestartSec = "5s";
         User = "varnish";
         Group = "varnish";
+        RuntimeDirectory = mkIf (lib.hasPrefix "/run/" cfg.stateDir) (
+          lib.removePrefix "/run/" cfg.stateDir
+        );
         AmbientCapabilities = "cap_net_bind_service";
         NoNewPrivileges = true;
         LimitNOFILE = 131072;
@@ -100,7 +108,7 @@ in
 
     # check .vcl syntax at compile time (e.g. before nixops deployment)
     system.checks = mkIf cfg.enableConfigCheck [
-      (pkgs.runCommand "check-varnish-syntax" {} ''
+      (pkgs.runCommand "check-varnish-syntax" { } ''
         ${cfg.package}/bin/varnishd -C ${commandLine} 2> $out || (cat $out; exit 1)
       '')
     ];

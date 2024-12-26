@@ -1,31 +1,32 @@
-{ lib
-, stdenv
-, bzip2
-, cjson
-, cmake
-, curl
-, docutils
-, fetchFromGitHub
-, libarchive
-, libev
-, libgccjit
-, libssh
-, lz4
-, openssl
-, systemd
-, zlib
-, zstd
+{
+  lib,
+  stdenv,
+  bzip2,
+  cjson,
+  cmake,
+  curl,
+  docutils,
+  fetchFromGitHub,
+  libarchive,
+  libev,
+  libgccjit,
+  libssh,
+  lz4,
+  openssl,
+  systemd,
+  zlib,
+  zstd,
 }:
 
 stdenv.mkDerivation rec {
   pname = "pgmoneta";
-  version = "0.7.1";
+  version = "0.15.0";
 
   src = fetchFromGitHub {
     owner = "pgmoneta";
     repo = "pgmoneta";
     rev = version;
-    hash = "sha256-F3bQ3UytEunXf0w2Eo1vx3u0Q40usYhbCmCVuL9X9lI=";
+    hash = "sha256-3NESUksk3UgiDK6PUx99+eZ1XSrob5TgDgCebQ9EPhU=";
   };
 
   nativeBuildInputs = [
@@ -55,7 +56,7 @@ stdenv.mkDerivation rec {
     homepage = "https://pgmoneta.github.io/";
     changelog = "https://github.com/pgmoneta/pgmoneta/releases/tag/${version}";
     license = licenses.bsd3;
-    maintainers = [ maintainers.marsam ];
+    maintainers = [ ];
     platforms = platforms.linux;
   };
 }

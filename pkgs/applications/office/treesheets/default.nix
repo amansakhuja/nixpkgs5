@@ -1,55 +1,56 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, ninja
-, wrapGAppsHook
-, makeWrapper
-, wxGTK
-, Cocoa
-, unstableGitUpdater
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  cmake,
+  ninja,
+  wrapGAppsHook3,
+  makeWrapper,
+  wxGTK32,
+  unstableGitUpdater,
 }:
 
 stdenv.mkDerivation rec {
   pname = "treesheets";
-  version = "unstable-2023-09-15";
+  version = "0-unstable-2024-12-11";
 
   src = fetchFromGitHub {
     owner = "aardappel";
     repo = "treesheets";
-    rev = "8e1ebe5a55f6a725ba6fe342b4b7604438d9d406";
-    sha256 = "zz2erN/ap6vT56khqbpANu1eV/C9eQ6SBWEV4GNbmEY=";
+    rev = "81e74a0f3f325ada0abe35211e90b74132f91470";
+    hash = "sha256-6Ao1dl0tRLAZZxx0xV7uaojuCO9i3bUIdccsZ37Jm/g=";
   };
 
   nativeBuildInputs = [
     cmake
     ninja
-    wrapGAppsHook
+    wrapGAppsHook3
     makeWrapper
   ];
 
   buildInputs = [
-    wxGTK
-  ] ++ lib.optionals stdenv.isDarwin [
-    Cocoa
+    wxGTK32
   ];
 
-  env.NIX_CFLAGS_COMPILE = "-DPACKAGE_VERSION=\"${builtins.replaceStrings [ "unstable-" ] [ "" ] version}\"";
+  env.NIX_CFLAGS_COMPILE = "-DPACKAGE_VERSION=\"${
+    builtins.replaceStrings [ "unstable-" ] [ "" ] version
+  }\"";
 
-  postInstall = lib.optionalString stdenv.isDarwin ''
-    shopt -s extglob
-    mkdir -p $out/{share/treesheets,bin}
-    mv $out/!(share) $out/share/treesheets
-    makeWrapper $out/{share/treesheets,bin}/treesheets \
-      --chdir $out/share/treesheets
+  postInstall = lib.optionalString stdenv.hostPlatform.isDarwin ''
+    mkdir -p $out/{Applications,bin}
+    mv $out/TreeSheets.app $out/Applications
+    makeWrapper $out/Applications/TreeSheets.app/Contents/MacOS/TreeSheets $out/bin/TreeSheets
   '';
 
   passthru = {
-    updateScript = unstableGitUpdater { };
+    updateScript = unstableGitUpdater {
+      hardcodeZeroVersion = true;
+    };
   };
 
   meta = with lib; {
     description = "Free Form Data Organizer";
+    mainProgram = "TreeSheets";
 
     longDescription = ''
       The ultimate replacement for spreadsheets, mind mappers, outliners,
@@ -61,7 +62,7 @@ stdenv.mkDerivation rec {
     '';
 
     homepage = "https://strlen.com/treesheets/";
-    maintainers = with maintainers; [ obadz avery ];
+    maintainers = with maintainers; [ obadz ];
     platforms = platforms.unix;
     license = licenses.zlib;
   };

@@ -1,25 +1,28 @@
-{ buildGoModule
-, fetchFromGitHub
-, installShellFiles
-, lib
-, libglvnd
-, pkg-config
-, subPackages ? ["." "netclient"]
-, xorg
+{
+  buildGoModule,
+  fetchFromGitHub,
+  lib,
+  libglvnd,
+  pkg-config,
+  subPackages ? [
+    "."
+    "netclient"
+  ],
+  xorg,
 }:
 
 buildGoModule rec {
   pname = "netmaker";
-  version = "0.21.1";
+  version = "0.26.0";
 
   src = fetchFromGitHub {
     owner = "gravitl";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-LfvO95jqzJzB44JxzB00GubTKJkvK/NR42eGYipirbM=";
+    hash = "sha256-f6R7Dc5M3MUjsCXvQAqamU9FFuqYEZoxYKwKhk4ilPc=";
   };
 
-  vendorHash = "sha256-BRgzPH7uiUHcouEw0KNpM5k0/kZMImvI9MFn4ahXIRM=";
+  vendorHash = "sha256-g9JyIuqYJZK47xQYM0+d1hcHcNBGLH3lW60hI6UkD84=";
 
   inherit subPackages;
 
@@ -39,7 +42,10 @@ buildGoModule rec {
     homepage = "https://netmaker.io";
     changelog = "https://github.com/gravitl/netmaker/-/releases/v${version}";
     license = licenses.asl20;
-    maintainers = with maintainers; [ urandom qjoly ];
+    maintainers = with maintainers; [
+      urandom
+      qjoly
+    ];
     mainProgram = "netmaker";
   };
 }

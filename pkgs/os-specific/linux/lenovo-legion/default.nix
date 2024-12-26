@@ -1,4 +1,10 @@
-{ lib, fetchurl, stdenv, kernel, bash, lenovo-legion }:
+{
+  lib,
+  stdenv,
+  kernel,
+  bash,
+  lenovo-legion,
+}:
 
 stdenv.mkDerivation {
   pname = "lenovo-legion-module";

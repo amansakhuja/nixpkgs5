@@ -1,6 +1,7 @@
-{ lib
-, buildGoModule
-, fetchFromGitHub
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
 }:
 
 buildGoModule rec {
@@ -18,6 +19,7 @@ buildGoModule rec {
 
   meta = with lib; {
     description = "Kubectl alternative with quick context switching";
+    mainProgram = "tubectl";
     homepage = "https://github.com/reconquest/tubekit";
     license = licenses.mit;
     platforms = platforms.linux ++ platforms.darwin;

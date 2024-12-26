@@ -1,4 +1,13 @@
-{ mkDerivation, lib, fetchurl, makeWrapper, python3, qmake, ctags, gdb }:
+{
+  mkDerivation,
+  lib,
+  fetchurl,
+  makeWrapper,
+  python3,
+  qmake,
+  ctags,
+  gdb,
+}:
 
 mkDerivation rec {
   pname = "gede";
@@ -9,7 +18,11 @@ mkDerivation rec {
     sha256 = "sha256-RUl60iPa4XSlUilpYKaYQbRmLqthKHAvYonnhufjPsE=";
   };
 
-  nativeBuildInputs = [ qmake makeWrapper python3 ];
+  nativeBuildInputs = [
+    qmake
+    makeWrapper
+    python3
+  ];
 
   buildInputs = [ ctags ];
 
@@ -22,11 +35,17 @@ mkDerivation rec {
   installPhase = ''
     python build.py install --verbose --prefix="$out"
     wrapProgram $out/bin/gede \
-      --prefix PATH : ${lib.makeBinPath [ ctags gdb ]}
+      --prefix PATH : ${
+        lib.makeBinPath [
+          ctags
+          gdb
+        ]
+      }
   '';
 
   meta = with lib; {
     description = "Graphical frontend (GUI) to GDB";
+    mainProgram = "gede";
     homepage = "http://gede.dexar.se";
     license = licenses.bsd2;
     platforms = platforms.linux;

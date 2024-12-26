@@ -1,25 +1,26 @@
-{ lib
-, fetchFromGitLab
-, python3Packages
-, wrapGAppsHook4
-, gst_all_1
-, gobject-introspection
-, yt-dlp
-, libadwaita
-, libsoup_3
-, glib-networking
+{
+  lib,
+  fetchFromGitLab,
+  python3Packages,
+  wrapGAppsHook4,
+  gst_all_1,
+  gobject-introspection,
+  yt-dlp,
+  libadwaita,
+  glib-networking,
+  nix-update-script,
 }:
 python3Packages.buildPythonApplication rec {
   pname = "monophony";
-  version = "2.3.1";
-  format = "other";
+  version = "2.15.0";
+  pyproject = false;
 
-  sourceRoot = "source/source";
+  sourceRoot = "${src.name}/source";
   src = fetchFromGitLab {
     owner = "zehkira";
     repo = "monophony";
     rev = "v${version}";
-    hash = "sha256-dpRTHsujaIwzgr+qY5LC9xtXz40g3akdpEiHuxiilZM=";
+    hash = "sha256-fC+XXOGBpG5pIQW1tCNtQaptBCyLM+YGgsZLjWrMoDA=";
   };
 
   pythonPath = with python3Packages; [
@@ -28,8 +29,13 @@ python3Packages.buildPythonApplication rec {
     ytmusicapi
   ];
 
+  build-system = with python3Packages; [
+    pip
+    setuptools
+    wheel
+  ];
+
   nativeBuildInputs = [
-    python3Packages.nuitka
     gobject-introspection
     wrapGAppsHook4
   ];
@@ -38,7 +44,6 @@ python3Packages.buildPythonApplication rec {
     [
       libadwaita
       # needed for gstreamer https
-      libsoup_3
       glib-networking
     ]
     ++ (with gst_all_1; [
@@ -47,17 +52,21 @@ python3Packages.buildPythonApplication rec {
       gstreamer
     ]);
 
+  # Makefile only contains `install`
+  dontBuild = true;
+
   installFlags = [ "prefix=$(out)" ];
 
+  dontWrapGApps = true;
+
   preFixup = ''
-    buildPythonPath "$pythonPath"
-    gappsWrapperArgs+=(
-      --prefix PYTHONPATH : "$program_PYTHONPATH"
-      --prefix PATH : "${lib.makeBinPath [yt-dlp]}"
-      # needed for gstreamer https
-      --prefix LD_LIBRARY_PATH : "${libsoup_3.out}/lib"
+    makeWrapperArgs+=(
+      --prefix PATH : "${lib.makeBinPath [ yt-dlp ]}"
+      "''${gappsWrapperArgs[@]}"
     )
   '';
+
+  passthru.updateScript = nix-update-script { };
 
   meta = with lib; {
     homepage = "https://gitlab.com/zehkira/monophony";

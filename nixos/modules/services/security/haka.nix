@@ -1,6 +1,11 @@
 # This module defines global configuration for Haka.
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -10,12 +15,14 @@ let
 
   haka = cfg.package;
 
-  hakaConf = pkgs.writeText "haka.conf"
-  ''
+  hakaConf = pkgs.writeText "haka.conf" ''
     [general]
-    configuration = ${if lib.strings.hasPrefix "/" cfg.configFile
-      then "${cfg.configFile}"
-      else "${haka}/share/haka/sample/${cfg.configFile}"}
+    configuration = ${
+      if lib.strings.hasPrefix "/" cfg.configFile then
+        "${cfg.configFile}"
+      else
+        "${haka}/share/haka/sample/${cfg.configFile}"
+    }
     ${optionalString (builtins.lessThan 0 cfg.threads) "thread = ${cfg.threads}"}
 
     [packet]
@@ -55,22 +62,15 @@ in
 
     services.haka = {
 
-      enable = mkEnableOption (lib.mdDoc "Haka");
+      enable = mkEnableOption "Haka";
 
-      package = mkOption {
-        default = pkgs.haka;
-        defaultText = literalExpression "pkgs.haka";
-        type = types.package;
-        description = lib.mdDoc ''
-          Which Haka derivation to use.
-        '';
-      };
+      package = mkPackageOption pkgs "haka" { };
 
       configFile = mkOption {
         default = "empty.lua";
         example = "/srv/haka/myfilter.lua";
         type = types.str;
-        description = lib.mdDoc ''
+        description = ''
           Specify which configuration file Haka uses.
           It can be absolute path or a path relative to the sample directory of
           the haka git repo.
@@ -81,7 +81,7 @@ in
         default = [ "eth0" ];
         example = [ "any" ];
         type = with types; listOf str;
-        description = lib.mdDoc ''
+        description = ''
           Specify which interface(s) Haka listens to.
           Use 'any' to listen to all interfaces.
         '';
@@ -91,7 +91,7 @@ in
         default = 0;
         example = 4;
         type = types.int;
-        description = lib.mdDoc ''
+        description = ''
           The number of threads that will be used.
           All system threads are used by default.
         '';
@@ -100,44 +100,46 @@ in
       pcap = mkOption {
         default = true;
         type = types.bool;
-        description = lib.mdDoc "Whether to enable pcap";
+        description = "Whether to enable pcap";
       };
 
-      nfqueue = mkEnableOption (lib.mdDoc "nfqueue");
+      nfqueue = mkEnableOption "nfqueue";
 
-      dump.enable = mkEnableOption (lib.mdDoc "dump");
-      dump.input  = mkOption {
+      dump.enable = mkEnableOption "dump";
+      dump.input = mkOption {
         default = "/tmp/input.pcap";
         example = "/path/to/file.pcap";
         type = types.path;
-        description = lib.mdDoc "Path to file where incoming packets are dumped";
+        description = "Path to file where incoming packets are dumped";
       };
 
-      dump.output  = mkOption {
+      dump.output = mkOption {
         default = "/tmp/output.pcap";
         example = "/path/to/file.pcap";
         type = types.path;
-        description = lib.mdDoc "Path to file where outgoing packets are dumped";
+        description = "Path to file where outgoing packets are dumped";
       };
     };
   };
-
 
   ###### implementation
 
   config = mkIf cfg.enable {
 
     assertions = [
-      { assertion = cfg.pcap != cfg.nfqueue;
+      {
+        assertion = cfg.pcap != cfg.nfqueue;
         message = "either pcap or nfqueue can be enabled, not both.";
       }
-      { assertion = cfg.nfqueue -> !dump.enable;
+      {
+        assertion = cfg.nfqueue -> !cfg.dump.enable;
         message = "dump can only be used with nfqueue.";
       }
-      { assertion = cfg.interfaces != [];
+      {
+        assertion = cfg.interfaces != [ ];
         message = "at least one interface must be specified.";
-      }];
-
+      }
+    ];
 
     environment.systemPackages = [ haka ];
 

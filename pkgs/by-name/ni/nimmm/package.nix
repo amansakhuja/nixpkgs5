@@ -1,25 +1,35 @@
-{ lib, buildNimPackage, fetchFromGitHub, termbox, pcre }:
+{
+  lib,
+  buildNimPackage,
+  fetchFromGitHub,
+  termbox,
+  pcre,
+}:
 
 buildNimPackage (finalAttrs: {
   pname = "nimmm";
-  version = "0.2.0";
+  version = "0.4.0";
 
   src = fetchFromGitHub {
     owner = "joachimschmidt557";
     repo = "nimmm";
     rev = "v${finalAttrs.version}";
-    sha256 = "168n61avphbxsxfq8qzcnlqx6wgvz5yrjvs14g25cg3k46hj4xqg";
+    hash = "sha256-yq91rQlX6bfYHHw72+8m53PCD7hViLe56jAwPTeBBcg=";
   };
 
   lockFile = ./lock.json;
 
-  buildInputs = [ termbox pcre ];
+  buildInputs = [
+    termbox
+    pcre
+  ];
 
   meta = {
-    description = "Terminal file manager written in Nim";
+    description = "Terminal file manager for Linux";
+    mainProgram = "nimmm";
     homepage = "https://github.com/joachimschmidt557/nimmm";
     license = lib.licenses.gpl3;
-    platforms = lib.platforms.unix;
+    platforms = lib.platforms.linux;
     maintainers = [ lib.maintainers.joachimschmidt557 ];
   };
 })

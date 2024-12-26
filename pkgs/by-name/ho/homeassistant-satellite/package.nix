@@ -1,6 +1,7 @@
-{ lib
-, python3
-, fetchFromGitHub
+{
+  lib,
+  python3,
+  fetchFromGitHub,
 }:
 
 python3.pkgs.buildPythonApplication rec {
@@ -17,14 +18,17 @@ python3.pkgs.buildPythonApplication rec {
 
   nativeBuildInputs = with python3.pkgs; [
     setuptools
-    wheel
+  ];
+
+  pythonRelaxDeps = [
+    "aiohttp"
   ];
 
   propagatedBuildInputs = with python3.pkgs; [
     aiohttp
   ];
 
-  passthru.optional-dependencies = {
+  optional-dependencies = {
     pulseaudio = with python3.pkgs; [
       pasimple
       pulsectl

@@ -1,4 +1,8 @@
-{ lib, stdenvNoCC, fetchzip }:
+{
+  lib,
+  stdenvNoCC,
+  fetchzip,
+}:
 
 stdenvNoCC.mkDerivation rec {
   pname = "paratype-pt-sans";
@@ -24,7 +28,7 @@ stdenvNoCC.mkDerivation rec {
 
   meta = with lib; {
     homepage = "http://www.paratype.ru/public/";
-    description = "An open Paratype font";
+    description = "Open Paratype font";
 
     license = "Open Paratype license";
     # no commercial distribution of the font on its own

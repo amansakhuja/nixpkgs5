@@ -13,7 +13,7 @@
 
 stdenv.mkDerivation rec {
   pname = "mediasynclite";
-  version = "0.4.2";
+  version = "0.4.3";
 
   src = fetchFromGitHub {
     owner = "iBroadcastMediaServices";
@@ -24,10 +24,10 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     curl
-    glib
-    gtk3
-    openssl
+    openssl.dev
     jansson
+    gtk3
+    glib
   ];
 
   strictDeps = true;
@@ -41,7 +41,8 @@ stdenv.mkDerivation rec {
   makeFlags = [ "PREFIX=$(out)" ];
 
   postPatch = ''
-    substitute ./src/ibmsl.c ./src/ibmsl.c --subst-var out
+   mkdir -p $out/share
+   cp -r share $out/share
   '';
 
   meta = with lib; {

@@ -1,49 +1,48 @@
-{ lib
-, buildPythonPackage
-, pythonOlder
-, fetchFromGitHub
-, setuptools
-, icalendar
-, pytz
-, python-dateutil
-, x-wr-timezone
-, pytestCheckHook
-, restructuredtext-lint
-, pygments
-, tzdata
+{
+  lib,
+  buildPythonPackage,
+  pythonOlder,
+  fetchFromGitHub,
+  setuptools,
+  icalendar,
+  python-dateutil,
+  tzdata,
+  x-wr-timezone,
+  pytestCheckHook,
+  pytz,
+  restructuredtext-lint,
+  pygments,
 }:
 
 buildPythonPackage rec {
   pname = "recurring-ical-events";
-  version = "2.1.1";
+  version = "3.3.4";
 
-  disabled = pythonOlder "3.7";
+  disabled = pythonOlder "3.8";
 
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "niccokunzmann";
     repo = "python-recurring-ical-events";
-    rev = "v${version}";
-    hash = "sha256-I5D4CAk0C60H2hMBV62gOaIRA+wYF2ORKxHfWustQz0=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-3KlmJJmak3X9adUlcmclnCv9D1Ddr+woFokrinZBYoE=";
   };
 
-  nativeBuildInputs = [
-    setuptools
-  ];
+  build-system = [ setuptools ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     icalendar
-    pytz
     python-dateutil
+    tzdata
     x-wr-timezone
   ];
 
   nativeCheckInputs = [
     pytestCheckHook
+    pytz
     restructuredtext-lint
     pygments
-    tzdata
   ];
 
   pythonImportsCheck = [ "recurring_ical_events" ];

@@ -1,10 +1,11 @@
-{ stdenv
-, lib
-, buildNpmPackage
-, fetchFromGitHub
-, darwin
-, remarshal
-, ttfautohint-nox
+{
+  stdenv,
+  lib,
+  buildNpmPackage,
+  fetchFromGitHub,
+  cctools,
+  remarshal,
+  ttfautohint-nox,
   # Custom font set options.
   # See https://typeof.net/Iosevka/customizer
   # Can be a raw TOML string, or a Nix attrset.
@@ -34,7 +35,7 @@
   #     italic.i = "tailed";
   #   };
   # }
-, privateBuildPlan ? null
+  privateBuildPlan ? null,
   # Extra parameters. Can be used for ligature mapping.
   # It must be a raw TOML string.
 
@@ -45,34 +46,36 @@
   #   featureTag = 'XHS0'
   #   sequence = "+>"
   # '';
-, extraParameters ? null
+  extraParameters ? null,
   # Custom font set name. Required if any custom settings above.
-, set ? null
+  set ? null,
 }:
 
 assert (privateBuildPlan != null) -> set != null;
 assert (extraParameters != null) -> set != null;
 
 buildNpmPackage rec {
-  pname = if set != null then "iosevka-${set}" else "iosevka";
-  version = "27.3.5";
+  pname = "Iosevka${toString set}";
+  version = "32.2.1";
 
   src = fetchFromGitHub {
     owner = "be5invis";
     repo = "iosevka";
     rev = "v${version}";
-    hash = "sha256-dqXr/MVOuEmAMueaRWsnzY9MabhnyBRtLR9IDVLN79I=";
+    hash = "sha256-z0S38X2A0rfGFNTr/Ym0VHfOhzdz/q42QL3tVf+m5FQ=";
   };
 
-  npmDepsHash = "sha256-bux8aFBP1Pi5pAQY1jkNTqD2Ny2j+QQs+QRaXWJj6xg=";
+  npmDepsHash = "sha256-dFVhoBf4v0K1mqbiysZNk4yCt4Ars0Pgnr63xIsavDo=";
 
-  nativeBuildInputs = [
-    remarshal
-    ttfautohint-nox
-  ] ++ lib.optionals stdenv.isDarwin [
-    # libtool
-    darwin.cctools
-  ];
+  nativeBuildInputs =
+    [
+      remarshal
+      ttfautohint-nox
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      # libtool
+      cctools
+    ];
 
   buildPlan =
     if builtins.isAttrs privateBuildPlan then
@@ -81,10 +84,10 @@ buildNpmPackage rec {
       privateBuildPlan;
 
   inherit extraParameters;
-  passAsFile = [ "extraParameters" ] ++ lib.optionals
-    (
-      !(builtins.isString privateBuildPlan
-        && lib.hasPrefix builtins.storeDir privateBuildPlan)
+  passAsFile =
+    [ "extraParameters" ]
+    ++ lib.optionals (
+      !(builtins.isString privateBuildPlan && lib.hasPrefix builtins.storeDir privateBuildPlan)
     ) [ "buildPlan" ];
 
   configurePhase = ''
@@ -92,14 +95,18 @@ buildNpmPackage rec {
     ${lib.optionalString (builtins.isAttrs privateBuildPlan) ''
       remarshal -i "$buildPlanPath" -o private-build-plans.toml -if json -of toml
     ''}
-    ${lib.optionalString (builtins.isString privateBuildPlan
-      && (!lib.hasPrefix builtins.storeDir privateBuildPlan)) ''
+    ${lib.optionalString
+      (builtins.isString privateBuildPlan && (!lib.hasPrefix builtins.storeDir privateBuildPlan))
+      ''
         cp "$buildPlanPath" private-build-plans.toml
-      ''}
-    ${lib.optionalString (builtins.isString privateBuildPlan
-      && (lib.hasPrefix builtins.storeDir privateBuildPlan)) ''
+      ''
+    }
+    ${lib.optionalString
+      (builtins.isString privateBuildPlan && (lib.hasPrefix builtins.storeDir privateBuildPlan))
+      ''
         cp "$buildPlan" private-build-plans.toml
-      ''}
+      ''
+    }
     ${lib.optionalString (extraParameters != null) ''
       echo -e "\n" >> params/parameters.toml
       cat "$extraParametersPath" >> params/parameters.toml
@@ -110,7 +117,10 @@ buildNpmPackage rec {
   buildPhase = ''
     export HOME=$TMPDIR
     runHook preBuild
-    npm run build --no-update-notifier -- --jCmd=$NIX_BUILD_CORES --verbose=9 ttf::$pname
+
+    # pipe to cat to disable progress bar
+    npm run build --no-update-notifier --targets ttf::$pname -- --jCmd=$NIX_BUILD_CORES --verbosity=9 | cat
+
     runHook postBuild
   '';
 
@@ -118,7 +128,7 @@ buildNpmPackage rec {
     runHook preInstall
     fontdir="$out/share/fonts/truetype"
     install -d "$fontdir"
-    install "dist/$pname/ttf"/* "$fontdir"
+    install "dist/$pname/TTF"/* "$fontdir"
     runHook postInstall
   '';
 
@@ -127,7 +137,7 @@ buildNpmPackage rec {
   meta = with lib; {
     homepage = "https://typeof.net/Iosevka/";
     downloadPage = "https://github.com/be5invis/Iosevka/releases";
-    description = "Versatile typeface for code, from code.";
+    description = "Versatile typeface for code, from code";
     longDescription = ''
       Iosevka is an open-source, sans-serif + slab-serif, monospace +
       quasi‑proportional typeface family, designed for writing code, using in
@@ -137,9 +147,7 @@ buildNpmPackage rec {
     platforms = platforms.all;
     maintainers = with maintainers; [
       ttuegel
-      babariviere
       rileyinman
-      AluisioASG
       lunik1
     ];
   };

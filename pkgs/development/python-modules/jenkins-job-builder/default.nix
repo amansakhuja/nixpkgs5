@@ -1,42 +1,64 @@
-{ lib, buildPythonPackage, fetchPypi, fasteners
-, jinja2
-, pbr
-, python-jenkins
-, pyyaml
-, six
-, stevedore
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  fasteners,
+  jinja2,
+  pbr,
+  python-jenkins,
+  pyyaml,
+  six,
+  stevedore,
+  pytestCheckHook,
+  setuptools,
+  fetchpatch,
+  testtools,
+  pytest-mock,
 }:
 
 buildPythonPackage rec {
   pname = "jenkins-job-builder";
-  version = "5.0.4";
+  version = "6.4.1";
+
+  build-system = [ setuptools ];
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-+zrsfyi4I8venFGMKXDMUq+9+f7y6IY59y1/OJDExGs=";
+    hash = "sha256-Re7rNAcm0cpSx1tmSzTjfDlW7y236lzFKFjVw0uUTmw=";
   };
+
+  patches = [
+    (fetchpatch {
+      url = "https://opendev.org/jjb/jenkins-job-builder/commit/7bf0dacd80d6da7b8562db05f9187140e42947c8.patch";
+      hash = "sha256-2z7axGgVV5Z7A11JiQhlrjjXDKYe+X6NrJEuXd986Do=";
+    })
+  ];
 
   postPatch = ''
-    # relax version constraint, https://storyboard.openstack.org/#!/story/2009723
-    substituteInPlace requirements.txt --replace 'PyYAML>=3.10.0,<6' 'PyYAML>=3.10.0'
-
-    # Allow building with setuptools from nixpkgs.
-    # Related: https://github.com/NixOS/nixpkgs/issues/238226.
-    substituteInPlace requirements.txt --replace 'setuptools<=65.7.0' 'setuptools'
-
-    export HOME=$TMPDIR
+    export HOME=$(mktemp -d)
   '';
 
-  propagatedBuildInputs = [ pbr python-jenkins pyyaml six stevedore fasteners jinja2 ];
+  dependencies = [
+    pbr
+    python-jenkins
+    pyyaml
+    six
+    stevedore
+    fasteners
+    jinja2
+  ];
 
-  # Need to fix test deps, relies on stestr and a few other packages that aren't available on nixpkgs
-  checkPhase = "$out/bin/jenkins-jobs --help";
+  nativeCheckInputs = [
+    pytestCheckHook
+    testtools
+    pytest-mock
+  ];
 
-  meta = with lib; {
+  meta = {
     description = "Jenkins Job Builder is a system for configuring Jenkins jobs using simple YAML files stored in Git";
-    homepage = "https://docs.openstack.org/infra/jenkins-job-builder/";
-    license = licenses.asl20;
-    maintainers = with maintainers; [ ];
+    mainProgram = "jenkins-jobs";
+    homepage = "https://jenkins-job-builder.readthedocs.io/en/latest/";
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ bot-wxt1221 ];
   };
-
 }

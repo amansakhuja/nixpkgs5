@@ -1,21 +1,23 @@
-{ stdenv
-, lib
-, fetchFromGitLab
-, gitUpdater
-, makeFontsConf
-, testers
-, cmake
-, cmake-extras
-, dbus
-, doxygen
-, glib
-, graphviz
-, gtest
-, libqtdbustest
-, pkg-config
-, python3
-, qtbase
-, qtdeclarative
+{
+  stdenv,
+  lib,
+  fetchFromGitLab,
+  fetchpatch,
+  gitUpdater,
+  makeFontsConf,
+  testers,
+  cmake,
+  cmake-extras,
+  dbus,
+  doxygen,
+  glib,
+  graphviz,
+  gtest,
+  libqtdbustest,
+  pkg-config,
+  python3,
+  qtbase,
+  qtdeclarative,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -29,7 +31,19 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-UTl0vObSlEvHuLmDt7vS3yEqZWGklJ9tVwlUAtRSTlU=";
   };
 
-  outputs = [ "out" "dev" "doc" ];
+  outputs = [
+    "out"
+    "dev"
+    "doc"
+  ];
+
+  patches = [
+    (fetchpatch {
+      name = "0001-lomiri-api-Add-missing-headers-for-GCC13.patch";
+      url = "https://gitlab.com/ubports/development/core/lomiri-api/-/commit/029b42a9b4d5467951595dff8bc536eb5a9e3ef7.patch";
+      hash = "sha256-eWrDQGrwf22X49rtUAVbrd+QN+OwyGacVLCWYFsS02o=";
+    })
+  ];
 
   postPatch = ''
     patchShebangs $(find test -name '*.py')
@@ -51,6 +65,7 @@ stdenv.mkDerivation (finalAttrs: {
     doxygen
     graphviz
     pkg-config
+    qtdeclarative
   ];
 
   buildInputs = [
@@ -92,7 +107,10 @@ stdenv.mkDerivation (finalAttrs: {
   meta = with lib; {
     description = "Lomiri API Library for integrating with the Lomiri shell";
     homepage = "https://gitlab.com/ubports/development/core/lomiri-api";
-    license = with licenses; [ lgpl3Only gpl3Only ];
+    license = with licenses; [
+      lgpl3Only
+      gpl3Only
+    ];
     maintainers = teams.lomiri.members;
     platforms = platforms.linux;
     pkgConfigModules = [

@@ -1,11 +1,12 @@
-{ lib
-, mkXfceDerivation
-, gtk3
-, libical
-, libnotify
-, libxfce4ui
-, popt
-, tzdata
+{
+  lib,
+  mkXfceDerivation,
+  gtk3,
+  libical,
+  libnotify,
+  libxfce4ui,
+  popt,
+  tzdata,
 }:
 
 mkXfceDerivation {
@@ -30,6 +31,7 @@ mkXfceDerivation {
 
   meta = with lib; {
     description = "Simple calendar application for Xfce";
+    mainProgram = "orage";
     maintainers = with maintainers; [ ] ++ teams.xfce.members;
   };
 }

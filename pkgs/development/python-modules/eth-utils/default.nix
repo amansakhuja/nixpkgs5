@@ -1,51 +1,57 @@
-{ lib
-, fetchFromGitHub
-, buildPythonPackage
-, eth-hash
-, eth-typing
-, cytoolz
-, hypothesis
-, isPyPy
-, pytestCheckHook
-, pythonOlder
-, toolz
+{
+  lib,
+  fetchFromGitHub,
+  buildPythonPackage,
+  eth-hash,
+  eth-typing,
+  cytoolz,
+  hypothesis,
+  isPyPy,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
+  toolz,
+  mypy,
 }:
 
 buildPythonPackage rec {
   pname = "eth-utils";
-  version = "2.1.1";
+  version = "5.1.0";
+  pyproject = true;
   disabled = pythonOlder "3.6";
 
   src = fetchFromGitHub {
     owner = "ethereum";
-    repo = pname;
+    repo = "eth-utils";
     rev = "v${version}";
-    hash = "sha256-Ogp4o99smw5qVwDec6zd/xVqqKMyNk41iBfRNzrwuvE=";
+    hash = "sha256-uPzg1gUEsulQL2u22R/REHWx1ZtbMxvcXf6UgWqkDF4=";
   };
 
-  propagatedBuildInputs = [
-    eth-hash
-    eth-typing
-  ] ++ lib.optional (!isPyPy) cytoolz
-  ++ lib.optional isPyPy toolz;
+  nativeBuildInputs = [ setuptools ];
+
+  propagatedBuildInputs =
+    [
+      eth-hash
+      eth-typing
+    ]
+    ++ lib.optional (!isPyPy) cytoolz
+    ++ lib.optional isPyPy toolz;
 
   nativeCheckInputs = [
     hypothesis
     pytestCheckHook
+    mypy
   ] ++ eth-hash.optional-dependencies.pycryptodome;
-
-  # Removing a poorly written test case from test suite.
-  # TODO work with the upstream
-  disabledTestPaths = [
-    "tests/functional-utils/test_type_inference.py"
-  ];
 
   pythonImportsCheck = [ "eth_utils" ];
 
-  meta = {
+  disabledTests = [ "test_install_local_wheel" ];
+
+  meta = with lib; {
+    changelog = "https://github.com/ethereum/eth-utils/blob/${src.rev}/docs/release_notes.rst";
     description = "Common utility functions for codebases which interact with ethereum";
     homepage = "https://github.com/ethereum/eth-utils";
-    license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ ];
+    license = licenses.mit;
+    maintainers = with maintainers; [ siraben ];
   };
 }

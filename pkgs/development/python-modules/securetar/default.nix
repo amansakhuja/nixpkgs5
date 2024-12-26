@@ -1,36 +1,34 @@
-{ lib
-, buildPythonPackage
-, cryptography
-, fetchFromGitHub
-, pytestCheckHook
-, pythonOlder
+{
+  lib,
+  buildPythonPackage,
+  cryptography,
+  fetchFromGitHub,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
 }:
 
 buildPythonPackage rec {
   pname = "securetar";
-  version = "2023.3.0";
-  format = "setuptools";
+  version = "2024.11.0";
+  pyproject = true;
 
   disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "pvizeli";
-    repo = pname;
+    repo = "securetar";
     rev = "refs/tags/${version}";
-    hash = "sha256-3bDboggvKbpWyjpUOrUmtJx3Nj/6Uvut2nEQLYJubDA=";
+    hash = "sha256-h0GubDuwINDNfDxBVJv74yu/OnzMasq5f0lPoIrNNCA=";
   };
 
-  propagatedBuildInputs = [
-    cryptography
-  ];
+  build-system = [ setuptools ];
 
-  nativeCheckInputs = [
-    pytestCheckHook
-  ];
+  dependencies = [ cryptography ];
 
-  pythonImportsCheck = [
-    "securetar"
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
+
+  pythonImportsCheck = [ "securetar" ];
 
   meta = with lib; {
     description = "Module to handle tarfile backups";

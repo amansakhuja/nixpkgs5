@@ -1,11 +1,12 @@
-{ lib
-, mkXfceDerivation
-, glib
-, gtk3
-, libxfce4ui
-, libxfce4util
-, pcre2
-, xfce4-panel
+{
+  lib,
+  mkXfceDerivation,
+  glib,
+  gtk3,
+  libxfce4ui,
+  libxfce4util,
+  pcre2,
+  xfce4-panel,
 }:
 
 mkXfceDerivation {
@@ -24,7 +25,7 @@ mkXfceDerivation {
   ];
 
   meta = with lib; {
-    description = "A command-line plugin";
+    description = "Command-line plugin";
     maintainers = with maintainers; [ ] ++ teams.xfce.members;
   };
 }

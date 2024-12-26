@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.asusd;
@@ -6,12 +11,14 @@ in
 {
   options = {
     services.asusd = {
-      enable = lib.mkEnableOption (lib.mdDoc "the asusd service for ASUS ROG laptops");
+      enable = lib.mkEnableOption "the asusd service for ASUS ROG laptops";
+
+      package = lib.mkPackageOption pkgs "asusctl" { };
 
       enableUserService = lib.mkOption {
         type = lib.types.bool;
         default = false;
-        description = lib.mdDoc ''
+        description = ''
           Activate the asusd-user service.
         '';
       };
@@ -19,7 +26,7 @@ in
       animeConfig = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           The content of /etc/asusd/anime.ron.
           See https://asus-linux.org/asusctl/#anime-control.
         '';
@@ -28,7 +35,7 @@ in
       asusdConfig = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           The content of /etc/asusd/asusd.ron.
           See https://asus-linux.org/asusctl/.
         '';
@@ -37,7 +44,7 @@ in
       auraConfig = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           The content of /etc/asusd/aura.ron.
           See https://asus-linux.org/asusctl/#led-keyboard-control.
         '';
@@ -46,16 +53,16 @@ in
       profileConfig = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           The content of /etc/asusd/profile.ron.
           See https://asus-linux.org/asusctl/#profiles.
         '';
       };
 
       fanCurvesConfig = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = lib.mdDoc ''
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
           The content of /etc/asusd/fan_curves.ron.
           See https://asus-linux.org/asusctl/#fan-curves.
         '';
@@ -64,7 +71,7 @@ in
       userLedModesConfig = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           The content of /etc/asusd/asusd-user-ledmodes.ron.
           See https://asus-linux.org/asusctl/#led-keyboard-control.
         '';
@@ -73,28 +80,30 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.asusctl ];
+    environment.systemPackages = [ cfg.package ];
 
     environment.etc =
       let
-        maybeConfig = name: cfg: lib.mkIf (cfg != null) {
-          source = pkgs.writeText name cfg;
-          mode = "0644";
-        };
+        maybeConfig =
+          name: cfg:
+          lib.mkIf (cfg != null) {
+            source = pkgs.writeText name cfg;
+            mode = "0644";
+          };
       in
       {
         "asusd/anime.ron" = maybeConfig "anime.ron" cfg.animeConfig;
         "asusd/asusd.ron" = maybeConfig "asusd.ron" cfg.asusdConfig;
         "asusd/aura.ron" = maybeConfig "aura.ron" cfg.auraConfig;
-        "asusd/profile.conf" = maybeConfig "profile.ron" cfg.profileConfig;
+        "asusd/profile.ron" = maybeConfig "profile.ron" cfg.profileConfig;
         "asusd/fan_curves.ron" = maybeConfig "fan_curves.ron" cfg.fanCurvesConfig;
         "asusd/asusd_user_ledmodes.ron" = maybeConfig "asusd_user_ledmodes.ron" cfg.userLedModesConfig;
       };
 
     services.dbus.enable = true;
-    systemd.packages = [ pkgs.asusctl ];
-    services.dbus.packages = [ pkgs.asusctl ];
-    services.udev.packages = [ pkgs.asusctl ];
+    systemd.packages = [ cfg.package ];
+    services.dbus.packages = [ cfg.package ];
+    services.udev.packages = [ cfg.package ];
     services.supergfxd.enable = lib.mkDefault true;
 
     systemd.user.services.asusd-user.enable = cfg.enableUserService;

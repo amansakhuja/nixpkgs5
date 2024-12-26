@@ -15,7 +15,6 @@
 , libgee
 , libhandy
 , gnome-settings-daemon
-, mesa
 , mutter
 , elementary-icon-theme
 , wingpanel-with-indicators
@@ -25,7 +24,7 @@
 , gdk-pixbuf
 , dbus
 , accountsservice
-, wrapGAppsHook
+, wrapGAppsHook3
 }:
 
 stdenv.mkDerivation rec {
@@ -54,7 +53,7 @@ stdenv.mkDerivation rec {
     ninja
     pkg-config
     vala
-    wrapGAppsHook
+    wrapGAppsHook3
   ];
 
   buildInputs = [
@@ -67,12 +66,11 @@ stdenv.mkDerivation rec {
     libgee
     libhandy
     lightdm
-    mesa # for libEGL
     mutter
   ];
 
   mesonFlags = [
-    # A hook does this but after wrapGAppsHook so the files never get wrapped.
+    # A hook does this but after wrapGAppsHook3 so the files never get wrapped.
     "--sbindir=${placeholder "out"}/bin"
     # baked into the program for discovery of the greeter configuration
     "--sysconfdir=/etc"

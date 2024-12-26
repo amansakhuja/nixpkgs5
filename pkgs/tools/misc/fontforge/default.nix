@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, lib
+{ stdenv, fetchFromGitHub, lib, fetchpatch
 , cmake, uthash, pkg-config
 , python, freetype, zlib, glib, giflib, libpng, libjpeg, libtiff, libxml2, cairo, pango
 , readline, woff2, zeromq
@@ -23,6 +23,22 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-/RYhvL+Z4n4hJ8dmm+jbA1Ful23ni2DbCRZC5A3+pP0=";
   };
 
+  patches = [
+    (fetchpatch {
+      name = "CVE-2024-25081.CVE-2024-25082.patch";
+      url = "https://github.com/fontforge/fontforge/commit/216eb14b558df344b206bf82e2bdaf03a1f2f429.patch";
+      hash = "sha256-aRnir09FSQMT50keoB7z6AyhWAVBxjSQsTRvBzeBuHU=";
+    })
+    # Fixes translation compatibility with gettext 0.22
+    (fetchpatch {
+      url = "https://github.com/fontforge/fontforge/commit/55d58f87ab1440f628f2071a6f6cc7ef9626c641.patch";
+      hash = "sha256-rkYnKPXA8Ztvh9g0zjG2yTUCPd3lE1uqwvBuEd8+Oyw=";
+    })
+
+    # https://github.com/fontforge/fontforge/pull/5423
+    ./replace-distutils.patch
+  ];
+
   # use $SOURCE_DATE_EPOCH instead of non-deterministic timestamps
   postPatch = ''
     find . -type f -name '*.c' -exec sed -r -i 's#\btime\(&(.+)\)#if (getenv("SOURCE_DATE_EPOCH")) \1=atol(getenv("SOURCE_DATE_EPOCH")); else &#g' {} \;
@@ -33,7 +49,7 @@ stdenv.mkDerivation rec {
   '';
 
   # do not use x87's 80-bit arithmetic, rouding errors result in very different font binaries
-  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isi686 "-msse2 -mfpmath=sse";
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isi686 "-msse2 -mfpmath=sse";
 
   nativeBuildInputs = [ pkg-config cmake ];
   buildInputs = [
@@ -42,7 +58,7 @@ stdenv.mkDerivation rec {
   ]
     ++ lib.optionals withSpiro [ libspiro ]
     ++ lib.optionals withGUI [ gtk3 cairo pango ]
-    ++ lib.optionals stdenv.isDarwin [ Carbon Cocoa ];
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ Carbon Cocoa ];
 
   cmakeFlags = [ "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON" ]
     ++ lib.optional (!withSpiro) "-DENABLE_LIBSPIRO=OFF"
@@ -62,7 +78,7 @@ stdenv.mkDerivation rec {
     '';
 
   meta = with lib; {
-    description = "A font editor";
+    description = "Font editor";
     homepage = "https://fontforge.github.io";
     platforms = platforms.all;
     license = licenses.bsd3;

@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
 let
   cfg = config.services.tang;
@@ -11,14 +16,18 @@ in
       type = types.package;
       default = pkgs.tang;
       defaultText = literalExpression "pkgs.tang";
-      description = mdDoc "The tang package to use.";
+      description = "The tang package to use.";
     };
 
     listenStream = mkOption {
       type = with types; listOf str;
       default = [ "7654" ];
-      example = [ "198.168.100.1:7654" "[2001:db8::1]:7654" "7654" ];
-      description = mdDoc ''
+      example = [
+        "198.168.100.1:7654"
+        "[2001:db8::1]:7654"
+        "7654"
+      ];
+      description = ''
         Addresses and/or ports on which tang should listen.
         For detailed syntax see ListenStream in {manpage}`systemd.socket(5)`.
       '';
@@ -74,7 +83,11 @@ in
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
         SystemCallArchitectures = "native";
-        SystemCallFilter = [ "@system-service" "~@privileged" "~@resources" ];
+        SystemCallFilter = [
+          "@system-service"
+          "~@privileged"
+          "~@resources"
+        ];
         IPAddressDeny = "any";
         IPAddressAllow = cfg.ipAddressAllow;
       };
@@ -91,5 +104,8 @@ in
       };
     };
   };
-  meta.maintainers = with lib.maintainers; [ jfroche julienmalka ];
+  meta.maintainers = with lib.maintainers; [
+    jfroche
+    julienmalka
+  ];
 }

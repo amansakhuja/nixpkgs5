@@ -15,28 +15,26 @@
 , glew
 , lua
 , mpg123
+, wrapGAppsHook3
 }:
 
 stdenv.mkDerivation rec {
   pname = "slade";
-  version = "3.2.4";
+  version = "3.2.6";
 
   src = fetchFromGitHub {
     owner = "sirjuddington";
     repo = "SLADE";
     rev = version;
-    sha256 = "sha256-CN01w+sXXRqvQqu1whePAb+phVx+VM8tL2NusfnCyF8=";
+    hash = "sha256-pcWmv1fnH18X/S8ljfHxaL1PjApo5jyM8W+WYn+/7zI=";
   };
-
-  postPatch = lib.optionalString (!stdenv.hostPlatform.isx86) ''
-    sed -i '/-msse/d' src/CMakeLists.txt
-  '';
 
   nativeBuildInputs = [
     cmake
     pkg-config
     which
     zip
+    wrapGAppsHook3
   ];
 
   buildInputs = [
@@ -58,10 +56,16 @@ stdenv.mkDerivation rec {
 
   env.NIX_CFLAGS_COMPILE = "-Wno-narrowing";
 
+  preFixup = ''
+    gappsWrapperArgs+=(
+      --prefix GDK_BACKEND : x11
+    )
+  '';
+
   meta = with lib; {
     description = "Doom editor";
     homepage = "http://slade.mancubus.net/";
-    license = licenses.gpl2Plus;
+    license = licenses.gpl2Only; # https://github.com/sirjuddington/SLADE/issues/1754
     platforms = platforms.linux;
     maintainers = with maintainers; [ abbradar ];
   };

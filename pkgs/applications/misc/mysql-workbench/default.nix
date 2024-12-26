@@ -1,61 +1,63 @@
-{ lib, stdenv
-, fetchurl
-, substituteAll
-, cmake
-, ninja
-, pkg-config
-, glibc
-, gtk3
-, gtkmm3
-, pcre
-, swig
-, antlr4_12
-, sudo
-, mysql
-, libxml2
-, libmysqlconnectorcpp
-, vsqlite
-, gdal
-, libiodbc
-, libpthreadstubs
-, libXdmcp
-, libuuid
-, libzip
-, libsecret
-, libssh
-, python3
-, jre
-, boost
-, libsigcxx
-, libX11
-, openssl
-, rapidjson
-, proj
-, cairo
-, libxkbcommon
-, libepoxy
-, wrapGAppsHook
-, at-spi2-core
-, dbus
-, bash
-, coreutils
-, zstd
+{
+  lib,
+  stdenv,
+  fetchurl,
+  replaceVars,
+  cmake,
+  ninja,
+  pkg-config,
+  glibc,
+  gtk3,
+  gtkmm3,
+  pcre,
+  swig,
+  antlr4_12,
+  sudo,
+  mysql,
+  libxml2,
+  libmysqlconnectorcpp,
+  vsqlite,
+  gdal,
+  libiodbc,
+  libpthreadstubs,
+  libXdmcp,
+  libuuid,
+  libzip,
+  libsecret,
+  libssh,
+  python3,
+  jre,
+  boost,
+  libsigcxx,
+  libX11,
+  openssl,
+  rapidjson,
+  proj,
+  cairo,
+  libxkbcommon,
+  libepoxy,
+  wrapGAppsHook3,
+  at-spi2-core,
+  dbus,
+  bash,
+  coreutils,
+  zstd,
 }:
 
 let
   inherit (python3.pkgs) paramiko pycairo pyodbc;
-in stdenv.mkDerivation rec {
+in
+stdenv.mkDerivation (finalAttrs: {
   pname = "mysql-workbench";
-  version = "8.0.34";
+  version = "8.0.38";
 
   src = fetchurl {
-    url = "https://cdn.mysql.com//Downloads/MySQLGUITools/mysql-workbench-community-${version}-src.tar.gz";
-    sha256 = "sha256-ub/D6HRtXOvX+lai71t1UjMmMzBsz5ljCrJCuf9aq7U=";
+    url = "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-community-${finalAttrs.version}-src.tar.gz";
+    hash = "sha256-W2RsA2hIRUaNRK0Q5pN1YODbEiw6HE3cfeisPdUcYPY=";
   };
 
   patches = [
-    (substituteAll {
-      src = ./hardcode-paths.patch;
+    (replaceVars ./hardcode-paths.patch {
       catchsegv = "${glibc.bin}/bin/catchsegv";
       bash = "${bash}/bin/bash";
       cp = "${coreutils}/bin/cp";
@@ -71,18 +73,19 @@ in stdenv.mkDerivation rec {
 
     # Fix swig not being able to find headers
     # https://github.com/NixOS/nixpkgs/pull/82362#issuecomment-597948461
-    (substituteAll {
-      src = ./fix-swig-build.patch;
+    (replaceVars ./fix-swig-build.patch {
       cairoDev = "${cairo.dev}";
     })
+
+    # Don't try to override the ANTLR_JAR_PATH specified in cmakeFlags
+    ./dont-search-for-antlr-jar.patch
   ];
 
-  # 1. have it look for 4.12.0 instead of 4.11.1
-  # 2. for some reason CMakeCache.txt is part of source code
-  preConfigure = ''
-    substituteInPlace CMakeLists.txt \
-      --replace "antlr-4.11.1-complete.jar" "antlr-4.12.0-complete.jar"
+  postPatch = ''
+    # For some reason CMakeCache.txt is part of source code, remove it
     rm -f build/CMakeCache.txt
+
+    patchShebangs tools/get_wb_version.sh
   '';
 
   nativeBuildInputs = [
@@ -91,7 +94,7 @@ in stdenv.mkDerivation rec {
     pkg-config
     jre
     swig
-    wrapGAppsHook
+    wrapGAppsHook3
   ];
 
   buildInputs = [
@@ -101,7 +104,7 @@ in stdenv.mkDerivation rec {
     antlr4_12.runtime.cpp
     python3
     mysql
-    libxml2
+    (libxml2.override { enableHttp = true; })
     libmysqlconnectorcpp
     vsqlite
     gdal
@@ -134,20 +137,20 @@ in stdenv.mkDerivation rec {
     zstd
   ];
 
-  postPatch = ''
-    patchShebangs tools/get_wb_version.sh
-  '';
-
-  env.NIX_CFLAGS_COMPILE = toString ([
-    # error: 'OGRErr OGRSpatialReference::importFromWkt(char**)' is deprecated
-    "-Wno-error=deprecated-declarations"
-  ] ++ lib.optionals stdenv.isAarch64 [
-    # error: narrowing conversion of '-1' from 'int' to 'char'
-    "-Wno-error=narrowing"
-  ] ++ lib.optionals (stdenv.cc.isGNU && lib.versionAtLeast stdenv.cc.version "12") [
-    # Needed with GCC 12 but problematic with some old GCCs
-    "-Wno-error=maybe-uninitialized"
-  ]);
+  env.NIX_CFLAGS_COMPILE = toString (
+    [
+      # error: 'OGRErr OGRSpatialReference::importFromWkt(char**)' is deprecated
+      "-Wno-error=deprecated-declarations"
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+      # error: narrowing conversion of '-1' from 'int' to 'char'
+      "-Wno-error=narrowing"
+    ]
+    ++ lib.optionals (stdenv.cc.isGNU && lib.versionAtLeast stdenv.cc.version "12") [
+      # Needed with GCC 12 but problematic with some old GCCs
+      "-Wno-error=maybe-uninitialized"
+    ]
+  );
 
   cmakeFlags = [
     "-DMySQL_CONFIG_PATH=${mysql}/bin/mysql_config"
@@ -155,7 +158,7 @@ in stdenv.mkDerivation rec {
     # mysql-workbench 8.0.21 depends on libmysqlconnectorcpp 1.1.8.
     # Newer versions of connector still provide the legacy library when enabled
     # but the headers are in a different location.
-    "-DWITH_ANTLR_JAR=${antlr4_12.jarLocation}"
+    "-DANTLR_JAR_PATH=${antlr4_12.jarLocation}"
     "-DMySQLCppConn_INCLUDE_DIR=${libmysqlconnectorcpp}/include/jdbc"
   ];
 
@@ -183,7 +186,7 @@ in stdenv.mkDerivation rec {
     done
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Visual MySQL database modeling, administration and querying tool";
     longDescription = ''
       MySQL Workbench is a modeling tool that allows you to design
@@ -191,11 +194,10 @@ in stdenv.mkDerivation rec {
       and query development modules where you can manage MySQL server instances
       and execute SQL queries.
     '';
-
     homepage = "http://wb.mysql.com/";
-    license = licenses.gpl2;
-    maintainers = [ ];
-    platforms = platforms.linux;
+    license = lib.licenses.gpl2Only;
     mainProgram = "mysql-workbench";
+    maintainers = with lib.maintainers; [ tomasajt ];
+    platforms = lib.platforms.linux;
   };
-}
+})

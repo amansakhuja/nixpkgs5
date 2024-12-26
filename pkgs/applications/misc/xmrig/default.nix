@@ -15,13 +15,13 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "xmrig";
-  version = "6.21.0";
+  version = "6.22.2";
 
   src = fetchFromGitHub {
     owner = "xmrig";
     repo = "xmrig";
     rev = "v${version}";
-    hash = "sha256-7OHfFo8+MUNSI3vpOIODKQH41jmraHDJOyqfLBp/v9o=";
+    hash = "sha256-/1pSGbKBfin7xqoILacKp2//65NNiBXZxzhO39FOOjY=";
   };
 
   patches = [
@@ -43,7 +43,7 @@ stdenv.mkDerivation rec {
     libmicrohttpd
     openssl
     hwloc
-  ] ++ lib.optionals stdenv.isDarwin [
+  ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
     Carbon
     CoreServices
     OpenCL

@@ -1,24 +1,25 @@
-{ lib
-, aiohttp
-, aioresponses
-, apischema
-, buildPythonPackage
-, fetchFromGitHub
-, freezegun
-, gql
-, graphql-core
-, pytest-asyncio
-, pytestCheckHook
-, pythonOlder
-, requests
-, setuptools
-, setuptools-scm
+{
+  lib,
+  aiohttp,
+  aioresponses,
+  apischema,
+  buildPythonPackage,
+  fetchFromGitHub,
+  freezegun,
+  gql,
+  graphql-core,
+  pytest-asyncio,
+  pytestCheckHook,
+  pythonOlder,
+  requests,
+  setuptools,
+  setuptools-scm,
 }:
 
 buildPythonPackage rec {
   pname = "pydrawise";
-  version = "2023.11.0";
-  format = "pyproject";
+  version = "2024.12.0";
+  pyproject = true;
 
   disabled = pythonOlder "3.10";
 
@@ -26,17 +27,15 @@ buildPythonPackage rec {
     owner = "dknowles2";
     repo = "pydrawise";
     rev = "refs/tags/${version}";
-    hash = "sha256-gKOyTvdETGzKlpU67UKaHYTIvnAX9znHIynP3BiVbt4=";
+    hash = "sha256-5mHMlPN4v5Awy8PKRBt5FCPlDYCRyFCgGLWE7btEmfU=";
   };
 
-  SETUPTOOLS_SCM_PRETEND_VERSION = version;
-
-  nativeBuildInputs = [
+  build-system = [
     setuptools
     setuptools-scm
   ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     aiohttp
     apischema
     gql
@@ -51,9 +50,7 @@ buildPythonPackage rec {
     pytestCheckHook
   ];
 
-  pythonImportsCheck = [
-    "pydrawise"
-  ];
+  pythonImportsCheck = [ "pydrawise" ];
 
   meta = with lib; {
     description = "Library for interacting with Hydrawise sprinkler controllers through the GraphQL API";

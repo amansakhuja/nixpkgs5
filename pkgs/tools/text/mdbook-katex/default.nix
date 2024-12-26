@@ -1,22 +1,32 @@
-{ lib, rustPlatform, fetchCrate, stdenv, CoreServices }:
+{
+  lib,
+  rustPlatform,
+  fetchCrate,
+  stdenv,
+  CoreServices,
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "mdbook-katex";
-  version = "0.5.8";
+  version = "0.9.2";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-YFrl0YR/+lDJW8GjLF0wk0D6Bx9zUxAoAXd9twaxrmM=";
+    hash = "sha256-O2hFv/9pqrs8cSDvHLAUnXx4mX6TN8hvPLroWgoCgwE=";
   };
 
-  cargoHash = "sha256-wBaek9AQKwPsg9TzBmS0yBtn1G0KCnmxfmGCGCFNWxc=";
+  cargoHash = "sha256-ONZZ6D0Ien0wakjhy6P2lhx0AnRLH0xpuYon+N9Crg8=";
 
-  buildInputs = lib.optionals stdenv.isDarwin [ CoreServices ];
+  buildInputs = lib.optionals stdenv.hostPlatform.isDarwin [ CoreServices ];
 
   meta = with lib; {
-    description = "A preprocessor for mdbook, rendering LaTeX equations to HTML at build time.";
+    description = "Preprocessor for mdbook, rendering LaTeX equations to HTML at build time";
+    mainProgram = "mdbook-katex";
     homepage = "https://github.com/lzanini/${pname}";
     license = [ licenses.mit ];
-    maintainers = with maintainers; [ lovesegfault ];
+    maintainers = with maintainers; [
+      lovesegfault
+      matthiasbeyer
+    ];
   };
 }

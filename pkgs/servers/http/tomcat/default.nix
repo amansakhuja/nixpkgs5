@@ -1,53 +1,76 @@
-{ stdenv, lib, fetchurl, nixosTests, testers, jre }:
+{
+  fetchurl,
+  gitUpdater,
+  jre,
+  lib,
+  nixosTests,
+  stdenvNoCC,
+  testers,
+}:
 
 let
+  common =
+    { version, hash }:
+    stdenvNoCC.mkDerivation (finalAttrs: {
+      pname = "apache-tomcat";
+      inherit version;
 
-  common = { versionMajor, versionMinor, sha256 }: stdenv.mkDerivation (finalAttrs: {
-    pname = "apache-tomcat";
-    version = "${versionMajor}.${versionMinor}";
+      src = fetchurl {
+        url = "mirror://apache/tomcat/tomcat-${lib.versions.major version}/v${version}/bin/apache-tomcat-${version}.tar.gz";
+        inherit hash;
+      };
 
-    src = fetchurl {
-      url = "mirror://apache/tomcat/tomcat-${versionMajor}/v${finalAttrs.version}/bin/${finalAttrs.pname}-${finalAttrs.version}.tar.gz";
-      inherit sha256;
-    };
+      outputs = [
+        "out"
+        "webapps"
+      ];
 
-    outputs = [ "out" "webapps" ];
-    installPhase =
-      ''
+      installPhase = ''
         mkdir $out
         mv * $out
         mkdir -p $webapps/webapps
         mv $out/webapps $webapps/
       '';
 
-    passthru.tests = {
-      inherit (nixosTests) tomcat;
-      version = testers.testVersion {
-        package = finalAttrs.finalPackage;
-        command = "JAVA_HOME=${jre} ${finalAttrs.finalPackage}/bin/version.sh";
+      passthru = {
+        updateScript = gitUpdater {
+          url = "https://github.com/apache/tomcat.git";
+          allowedVersions = "^${lib.versions.major version}\\.";
+          ignoredVersions = "-M.*";
+        };
+        tests = {
+          inherit (nixosTests) tomcat;
+          version = testers.testVersion {
+            package = finalAttrs.finalPackage;
+            command = "JAVA_HOME=${jre} ${finalAttrs.finalPackage}/bin/version.sh";
+          };
+        };
       };
-    };
 
-    meta = with lib; {
-      homepage = "https://tomcat.apache.org/";
-      description = "An implementation of the Java Servlet and JavaServer Pages technologies";
-      platforms = platforms.all;
-      maintainers = with maintainers; [ anthonyroussel ];
-      license = [ licenses.asl20 ];
-      sourceProvenance = with sourceTypes; [ binaryBytecode ];
-    };
-  });
+      meta = {
+        homepage = "https://tomcat.apache.org/";
+        description = "Implementation of the Java Servlet and JavaServer Pages technologies";
+        platforms = jre.meta.platforms;
+        maintainers = with lib.maintainers; [ anthonyroussel ];
+        license = lib.licenses.asl20;
+        sourceProvenance = with lib.sourceTypes; [ binaryBytecode ];
+      };
+    });
 
-in {
+in
+{
   tomcat9 = common {
-    versionMajor = "9";
-    versionMinor = "0.82";
-    sha256 = "sha256-xvRGXDUkYaHFYacUPg81Xf0xyTbdsc1XP/PmqMR8bQc=";
+    version = "9.0.98";
+    hash = "sha256-HZoRBMLiNaW6/26cqOKL49hkgD+vxHj1wTwq5qXtPW8=";
   };
 
   tomcat10 = common {
-    versionMajor = "10";
-    versionMinor = "1.15";
-    sha256 = "sha256-cqQW3Dc3sC/1zoidMIGDBNw4G5bnxYvhmHz7U7K6Djg=";
+    version = "10.1.34";
+    hash = "sha256-95lUE4C//ytnTO/YbFN20tfVZrOi58RXnStJHejsbDY=";
+  };
+
+  tomcat11 = common {
+    version = "11.0.2";
+    hash = "sha256-wbMaaYnTCnNEwaNlXadGec6fm0iicehkZHoUHeO3jLg=";
   };
 }

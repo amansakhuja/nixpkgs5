@@ -1,25 +1,27 @@
-{ mkDerivation
-, lib
-, fetchFromGitHub
-, fetchpatch
+{
+  mkDerivation,
+  lib,
+  fetchFromGitHub,
+  fetchpatch,
 
-, at-spi2-atk
-, at-spi2-core
-, libepoxy
-, gtk3
-, libdatrie
-, libselinux
-, libsepol
-, libthai
-, pcre
-, util-linux
-, wayland
-, xorg
+  at-spi2-atk,
+  at-spi2-core,
+  libepoxy,
+  gtk3,
+  libdatrie,
+  libselinux,
+  libsepol,
+  libthai,
+  pcre,
+  util-linux,
+  wayland,
+  xorg,
 
-, cmake
-, doxygen
-, pkg-config
-, wayland-protocols
+  cmake,
+  doxygen,
+  pkg-config,
+  wayland-protocols,
+  wayland-scanner,
 }:
 
 mkDerivation rec {
@@ -62,16 +64,18 @@ mkDerivation rec {
     doxygen
     pkg-config
     wayland-protocols
+    wayland-scanner
   ];
 
-  preConfigure = ''
-    cmakeFlags+="-DQT5_PLUGINS_INSTALL_DIR=$out/$qtPluginPrefix"
-  '';
+  cmakeFlags = [
+    "-DQT5_PLUGINS_INSTALL_DIR=${placeholder "out"}/$qtPluginPrefix"
+  ];
 
   meta = with lib; {
     description = "Core libraries of Maliit and server";
+    mainProgram = "maliit-server";
     homepage = "http://maliit.github.io/";
     license = licenses.lgpl21Plus;
-    maintainers = with maintainers; [ samueldr ];
+    maintainers = [ ];
   };
 }

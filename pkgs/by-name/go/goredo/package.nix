@@ -1,26 +1,33 @@
-{ buildGoModule
-, fetchurl
-, lib
-, zstd
-, sharness
-, python3
-, perl
+{
+  buildGoModule,
+  fetchurl,
+  lib,
+  zstd,
+  sharness,
+  python3,
+  perl,
 }:
 
 buildGoModule rec {
   pname = "goredo";
-  version = "2.4.0";
+  version = "2.6.0";
 
   src = fetchurl {
-    url = "http://www.goredo.cypherpunks.ru/download/${pname}-${version}.tar.zst";
-    hash = "sha256-oUC/N6NLEVBrFC3tSEsWEXUBl5oyZNmqRTFWFbgL+zg=";
+    url = "http://www.goredo.cypherpunks.ru/download/goredo-${version}.tar.zst";
+    hash = "sha256-XTL/otfCKC55TsUBBVors2kgFpOFh+6oekOOafOhcUs=";
   };
 
-  patches = [ ./fix-tests.diff ];
+  patches = [
+    # Adapt tests to Linux/nix-build requirements:
+    ./fix-tests.diff
+  ];
 
   nativeBuildInputs = [ zstd ];
 
-  nativeCheckInputs = lib.optionals doCheck [ python3 perl ];
+  nativeCheckInputs = lib.optionals doCheck [
+    python3
+    perl
+  ];
 
   inherit (sharness) SHARNESS_TEST_SRCDIR;
 
@@ -47,7 +54,10 @@ buildGoModule rec {
     cp goredo.info "$out/share/info"
   '';
 
-  outputs = [ "out" "info" ];
+  outputs = [
+    "out"
+    "info"
+  ];
 
   meta = with lib; {
     outputsToInstall = [ "out" ];

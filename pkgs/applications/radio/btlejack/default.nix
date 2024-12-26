@@ -1,4 +1,10 @@
-{ lib, buildPythonApplication, fetchFromGitHub, pyserial, halo }:
+{
+  lib,
+  buildPythonApplication,
+  fetchFromGitHub,
+  pyserial,
+  halo,
+}:
 
 buildPythonApplication rec {
   pname = "btlejack";
@@ -15,11 +21,15 @@ buildPythonApplication rec {
     sed -i "s|^.*'argparse',$||" setup.py
   '';
 
-  propagatedBuildInputs = [ pyserial halo ];
+  propagatedBuildInputs = [
+    pyserial
+    halo
+  ];
 
   meta = with lib; {
     homepage = "https://github.com/virtualabs/btlejack";
     description = "Bluetooth Low Energy Swiss-army knife";
+    mainProgram = "btlejack";
     license = licenses.mit;
     maintainers = with maintainers; [ oxzi ];
   };

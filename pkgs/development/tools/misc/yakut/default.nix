@@ -24,7 +24,7 @@ buildPythonApplication rec {
   };
 
   buildInputs = [
-    stdenv.cc.cc.lib
+    (lib.getLib stdenv.cc.cc)
     click
     coloredlogs
     psutil
@@ -46,6 +46,6 @@ buildPythonApplication rec {
     '';
     homepage = "https://github.com/OpenCyphal/yakut/";
     license = licenses.mit;
-    maintainers = [ teams.ororatech ];
+    maintainers = teams.ororatech.members;
   };
 }

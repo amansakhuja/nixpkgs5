@@ -15,7 +15,7 @@ stdenv.mkDerivation (finalAttrs: {
   plugin = "synlig";
 
   # The module has automatic regular releases, with date + short git hash
-  GIT_VERSION = "2023-10-26-f0252f6";
+  GIT_VERSION = "2024-11-29-10efd31";
 
   # Derive our package version from GIT_VERSION, remove hash, just keep date.
   version = builtins.concatStringsSep "-" (
@@ -25,7 +25,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "chipsalliance";
     repo  = "synlig";
     rev   = "${finalAttrs.GIT_VERSION}";
-    hash  = "sha256-BGZQbUcIImpz3SjFvMq3Pr1lseNLZnsMvpHy0IsICe4=";
+    hash  = "sha256-MsnRraAqsIkJ2PjBfoSrvUX/RHtL+FV2+iB3i7galLI=";
     fetchSubmodules = false;  # we use all dependencies from nix
   };
 

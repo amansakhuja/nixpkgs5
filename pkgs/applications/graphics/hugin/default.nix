@@ -2,7 +2,6 @@
 , stdenv
 , cmake
 , fetchurl
-, fetchpatch
 , gnumake
 , makeWrapper
 , pkg-config
@@ -14,7 +13,7 @@
 , fftw
 , flann
 , gettext
-, glew-egl
+, glew
 , ilmbase
 , lcms2
 , lensfun
@@ -31,27 +30,19 @@
 , perlPackages
 , sqlite
 , vigra
-, wrapGAppsHook
+, wrapGAppsHook3
 , wxGTK
 , zlib
 }:
 
 stdenv.mkDerivation rec {
   pname = "hugin";
-  version = "2022.0.0";
+  version = "2024.0.1";
 
   src = fetchurl {
     url = "mirror://sourceforge/hugin/hugin-${version}.tar.bz2";
-    hash = "sha256-l8hWKgupp0PguVWkPf3gSLHGDNnl8u4rad4agWRuBac=";
+    hash = "sha256-E+wM3utOtjFJyDN2jT43Tnz1pqjY0C1QiFzklvBbp+Q=";
   };
-
-  patches = [
-    (fetchpatch {
-      name = "hugin-2022.0.0-exiv2-0.28.patch";
-      url = "https://gitweb.gentoo.org/repo/gentoo.git/plain/media-gfx/hugin/files/hugin-2022.0.0-exiv2-0.28.patch?id=d18335caa756f5e5c1478d5fe3ba17f011a78c80";
-      hash = "sha256-Y+79bFb926GW5oLOL0e5y7kLhqU/vZcry+kLL4H2fUE=";
-    })
-  ];
 
   buildInputs = [
     boost
@@ -60,7 +51,7 @@ stdenv.mkDerivation rec {
     fftw
     flann
     gettext
-    glew-egl
+    glew
     ilmbase
     lcms2
     lensfun
@@ -80,7 +71,9 @@ stdenv.mkDerivation rec {
     zlib
   ];
 
-  nativeBuildInputs = [ cmake makeWrapper pkg-config wrapGAppsHook ];
+  nativeBuildInputs = [ cmake makeWrapper pkg-config wrapGAppsHook3 wxGTK ];
+
+  strictDeps = true;
 
   # disable installation of the python scripting interface
   cmakeFlags = [ "-DBUILD_HSI:BOOl=OFF" ];
@@ -98,7 +91,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    homepage = "http://hugin.sourceforge.net/";
+    homepage = "https://hugin.sourceforge.io/";
     description = "Toolkit for stitching photographs and assembling panoramas, together with an easy to use graphical front end";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [ hrdinka ];

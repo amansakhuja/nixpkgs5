@@ -1,10 +1,11 @@
-{ lib
-, stdenv
-, fetchurl
-, gettext
-, guile
-, libuuid
-, parted
+{
+  lib,
+  stdenv,
+  fetchurl,
+  gettext,
+  guile,
+  libuuid,
+  parted,
 }:
 
 stdenv.mkDerivation rec {
@@ -42,7 +43,7 @@ stdenv.mkDerivation rec {
   doCheck = true;
 
   meta = {
-    description = "A command-line disk partitioning tool";
+    description = "Command-line disk partitioning tool";
     longDescription = ''
       GNU fdisk provides a GNU version of the common disk partitioning tool
       fdisk.  fdisk is used for the creation and manipulation of disk partition

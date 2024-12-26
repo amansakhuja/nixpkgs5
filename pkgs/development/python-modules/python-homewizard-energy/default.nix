@@ -1,37 +1,46 @@
-{ lib
-, aiohttp
-, aresponses
-, awesomeversion
-, buildPythonPackage
-, fetchFromGitHub
-, poetry-core
-, protobuf
-, pytest-asyncio
-, pytestCheckHook
-, pythonOlder
+{
+  lib,
+  aiohttp,
+  aresponses,
+  async-timeout,
+  backoff,
+  buildPythonPackage,
+  fetchFromGitHub,
+  multidict,
+  poetry-core,
+  pytest-asyncio,
+  pytest-cov-stub,
+  pytestCheckHook,
+  pythonOlder,
+  syrupy,
 }:
 
 buildPythonPackage rec {
   pname = "python-homewizard-energy";
-  version = "2.1.2";
-  format = "pyproject";
+  version = "7.0.0";
+  pyproject = true;
 
   disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "DCSBL";
-    repo = pname;
-    rev = "refs/tags/v${version}";
-    hash = "sha256-iyDRhTV5GSBTVK7ccJhUOrCpE9YuiI1vJM4XroCyIwE=";
+    repo = "python-homewizard-energy";
+    tag = "v${version}";
+    hash = "sha256-HYfp4CSytRl46BWp5hdQFVf9avUwRcy0lqmqRK3lhdo=";
   };
 
-  nativeBuildInputs = [
-    poetry-core
-  ];
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail 'version = "0.0.0"' 'version = "${version}"'
+  '';
 
-  propagatedBuildInputs = [
-    awesomeversion
+  build-system = [ poetry-core ];
+
+  dependencies = [
     aiohttp
+    async-timeout
+    backoff
+    multidict
   ];
 
   __darwinAllowLocalNetworking = true;
@@ -39,17 +48,17 @@ buildPythonPackage rec {
   nativeCheckInputs = [
     aresponses
     pytest-asyncio
+    pytest-cov-stub
     pytestCheckHook
+    syrupy
   ];
 
-  pythonImportsCheck = [
-    "homewizard_energy"
-  ];
+  pythonImportsCheck = [ "homewizard_energy" ];
 
   meta = with lib; {
     description = "Library to communicate with HomeWizard Energy devices";
-    homepage = "https://github.com/DCSBL/python-homewizard-energy";
-    changelog = "https://github.com/DCSBL/python-homewizard-energy/releases/tag/v${version}";
+    homepage = "https://github.com/homewizard/python-homewizard-energy";
+    changelog = "https://github.com/homewizard/python-homewizard-energy/releases/tag/v${version}";
     license = licenses.asl20;
     maintainers = with maintainers; [ fab ];
   };

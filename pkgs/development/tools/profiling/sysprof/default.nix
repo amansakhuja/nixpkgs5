@@ -1,36 +1,41 @@
-{ stdenv
-, lib
-, desktop-file-utils
-, fetchurl
-, gettext
-, glib
-, gtk4
-, json-glib
-, itstool
-, libadwaita
-, libdex
-, libpanel
-, libunwind
-, libxml2
-, meson
-, ninja
-, pkg-config
-, polkit
-, shared-mime-info
-, systemd
-, wrapGAppsHook4
-, gnome
+{
+  stdenv,
+  lib,
+  desktop-file-utils,
+  fetchurl,
+  gettext,
+  glib,
+  gtk4,
+  json-glib,
+  itstool,
+  libadwaita,
+  libdex,
+  libpanel,
+  libunwind,
+  libxml2,
+  meson,
+  ninja,
+  pkg-config,
+  polkit,
+  shared-mime-info,
+  systemd,
+  wrapGAppsHook4,
+  gnome,
 }:
 
 stdenv.mkDerivation rec {
   pname = "sysprof";
-  version = "45.1";
+  version = "47.0";
 
-  outputs = [ "out" "lib" "dev" ];
+  outputs = [
+    "out"
+    "lib"
+    "dev"
+  ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "Mju51YVhPWDEOUYDMUUAEfK5Cz1ScmJb2FjaTBnfLPk=";
+    hash = "sha256-dCTGKUNGYGVCiMBCSJmMNX0c6H7hVZ/UTfGYCZLvXfU=";
   };
 
   nativeBuildInputs = [
@@ -71,7 +76,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "System-wide profiler for Linux";
-    homepage = "https://wiki.gnome.org/Apps/Sysprof";
+    homepage = "https://gitlab.gnome.org/GNOME/sysprof";
     longDescription = ''
       Sysprof is a sampling CPU profiler for Linux that uses the perf_event_open
       system call to profile the entire system, not just a single

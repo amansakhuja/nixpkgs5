@@ -1,38 +1,31 @@
-{ lib
-, stdenv
-, python39
-, fetchPypi
-, fetchFromGitHub
-, fetchpatch
-, withXmpp ? !stdenv.isDarwin
-, withMatrix ? true
-, withSlack ? true
-, withEmoji ? true
-, withPid ? true
-, withDbus ? stdenv.isLinux
+{
+  lib,
+  stdenv,
+  python39,
+  fetchFromGitHub,
+  fetchpatch,
+  withXmpp ? !stdenv.hostPlatform.isDarwin,
+  withMatrix ? true,
+  withSlack ? true,
+  withEmoji ? true,
+  withPid ? true,
+  withDbus ? stdenv.hostPlatform.isLinux,
 }:
 
 let
   python = python39.override {
+    self = python;
     packageOverrides = self: super: {
       ntfy-webpush = self.callPackage ./webpush.nix { };
 
       # databases, on which slack-sdk depends, is incompatible with SQLAlchemy 2.0
-      sqlalchemy = super.sqlalchemy.overridePythonAttrs rec {
-        version = "1.4.46";
-        src = fetchPypi {
-          pname = "SQLAlchemy";
-          inherit version;
-          hash = "sha256-aRO4JH2KKS74MVFipRkx4rQM6RaB8bbxj2lwRSAMSjA=";
-        };
-        disabledTestPaths = [
-           "test/aaa_profiling"
-           "test/ext/mypy"
-        ];
-      };
+      sqlalchemy = super.sqlalchemy_1_4;
+
+      django = super.django_3;
     };
   };
-in python.pkgs.buildPythonApplication rec {
+in
+python.pkgs.buildPythonApplication rec {
   pname = "ntfy";
   version = "2.7.0";
 
@@ -49,22 +42,35 @@ in python.pkgs.buildPythonApplication rec {
     mock
   ];
 
-  propagatedBuildInputs = with python.pkgs; ([
-    requests ruamel-yaml appdirs
-    ntfy-webpush
-  ] ++ (lib.optionals withXmpp [
-    sleekxmpp dnspython
-  ]) ++ (lib.optionals withMatrix [
-    matrix-client
-  ]) ++ (lib.optionals withSlack [
-    slack-sdk
-  ]) ++ (lib.optionals withEmoji [
-    emoji
-  ]) ++ (lib.optionals withPid [
-    psutil
-  ]) ++ (lib.optionals withDbus [
-    dbus-python
-  ]));
+  propagatedBuildInputs =
+    with python.pkgs;
+    (
+      [
+        requests
+        ruamel-yaml
+        appdirs
+        ntfy-webpush
+      ]
+      ++ (lib.optionals withXmpp [
+        sleekxmpp
+        dnspython
+      ])
+      ++ (lib.optionals withMatrix [
+        matrix-client
+      ])
+      ++ (lib.optionals withSlack [
+        slack-sdk
+      ])
+      ++ (lib.optionals withEmoji [
+        emoji
+      ])
+      ++ (lib.optionals withPid [
+        psutil
+      ])
+      ++ (lib.optionals withDbus [
+        dbus-python
+      ])
+    );
 
   patches = [
     # Fix Slack integration no longer working.
@@ -94,7 +100,7 @@ in python.pkgs.buildPythonApplication rec {
   '';
 
   meta = with lib; {
-    description = "A utility for sending notifications, on demand and when commands finish";
+    description = "Utility for sending notifications, on demand and when commands finish";
     homepage = "http://ntfy.rtfd.org/";
     license = licenses.gpl3;
     maintainers = with maintainers; [ kamilchm ];
