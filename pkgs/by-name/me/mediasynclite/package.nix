@@ -13,7 +13,7 @@
 
 stdenv.mkDerivation rec {
   pname = "mediasynclite";
-  version = "0.4.3";
+  version = "0.4.2";
 
   src = fetchFromGitHub {
     owner = "iBroadcastMediaServices";
