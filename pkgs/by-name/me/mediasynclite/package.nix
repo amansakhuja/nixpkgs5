@@ -43,10 +43,13 @@ stdenv.mkDerivation rec {
 
   makeFlags = [ "PREFIX=$(out)" ];
 
-  postFixup = ''
+  preInstall = ''
     mkdir -p $out/share/icons
-    cp -av share $out
-    cp share/ui/icon.png $out/share/icons
+    cp -rv share/* $out/share
+  '';
+
+  postPatch = ''
+      substituteInPlace src/ibmsl.c --replace-fail "share/ui" "$out/share/ui"
   '';
 
   desktopItems = [
