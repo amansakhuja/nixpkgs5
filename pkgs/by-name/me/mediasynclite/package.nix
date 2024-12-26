@@ -24,7 +24,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     curl
-    openssl.dev
+    openssl
     jansson
     gtk3
     glib
