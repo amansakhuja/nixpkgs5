@@ -2991,6 +2991,8 @@ self: super: with self; {
 
   datalad-next = callPackage ../development/python-modules/datalad-next { };
 
+  datamodel-code-generator = callPackage ../development/python-modules/datamodel-code-generator { };
+
   datamodeldict = callPackage ../development/python-modules/datamodeldict { };
 
   datapoint = callPackage ../development/python-modules/datapoint { };
@@ -5126,6 +5128,8 @@ self: super: with self; {
   genshi = callPackage ../development/python-modules/genshi { };
 
   gensim = callPackage ../development/python-modules/gensim { };
+
+  genson = callPackage ../development/python-modules/genson { };
 
   gentools = callPackage ../development/python-modules/gentools { };
 
