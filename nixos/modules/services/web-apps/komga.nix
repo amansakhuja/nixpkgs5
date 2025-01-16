@@ -166,5 +166,5 @@ in
       };
     };
 
-  meta.maintainers = with maintainers; [ govanify ];
+  meta.maintainers = with lib.maintainers; [ govanify ];
 }
