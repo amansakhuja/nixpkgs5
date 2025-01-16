@@ -6955,6 +6955,8 @@ self: super: with self; {
 
   keras-preprocessing = callPackage ../development/python-modules/keras-preprocessing { };
 
+  keras-tuner = callPackage ../development/python-modules/keras-tuner { };
+
   kerberos = callPackage ../development/python-modules/kerberos { };
 
   kestra = callPackage ../development/python-modules/kestra { };
