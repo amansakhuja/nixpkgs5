@@ -409,12 +409,14 @@ in
                 RestrictRealtime = true;
                 RestrictSUIDSGID = true;
                 RootDirectory = "/run/syncoid/${escapeUnitName name}";
-                RootDirectoryStartOnly = true;
                 BindPaths = [ "/dev/zfs" ];
                 BindReadOnlyPaths = [
                   builtins.storeDir
                   "/etc"
                   "/run"
+                  # Some programs hardcode /var/run
+                  # eg. /var/run/avahi-daemon/socket to resolve *.local mDNS domains
+                  "/var/run"
                   "/bin/sh"
                 ];
                 # Avoid useless mounting of RootDirectory= in the own RootDirectory= of ExecStart='s mount namespace.
