@@ -51,7 +51,7 @@ buildPythonPackage rec {
   dependencies = [
     absl-py
     h5py
-    ml-dtypes
+    ({ ml-dtypesTF = ml-dtypes; } // tensorflow).ml-dtypesTF
     namex
     numpy
     onnxruntime
