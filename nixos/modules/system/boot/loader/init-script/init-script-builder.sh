@@ -69,7 +69,7 @@ addEntry "@distroName@ - Default" $defaultConfig ""
 # Add all generations of the system profile to the menu, in reverse
 # (most recent to least recent) order.
 for link in $((ls -d $defaultConfig/specialisation/* ) | sort -n); do
-    date=$(stat --printf="%y\n" $link | sed 's/\..*//')
+    date=$(stat --printf="%y\n" $link | sed 's/\..*//') # FIXME: This seems redundant
     addEntry "@distroName@ - variation" $link ""
 done
 
@@ -78,7 +78,7 @@ for generation in $(
     | sed 's/system-\([0-9]\+\)-link/\1/' \
     | sort -n -r); do
     link=/nix/var/nix/profiles/system-$generation-link
-    date=$(stat --printf="%y\n" $link | sed 's/\..*//')
+    date=date "+@timestampFormat@" -d @$(stat --printf="%Y\n" $link | sed 's/\..*//')
     if [ -d $link/kernel ]; then
       kernelVersion=$(cd $(dirname $(readlink -f $link/kernel))/lib/modules && echo *)
       suffix="($date - $kernelVersion)"
