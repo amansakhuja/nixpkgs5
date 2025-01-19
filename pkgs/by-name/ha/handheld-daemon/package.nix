@@ -2,6 +2,7 @@
   lib,
   python3Packages,
   fetchFromGitHub,
+  withAdjustor ? false,
 
   # dependencies
   systemd,
@@ -11,6 +12,7 @@
   efibootmgr,
   dbus,
   lsof,
+  adjustor
 }:
 python3Packages.buildPythonApplication rec {
   pname = "handheld-daemon";
@@ -69,6 +71,8 @@ python3Packages.buildPythonApplication rec {
     rich
     setuptools
     xlib
+  ] ++ lib.optionals withAdjustor [
+    adjustor
   ];
 
   # This package doesn't have upstream tests.
