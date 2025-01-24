@@ -41,13 +41,12 @@ stdenv.mkDerivation {
       rev = "e7c42c7d9056f21ec5bbdcb101908969effe9db0";
       hash = "sha256-JsgBEmBazqLRjg0xLrwYpoh4mgNYKzjxJcAVeMJ0Jnw=";
       fetchSubmodules = true;
-    })
-    .overrideAttrs
-    (_: {
-      GIT_CONFIG_COUNT = 1;
-      GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
-      GIT_CONFIG_VALUE_0 = "git@github.com:";
-    });
+    }).overrideAttrs
+      (_: {
+        GIT_CONFIG_COUNT = 1;
+        GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
+        GIT_CONFIG_VALUE_0 = "git@github.com:";
+      });
 
   desktopItems = [
     (makeDesktopItem {
@@ -166,7 +165,7 @@ stdenv.mkDerivation {
     homepage = "https://socalabs.com/synths/papu/";
     mainProgram = "PAPU";
     platforms = lib.platforms.linux;
-    license = [lib.licenses.gpl2] ++ lib.optional enableVST2 lib.licenses.unfree;
-    maintainers = [lib.maintainers.l1npengtul];
+    license = [ lib.licenses.gpl2 ] ++ lib.optional enableVST2 lib.licenses.unfree;
+    maintainers = [ lib.maintainers.l1npengtul ];
   };
 }
