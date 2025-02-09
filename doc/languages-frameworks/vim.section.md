@@ -150,16 +150,16 @@ Nix expressions for Vim plugins are stored in
 [pkgs/applications/editors/vim/plugins](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/editors/vim/plugins).
 For the vast majority of plugins, Nix expressions are automatically generated
 by running [`nix-shell -p vimPluginsUpdater --run
-vim-plugins-updater`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/updater.nix).
+vim-plugins-updater`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/update.py).
 This creates
-a [generated.nix](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/generated.nix)
+an [`generated.json`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/generated.json)
 file based on the plugins listed in
-[vim-plugin-names](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/vim-plugin-names).
+[`vim-plugin-names.csv`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/vim-plugin-names.csv).
 
-When the vim updater detects an nvim-treesitter update, it also runs
+If you update nvim-treesitter, don't forget to run
 [`nvim-treesitter/update.py $(nix-build -A
 vimPlugins.nvim-treesitter)`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/update.py)
-to update the tree sitter grammars for `nvim-treesitter`.
+to update the grammars for `nvim-treesitter`.
 
 Some plugins require overrides in order to function properly. Overrides are
 placed in
@@ -179,17 +179,23 @@ added:
 
 Sometimes plugins require an override that must be changed when the plugin is
 updated. This can cause issues when Vim plugins are auto-updated but the
-associated override isn't updated. For these plugins, the override should be
-written so that it specifies all information required to install the plugin,
-and running `nix-shell -p vimPluginsUpdater --run vim-plugins-updater` doesn't
-change the derivation for the plugin. Manually updating the override is
-required to update these types of plugins. An example of such a plugin is
-`LanguageClient-neovim`.
+associated override isn't updated. You should package such plugins manually in
+[`non-generated`](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/editors/vim/plugins/non-generated)
+folder.
 
 To add a new plugin, run `nix-shell -p vimPluginsUpdater --run
-'vim-plugins-updater add "[owner]/[name]"'`. **NOTE**: This script
-automatically commits to your git repository. Be sure to check out a fresh
-branch before running.
+'vim-plugins-updater add "https://github.com/[owner]/[name]"'`. **NOTE**: The
+script only supports plugins from GitHub. If plugin that you want to add is
+hosted on another site, you have to package it manually in the
+[`non-generated`](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/editors/vim/plugins/non-generated)
+folder. The reason is that we have less than dozen non-GH plugins, and adding
+support for them into auto-updater seemed like a lot of effort for nothing.
+
+There are also plugins, that are already packaged in `luaPackages`, you should
+instead add them to the bottom of
+[`overrides.nix`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/vim/plugins/overrides.nix).
+If plugin is packaged on luarocks, packaging it through `luaPackages` should be
+preferred.
 
 Finally, there are some plugins that are also packaged in nodePackages because
 they have Javascript-related build steps, such as running webpack. Those
@@ -207,47 +213,27 @@ rate-limiting (429 errors). For steps on creating an API token, please refer to
 documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token).
 
 ```sh
-nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater --github-token=mytoken' # or set GITHUB_API_TOKEN environment variable
+GITHUB_TOKEN=mytoken nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater'
 ```
 
 Alternatively, set the number of processes to a lower count to avoid
 rate-limiting.
 
 ```sh
-nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater --proc 1'
+nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater --jobs 1'
 ```
 
 If you want to update only certain plugins, you can specify them after the
 `update` command. Note that you must use the same plugin names as the
-`pkgs/applications/editors/vim/plugins/vim-plugin-names` file.
+`pkgs/applications/editors/vim/plugins/vim-plugin-names.csv` file.
 
 ```sh
-nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater update "nvim-treesitter" "LazyVim"'
+nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater update "https://github.com/folke/lazy.nvim"'
 ```
 
-## How to maintain an out-of-tree overlay of vim plugins ? {#vim-out-of-tree-overlays}
+You can also specify `@` and `as` for controlling branch and alias (the same
+syntax works with `add` command too):
 
-You can use the updater script to generate basic packages out of a custom vim
-plugin list:
-
+```sh
+nix-shell -p vimPluginsUpdater --run 'vim-plugins-updater update "https://github.com/folke/lazy.nvim@next as myalias"'
 ```
-nix-shell -p vimPluginsUpdater --run vim-plugins-updater -i vim-plugin-names -o generated.nix --no-commit
-```
-
-with the contents of `vim-plugin-names` being for example:
-
-```
-repo,branch,alias
-pwntester/octo.nvim,,
-```
-
-You can then reference the generated vim plugins via:
-
-```nix
-{
-  myVimPlugins = pkgs.vimPlugins.extend (
-    (pkgs.callPackage ./generated.nix {})
-  );
-}
-```
-
