@@ -62,6 +62,7 @@ let
     versions = callLibs ./versions.nix;
 
     # module system
+    fields = callLibs ./fields.nix;
     modules = callLibs ./modules.nix;
     options = callLibs ./options.nix;
     types = callLibs ./types.nix;
@@ -166,6 +167,7 @@ let
       cleanSource sourceByRegex sourceFilesBySuffices
       commitIdFromGitRepo cleanSourceWith pathHasContext
       canCleanSource pathIsGitRepo;
+    inherit (self.fields) mkField;
     inherit (self.modules) evalModules setDefaultModuleLocation
       unifyModuleSyntax applyModuleArgsIfFunction mergeModules
       mergeModules' mergeOptionDecls mergeDefinitions
