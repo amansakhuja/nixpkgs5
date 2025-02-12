@@ -14,7 +14,7 @@
 }:
 
 let
-  kdsingleapplication = callPackage ../../kd/kdsingleapplication { };
+  kdsingleapplication = callPackage ./kdsingleapplication.nix { };
 
   libre-graph-api = stdenv.mkDerivation rec {
     pname = "libre-graph-api-cpp-qt-client";
