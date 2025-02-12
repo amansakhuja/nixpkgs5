@@ -144,7 +144,7 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "Azure";
     repo = "azure-sdk-for-cpp";
-    rev = "azure-identity_1.10.0";
+    tag = "azure-identity_1.10.0";
     hash = "sha256-3CDC/DF7spIpLavcz3nsdBXperm9yMidrFRgb8+rwnU=";
   };
 
@@ -169,9 +169,11 @@ stdenv.mkDerivation (finalAttrs: {
     tables
   ];
 
-  buildPhase = null;
+  dontBuild = true;
   installPhase = ''
+    runHook preInstall
     mkdir $out
+    runHook postInstall
   '';
 
   passthru = {
