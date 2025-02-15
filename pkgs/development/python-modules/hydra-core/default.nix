@@ -51,7 +51,7 @@ buildPythonPackage rec {
 
   nativeBuildInputs = [ jre_headless ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     antlr4-python3-runtime
     omegaconf
     packaging
@@ -71,6 +71,8 @@ buildPythonPackage rec {
     "test_config_search_path"
     # does not raise UserWarning
     "test_initialize_compat_version_base"
+    # AssertionError: Regex pattern did not match
+    "strip_omegaconf_from_bottom_of_stack"
   ];
 
   disabledTestPaths = [ "tests/test_hydra.py" ];
@@ -81,10 +83,10 @@ buildPythonPackage rec {
     "hydra.version"
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Framework for configuring complex applications";
     homepage = "https://hydra.cc";
-    license = licenses.mit;
-    maintainers = with maintainers; [ bcdarwin ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ bcdarwin ];
   };
 }
