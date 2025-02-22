@@ -212,22 +212,6 @@ let
     END { print "" }
   '';
 
-  crossCabalFlags = [
-    "--with-ghc=${ghcCommand}"
-    "--with-ghc-pkg=${ghc.targetPrefix}ghc-pkg"
-    "--with-gcc=${cc}"
-  ] ++ optionals stdenv.hasCC [
-    "--with-ld=${stdenv.cc.bintools.targetPrefix}ld"
-    "--with-ar=${stdenv.cc.bintools.targetPrefix}ar"
-    # use the one that comes with the cross compiler.
-    "--with-hsc2hs=${ghc.targetPrefix}hsc2hs"
-    "--with-strip=${stdenv.cc.bintools.targetPrefix}strip"
-  ] ++ optionals (!isHaLVM) [
-    "--hsc2hs-option=--cross-compile"
-    (optionalString enableHsc2hsViaAsm "--hsc2hs-option=--via-asm")
-  ] ++ optional (allPkgconfigDepends != [])
-    "--with-pkg-config=${pkg-config.targetPrefix}pkg-config";
-
   makeGhcOptions = opts: lib.concatStringsSep " " (map (opt: "--ghc-option=${opt}") opts);
 
   buildFlagsString = optionalString (buildFlags != []) (" " + concatStringsSep " " buildFlags);
@@ -240,8 +224,17 @@ let
     "--libsubdir=\\$abi/\\$libname"
     (optionalString enableSeparateDataOutput "--datadir=$data/share/${ghcNameWithPrefix}")
     (optionalString enableSeparateDocOutput "--docdir=${docdir "$doc"}")
+    "--with-ghc=${ghcCommand}"
+    "--with-ghc-pkg=${ghc.targetPrefix}ghc-pkg"
+    "--with-gcc=${cc}"
   ] ++ optionals stdenv.hasCC [
     "--with-gcc=$CC" # Clang won't work without that extra information.
+    "--with-ld=${stdenv.cc.bintools.targetPrefix}ld"
+    "--with-ar=${stdenv.cc.bintools.targetPrefix}ar"
+    "--with-hsc2hs=${ghc.targetPrefix}hsc2hs"
+    "--with-strip=${stdenv.cc.bintools.targetPrefix}strip"
+  ] ++ optionals (allPkgconfigDepends != []) [
+    "--with-pkg-config=${pkg-config.targetPrefix}pkg-config"
   ] ++ [
     "--package-db=$packageConfDir"
     (optionalString (enableSharedExecutables && stdenv.hostPlatform.isLinux) "--ghc-option=-optl=-Wl,-rpath=$out/${ghcLibdir}/${pname}-${version}")
@@ -266,8 +259,10 @@ let
     "--ghcjs"
   ] ++ optionals (stdenv.buildPlatform != stdenv.hostPlatform) ([
     "--configure-option=--host=${stdenv.hostPlatform.config}"
-  ] ++ crossCabalFlags
-  ) ++ optionals enableSeparateBinOutput [
+  ] ++ optionals (!isHaLVM) [
+    "--hsc2hs-option=--cross-compile"
+    (optionalString enableHsc2hsViaAsm "--hsc2hs-option=--via-asm")
+  ]) ++ optionals enableSeparateBinOutput [
     "--bindir=${binDir}"
   ] ++ optionals (doHaddockInterfaces && isLibrary) [
     "--ghc-option=-haddock"
@@ -326,7 +321,7 @@ let
 
   depsBuildBuild = [ setupGhc ]
     # CC_FOR_BUILD may be necessary if we have no C preprocessor for the host
-    # platform. See crossCabalFlags above for more details.
+    # platform.
     ++ lib.optionals (!stdenv.hasCC) [ buildPackages.stdenv.cc ];
   collectedToolDepends =
     buildTools ++ libraryToolDepends ++ executableToolDepends ++

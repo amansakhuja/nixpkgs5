@@ -281,10 +281,7 @@ assert stdenv.buildPlatform == stdenv.hostPlatform;
 let
   inherit (stdenv) buildPlatform hostPlatform targetPlatform;
 
-  # TODO(@Ericson2314) Make unconditional
-  targetPrefix = lib.optionalString
-    (targetPlatform.config != hostPlatform.config)
-    "${targetPlatform.config}-";
+  targetPrefix = "${targetPlatform.config}-";
 
   hadrianSettings =
     # -fexternal-dynamic-refs apparently (because it's not clear from the
@@ -517,15 +514,20 @@ stdenv.mkDerivation ({
       "-j$NIX_BUILD_CORES"
       ${lib.escapeShellArgs hadrianSettings}
     )
+  ''
+  # Force the build system to always prefix executables with the target platform.
+  # Depends on changes to hadrian source code as well. Fully moved to hadrian logic in 9.12.
+  + lib.optionalString (lib.versionOlder version "9.12") ''
+    substituteInPlace configure \
+      --replace-fail 'CrossCompilePrefix=""' \
+                     'CrossCompilePrefix="''${TargetPlatformFull}-"'
   '';
 
   ${if targetPlatform.isGhcjs then "configureScript" else null} = "emconfigure ./configure";
   # GHC currently ships an edited config.sub so ghcjs is accepted which we can not rollback
   ${if targetPlatform.isGhcjs then "dontUpdateAutotoolsGnuConfigScripts" else null} = true;
 
-  # TODO(@Ericson2314): Always pass "--target" and always prefix.
-  configurePlatforms = [ "build" "host" ]
-    ++ lib.optional (targetPlatform != hostPlatform) "target";
+  configurePlatforms = [ "build" "host" "target" ];
 
   # `--with` flags for libraries needed for RTS linker
   configureFlags = [
