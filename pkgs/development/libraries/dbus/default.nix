@@ -65,12 +65,11 @@ stdenv.mkDerivation rec {
     xmlto
   ];
 
-  propagatedBuildInputs = [
-    expat
-  ];
-
   buildInputs =
-    lib.optionals x11Support (
+    [
+      expat
+    ]
+    ++ lib.optionals x11Support (
       with xorg;
       [
         libX11
