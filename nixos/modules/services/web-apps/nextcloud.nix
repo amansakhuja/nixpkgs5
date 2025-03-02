@@ -1052,6 +1052,7 @@ in {
         nextcloud-cron = {
           after = [ "nextcloud-setup.service" ];
           environment.NEXTCLOUD_CONFIG_DIR = "${datadir}/config";
+          environment.PATH = "/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin";
           serviceConfig = {
             Type = "exec";
             User = "nextcloud";
