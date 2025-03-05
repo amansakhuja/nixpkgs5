@@ -95,6 +95,7 @@ rustPlatform.buildRustPackage rec {
     changelog = "https://github.com/element-hq/matrix-authentication-service/releases/tag/v${version}";
     license = lib.licenses.agpl3Only;
     maintainers = with lib.maintainers; [ teutat3s ];
+    platforms = lib.platforms.linux;
     mainProgram = "mas-cli";
   };
 }
