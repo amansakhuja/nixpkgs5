@@ -98,9 +98,15 @@ in
               "workDir=${fs.workDir}"
             ];
             configOptsStr = lib.escapeShellArgs configOpts;
+            capabilities = [
+              "CAP_DAC_OVERRIDE"
+              "CAP_DAC_READ_SEARCH"
+              "CAP_FOWNER"
+              "CAP_SYS_ADMIN"
+            ];
           in
           {
-            # Values from https://github.com/Zygo/bees/blob/v0.6.5/scripts/beesd@.service.in
+            # Values from https://github.com/Zygo/bees/blob/v0.10/scripts/beesd%40.service.in
             ExecStart = "${pkgs.bees}/bin/bees-service-wrapper run ${configOptsStr} -- --no-timestamps ${lib.escapeShellArgs fs.extraOptions}";
             ExecStopPost = "${pkgs.bees}/bin/bees-service-wrapper cleanup ${configOptsStr}";
             CPUAccounting = true;
@@ -113,8 +119,24 @@ in
             MemoryAccounting = true;
             Nice = 19;
             Restart = "on-abnormal";
+            RuntimeDirectory = "bees";
             StartupCPUWeight = 25;
             StartupIOWeight = 25;
+
+            ProtectProc = "invisible";
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            PrivateTmp = true;
+            PrivateNetwork = true;
+            PrivateIPC = true;
+            ProtectHostname = true;
+            ProtectKernelTunables = true;
+            ProtectControlGroups = true;
+
+            CapabilityBoundingSet = capabilities;
+            AmbientCapabilities = capabilities;
+            NoNewPrivileges = true;
+
             SyslogIdentifier = "beesd"; # would otherwise be "bees-service-wrapper"
           };
         unitConfig.RequiresMountsFor = lib.mkIf (lib.hasPrefix "/" fs.spec) fs.spec;
