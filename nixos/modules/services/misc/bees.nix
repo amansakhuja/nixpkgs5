@@ -116,7 +116,9 @@ in
             IOWeight = 10;
             KillMode = "control-group";
             KillSignal = "SIGTERM";
+            LimitMEMLOCK = "${toString fs.hashTableSizeMB}M";
             MemoryAccounting = true;
+            MemoryMin = "${toString fs.hashTableSizeMB}M";
             Nice = 19;
             Restart = "on-abnormal";
             RuntimeDirectory = "bees";
