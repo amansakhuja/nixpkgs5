@@ -1,36 +1,35 @@
-{ autoPatchelfHook
-, common-updater-scripts
-, copyDesktopItems
-, curl
-, dpkg
-, e2fsprogs
-, fetchurl
-, gnutls
-, gtk3
-, jq
-, lib
-, libGL
-, libGLU
-, libpsl
-, libsForQt5
-, libredirect
-, libX11
-, lz4
-, makeDesktopItem
-, makeWrapper
-, nghttp2
-, shared-mime-info
-, sqlite
-, stdenv
-, writeShellApplication
-, xkeyboardconfig
+{
+  autoPatchelfHook,
+  common-updater-scripts,
+  copyDesktopItems,
+  curl,
+  dpkg,
+  e2fsprogs,
+  fetchurl,
+  gnutls,
+  gtk3,
+  jq,
+  lib,
+  libGL,
+  libGLU,
+  libpsl,
+  libsForQt5,
+  libredirect,
+  libX11,
+  lz4,
+  makeDesktopItem,
+  makeWrapper,
+  nghttp2,
+  shared-mime-info,
+  sqlite,
+  stdenv,
+  writeShellApplication,
+  xkeyboardconfig,
 }:
 let
   pname = "ideamaker";
   version = "5.1.4.8480";
-  semver = lib.strings.concatStringsSep "." (
-    lib.lists.init (builtins.splitVersion version)
-  );
+  semver = lib.strings.concatStringsSep "." (lib.lists.init (builtins.splitVersion version));
   description = "Raise3D's 3D slicer software";
 in
 stdenv.mkDerivation {
@@ -100,7 +99,6 @@ stdenv.mkDerivation {
       --add-needed libdbus-1.so.3 \
       "$out/usr/lib/x86_64-linux-gnu/ideamaker/libQt5DBus.so.5.15.2"
   '';
-
 
   desktopItems = [
     (makeDesktopItem {
