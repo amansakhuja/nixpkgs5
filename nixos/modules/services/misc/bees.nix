@@ -107,7 +107,6 @@ in
             CPUSchedulingPolicy = "batch";
             CPUWeight = 12;
             IOSchedulingClass = "idle";
-            IOSchedulingPriority = 7;
             IOWeight = 10;
             KillMode = "control-group";
             KillSignal = "SIGTERM";
