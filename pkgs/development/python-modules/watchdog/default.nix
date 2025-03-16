@@ -94,6 +94,10 @@ buildPythonPackage rec {
       "tests/test_fsevents.py"
     ];
 
+  sandboxProfile = ''
+    (allow mach-lookup (global-name "com.apple.FSEvents"))
+  '';
+
   pythonImportsCheck = [ "watchdog" ];
 
   meta = with lib; {
