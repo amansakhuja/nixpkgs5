@@ -7,16 +7,6 @@
 
 let
   cfg = config.services.nbfc-linux;
-
-  nbfcConfigList = lib.splitString "\n" (
-    lib.removeSuffix "\n" (
-      builtins.readFile (
-        pkgs.runCommand "nbfc-config-list" { } ''
-          ${pkgs.nbfc-linux}/bin/nbfc config --list > $out
-        ''
-      )
-    )
-  );
 in
 {
   options.services.nbfc-linux = {
@@ -30,26 +20,30 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    environment.etc."nbfc-linux/config.json".source = pkgs.writeTextFile {
+      name = "nbfc-linux-config.json";
+      text = (lib.strings.toJSON { SelectedConfigId = cfg.configName; });
+      checkPhase = ''
+        if ! ${lib.getExe pkgs.nbfc-linux} config --list | grep --fixed-strings --line-regexp --quiet '${cfg.configName}'
+        then
+          echo "nbfc-linux: configuration '${cfg.configName}' not found in the list of available configurations. Use 'nbfc config --list' to view available configs." >&2
+          exit 1
+        fi
+      '';
+    };
 
-    assertions = [
-      {
-        assertion = (cfg.configName == null) || (builtins.elem cfg.configName nbfcConfigList);
-        message = "nbfc-linux: invalid configName: ${cfg.configName}";
-      }
-    ];
-
-    environment.systemPackages = [ pkgs.nbfc-linux ];
-
+    environment.systemPackages = [ pkgs.nbfc-linux ]; # for the CLI
+    systemd.packages = [ pkgs.nbfc-linux ];
     systemd.services.nbfc-linux = {
       description = "NoteBook FanControl";
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.nbfc-linux}/bin/nbfc_service --config-file ${
-          pkgs.writeText "nbfc-config.json" (lib.strings.toJSON { SelectedConfigId = cfg.configName; })
-        }";
+        ExecStartPre = "${lib.getExe pkgs.nbfc-linux} wait-for-hwmon";
+        ExecStart = "${lib.getExe pkgs.nbfc-linux} start";
+        ExecStop = "${lib.getExe pkgs.nbfc-linux} stop";
       };
-      path = [ pkgs.kmod ];
+      path = [ pkgs.nbfc-linux ];
     };
   };
 }
