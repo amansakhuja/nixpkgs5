@@ -10,8 +10,8 @@ with lib;
 let
   cfg = config.services.nbfc-linux;
 
-  nbfcConfigList = splitString "\n" (
-    removeSuffix "\n" (
+  nbfcConfigList = lib.splitString "\n" (
+    lib.removeSuffix "\n" (
       builtins.readFile (
         pkgs.runCommand "nbfc-config-list" { } ''
           ${pkgs.nbfc-linux}/bin/nbfc config --list > $out
@@ -24,14 +24,14 @@ in
   options.services.nbfc-linux = {
     enable = lib.mkEnableOption "NBFC: NoteBook FanControl service";
 
-    configName = mkOption {
-      type = types.nullOr types.str;
+    configName = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       description = "The NBFC configuration name to use. Obtain the list via `nbfc config --list`";
       default = null;
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
 
     assertions = [
       {
