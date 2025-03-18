@@ -5,8 +5,6 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.services.nbfc-linux;
 
@@ -42,18 +40,16 @@ in
 
     environment.systemPackages = [ pkgs.nbfc-linux ];
 
-    environment.etc."nbfc-linux/config.json".source = pkgs.writeTextFile {
-      name = "nbfc-linux-config.json";
-      text = ''{"SelectedConfigId": "${cfg.configName}"}'';
-    };
-
     systemd.services.nbfc-linux = {
-      enable = true;
       description = "NoteBook FanControl";
       wantedBy = [ "multi-user.target" ];
-      serviceConfig.Type = "simple";
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${pkgs.nbfc-linux}/bin/nbfc_service --config-file ${
+          pkgs.writeText "nbfc-config.json" (lib.strings.toJSON { SelectedConfigId = cfg.configName; })
+        }";
+      };
       path = [ pkgs.kmod ];
-      script = "${pkgs.nbfc-linux}/bin/nbfc_service --config-file /etc/nbfc-linux/config.json";
     };
   };
 }
