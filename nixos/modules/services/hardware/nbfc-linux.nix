@@ -24,8 +24,6 @@ in
   options.services.nbfc-linux = {
     enable = lib.mkEnableOption "NBFC: NoteBook FanControl service";
 
-    package = lib.mkPackageOption pkgs "nbfc-linux" { default = "nbfc-linux "; };
-
     configName = mkOption {
       type = types.nullOr types.str;
       description = "The NBFC configuration name to use. Obtain the list via `nbfc config --list`";
