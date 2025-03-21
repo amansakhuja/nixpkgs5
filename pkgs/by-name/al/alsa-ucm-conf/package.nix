@@ -2,12 +2,12 @@
   nix-update-script,
   fetchFromGitHub,
   lib,
-  stdenv,
+  stdenvNoCC,
   coreutils,
   kmod,
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "alsa-ucm-conf";
   version = "1.2.13-unstable-2025-03-21";
 
