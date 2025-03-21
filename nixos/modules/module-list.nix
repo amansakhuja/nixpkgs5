@@ -513,6 +513,7 @@
   ./services/databases/pgmanage.nix
   ./services/databases/postgresql.nix
   ./services/databases/redis.nix
+  ./services/databases/spacetimedb.nix
   ./services/databases/surrealdb.nix
   ./services/databases/tigerbeetle.nix
   ./services/databases/victorialogs.nix
