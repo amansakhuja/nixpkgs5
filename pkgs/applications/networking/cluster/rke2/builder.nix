@@ -102,6 +102,8 @@ let
     subPackages = [ "." ];
 
     installPhase = ''
+      runHook preInstall
+
       install -D $GOPATH/bin/rke2 $out/bin/rke2
       wrapProgram $out/bin/rke2 \
         --prefix PATH : ${lib.makeBinPath buildInputs}
@@ -116,6 +118,8 @@ let
           ]
         } \
         --prefix PATH : ${lib.makeBinPath buildInputs}
+
+      runHook postInstall
     '';
 
     doCheck = false;
