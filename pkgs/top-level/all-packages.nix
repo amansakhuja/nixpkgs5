@@ -1478,7 +1478,7 @@ with pkgs;
     inherit (libsForQt5) libqtpas wrapQtAppsHook;
   };
 
-  krusader = libsForQt5.callPackage ../applications/file-managers/krusader { };
+  krusader = kdePackages.callPackage ../applications/file-managers/krusader { };
 
   mc = callPackage ../applications/file-managers/mc {
     inherit (darwin) autoSignDarwinBinariesHook;
@@ -2327,10 +2327,6 @@ with pkgs;
   };
 
   hocr-tools = with python3Packages; toPythonApplication hocr-tools;
-
-  homepage-dashboard = callPackage ../servers/homepage-dashboard {
-    inherit (darwin.apple_sdk.frameworks) IOKit;
-  };
 
   hopper = qt5.callPackage ../development/tools/analysis/hopper { };
 
@@ -4713,8 +4709,6 @@ with pkgs;
 
   quickbms = pkgsi686Linux.callPackage ../tools/archivers/quickbms { };
 
-  qastools = libsForQt5.callPackage ../tools/audio/qastools { };
-
   qdigidoc = libsForQt5.callPackage ../tools/security/qdigidoc { } ;
 
   qjournalctl = libsForQt5.callPackage ../applications/system/qjournalctl { };
@@ -6677,9 +6671,7 @@ with pkgs;
 
   tinycc = darwin.apple_sdk_11_0.callPackage ../development/compilers/tinycc { };
 
-  tinygo = callPackage ../development/compilers/tinygo {
-    llvmPackages = llvmPackages_18;
-  };
+  tinygo = callPackage ../development/compilers/tinygo { };
 
   urweb = callPackage ../development/compilers/urweb {
     icu = icu67;
@@ -7430,17 +7422,20 @@ with pkgs;
     electron_32-bin
     electron_33-bin
     electron_34-bin
+    electron_35-bin
     ;
 
   inherit (callPackages ../development/tools/electron/chromedriver { })
     electron-chromedriver_32
     electron-chromedriver_33
     electron-chromedriver_34
+    electron-chromedriver_35
     ;
 
   electron_32 = electron_32-bin;
   electron_33 = if lib.meta.availableOn stdenv.hostPlatform electron-source.electron_33 then electron-source.electron_33 else electron_33-bin;
   electron_34 = if lib.meta.availableOn stdenv.hostPlatform electron-source.electron_34 then electron-source.electron_34 else electron_34-bin;
+  electron_35 = if lib.meta.availableOn stdenv.hostPlatform electron-source.electron_35 then electron-source.electron_35 else electron_35-bin;
   electron = electron_34;
   electron-bin = electron_34-bin;
   electron-chromedriver = electron-chromedriver_34;
@@ -11988,8 +11983,6 @@ with pkgs;
   linux_6_1_hardened = linuxKernel.kernels.linux_6_1_hardened;
   linuxPackages_6_6_hardened = linuxKernel.packages.linux_6_6_hardened;
   linux_6_6_hardened = linuxKernel.kernels.linux_6_6_hardened;
-  linuxPackages_6_11_hardened = linuxKernel.packages.linux_6_11_hardened;
-  linux_6_11_hardened = linuxKernel.kernels.linux_6_11_hardened;
   linuxPackages_6_12_hardened = linuxKernel.packages.linux_6_12_hardened;
   linux_6_12_hardened = linuxKernel.kernels.linux_6_12_hardened;
   linuxPackages_6_13_hardened = linuxKernel.packages.linux_6_13_hardened;
@@ -13398,10 +13391,7 @@ with pkgs;
         inherit (darwin.apple_sdk.frameworks) AudioToolbox AVFoundation Carbon Cocoa CoreMedia;
         inherit (gst_all_1) gstreamer gst-plugins-base gst-plugins-good;
       };
-      freerdp3 = callPackage ../applications/networking/remote/freerdp/3.nix {
-        stdenv = if stdenv.hostPlatform.isDarwin then overrideSDK stdenv "11.0" else stdenv;
-        inherit (darwin.apple_sdk.frameworks) AudioToolbox AVFoundation Carbon Cocoa CoreMedia;
-      };
+      freerdp3 = callPackage ../applications/networking/remote/freerdp/3.nix {};
     })
     freerdp
     freerdp3
@@ -14697,13 +14687,6 @@ with pkgs;
   qsstv = qt5.callPackage ../applications/radio/qsstv { };
 
   qsyncthingtray = libsForQt5.callPackage ../applications/misc/qsyncthingtray { };
-
-  qstopmotion = libsForQt5.callPackage ../applications/video/qstopmotion {
-    guvcview = guvcview.override {
-      useQt = true;
-      useGtk = false;
-    };
-  };
 
   qsudo = libsForQt5.callPackage ../applications/misc/qsudo { };
 
@@ -16084,6 +16067,7 @@ with pkgs;
   flightgear = libsForQt5.callPackage ../games/flightgear { };
 
   freecad-wayland = freecad.override { withWayland = true; };
+  freecad-qt6 = freecad.override { withWayland = true; qtVersion = 6; };
 
   freeciv = callPackage ../games/freeciv {
     sdl2Client = false;
@@ -16490,12 +16474,10 @@ with pkgs;
     yquake2-the-reckoning
     yquake2-all-games;
 
-  zeroadPackages = recurseIntoAttrs (callPackage ../games/0ad {
+  zeroad-unwrapped = callPackage ../by-name/ze/zeroad-unwrapped/package.nix {
     wxGTK = wxGTK32;
     fmt = fmt_9;
-  });
-
-  zeroad = zeroadPackages.zeroad;
+  };
 
   ### DESKTOP ENVIRONMENTS
 
@@ -17701,8 +17683,6 @@ with pkgs;
   romdirfs = callPackage ../tools/filesystems/romdirfs {
     stdenv = gccStdenv;
   };
-
-  xdragon = lowPrio (callPackage ../tools/X11/xdragon { });
 
   sail-riscv = callPackage ../applications/virtualization/sail-riscv {
     inherit (ocamlPackages) sail;
