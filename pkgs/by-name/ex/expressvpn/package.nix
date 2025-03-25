@@ -25,7 +25,7 @@ let
   archDir = if stdenvNoCC.hostPlatform.system == "x86_64-linux" then "x64" else "arm64";
 
   # Base derivation to extract and place the unpatched ExpressVPN files
-  expressvpn = stdenvNoCC.mkDerivation rec {
+  expressvpnBase = stdenvNoCC.mkDerivation rec {
     pname = "expressvpn";
     version = "4.0.1.9292";
 
@@ -56,7 +56,7 @@ let
   fhsTargetPkgs =
     pkgs: with pkgs; [
       dbus
-      expressvpn
+      expressvpnBase
       fontconfig
       freetype
       glib
@@ -94,7 +94,7 @@ let
       mkdir -p /opt/expressvpn
       for subdir in bin lib plugins qml share; do
         rm -f -r /opt/expressvpn/\$subdir
-        ln -s ${expressvpn}/libexec/expressvpn/\$subdir /opt/expressvpn/\$subdir
+        ln -s ${expressvpnBase}/libexec/expressvpn/\$subdir /opt/expressvpn/\$subdir
       done
 
       # When connected, it directly creates/deletes resolv.conf to change the DNS entries.
@@ -113,7 +113,7 @@ let
         cp /etc/resolv.conf /host/etc/resolv.conf;
       done &
 
-      exec ${expressvpn}/libexec/expressvpn/bin/expressvpn-daemon
+      exec ${expressvpnBase}/libexec/expressvpn/bin/expressvpn-daemon
     '';
 
     # expressvpn-daemon binary has hard-coded the path /sbin/sysctl hence below workaround.
@@ -128,14 +128,14 @@ let
   expressvpnClient = buildFHSEnv {
     name = "expressvpn-client";
     targetPkgs = fhsTargetPkgs;
-    runScript = "${expressvpn}/libexec/expressvpn/bin/expressvpn-client";
+    runScript = "${expressvpnBase}/libexec/expressvpn/bin/expressvpn-client";
   };
 
   # FHS environment for the CLI tool
   expressvpnCtl = buildFHSEnv {
     name = "expressvpnctl";
     targetPkgs = fhsTargetPkgs;
-    runScript = "${expressvpn}/libexec/expressvpn/bin/expressvpnctl";
+    runScript = "${expressvpnBase}/libexec/expressvpn/bin/expressvpnctl";
   };
 in
 # Final package combining everything
@@ -143,7 +143,7 @@ stdenvNoCC.mkDerivation {
   name = "expressvpn-package";
 
   buildInputs = [
-    expressvpn
+    expressvpnBase
     expressvpnDaemon
     expressvpnClient
     expressvpnCtl
@@ -160,11 +160,11 @@ stdenvNoCC.mkDerivation {
 
     # Symlink icons from the expressvpn derivation
     mkdir -p $out/share
-    ln -s ${expressvpn}/share/icons $out/share/icons
+    ln -s ${expressvpnBase}/share/icons $out/share/icons
 
     # Copy and modify the original desktop file
     mkdir -p $out/share/applications
-    cp ${expressvpn}/share/applications/expressvpn.desktop $out/share/applications/
+    cp ${expressvpnBase}/share/applications/expressvpn.desktop $out/share/applications/
     substituteInPlace $out/share/applications/expressvpn.desktop \
       --replace-warn 'Path=/opt/expressvpn/bin/' "" \
       --replace-fail 'Exec=env XDG_SESSION_TYPE=X11 /opt/expressvpn/bin/expressvpn-client' "Exec=env XDG_SESSION_TYPE=X11 ${expressvpnClient}/bin/expressvpn-client"
