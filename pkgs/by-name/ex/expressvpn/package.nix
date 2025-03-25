@@ -87,13 +87,7 @@ let
   expressvpnDaemon = buildFHSEnv {
     name = "expressvpn-daemon";
     targetPkgs = fhsTargetPkgs;
-    extraBwrapArgs = [
-      "--bind"
-      "/etc"
-      "/.etc"
-    ];
     runScript = writeScript "expressvpn-daemon-wrapper" ''
-      #!/bin/sh
       # expressvpn-daemon expects a lot of things to be put at /opt/expressvpn.
       # So we symlink them from /nix/store to make it happy.
       # The symlink works because /nix on host is binded read-only to /nix in FHS
@@ -106,14 +100,22 @@ let
       # When connected, it directly creates/deletes resolv.conf to change the DNS entries.
       # Since it's running in an FHS environment, it has no effect on actual resolv.conf.
       # Hence, place a watcher that updates host resolv.conf when FHS resolv.conf changes.
-      rm -f /etc/resolv.conf
-      cp /.etc/resolv.conf /etc/resolv.conf
-      while inotifywait -e modify,create,delete /etc/resolv.conf 2>/dev/null; do
-        cp /etc/resolv.conf /.etc/resolv.conf
+
+      # Mount the host's resolv.conf to the container's /etc/resolv.conf
+      mkdir -p /host/etc
+      [ -e /host/etc/resolv.conf ] || touch /host/etc/resolv.conf
+      mount --bind /etc/resolv.conf /host/etc/resolv.conf
+      mount -o remount,rw /host/etc/resolv.conf
+      trap "umount /host/etc/resolv.conf" EXIT
+
+      while inotifywait /etc 2>/dev/null;
+      do
+        cp /etc/resolv.conf /host/etc/resolv.conf;
       done &
 
       exec ${expressvpn}/libexec/expressvpn/bin/expressvpn-daemon
     '';
+
     # expressvpn-daemon binary has hard-coded the path /sbin/sysctl hence below workaround.
     extraBuildCommands = ''
       mkdir -p sbin
