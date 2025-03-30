@@ -31,7 +31,7 @@
   libGL,
   openssl,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "field-monitor";
   version = "48.0";
 
@@ -95,12 +95,12 @@ stdenv.mkDerivation rec {
       gst-plugins-good
     ]);
 
-  meta = with lib; {
+  meta = {
     description = "Viewer for virtual machines and other external screens";
     homepage = "https://github.com/theCapypara/field-monitor";
-    license = licenses.gpl3Plus;
+    license = lib.licenses.gpl3Plus;
     maintainers = with lib.maintainers; [ theCapypara ];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
     mainProgram = "de.capypara.FieldMonitor";
   };
 }
