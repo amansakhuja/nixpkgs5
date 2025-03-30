@@ -16,7 +16,6 @@
   psmisc,
   qt6,
   stdenvNoCC,
-  sysctl,
   writeScript,
   xorg,
 }:
@@ -74,6 +73,7 @@ let
       psmisc
       qt6.qtbase
       qt6.qtdeclarative
+      sysctl
       xorg.libICE
       xorg.libSM
       xorg.libX11
@@ -87,43 +87,37 @@ let
   expressvpnDaemon = buildFHSEnv {
     name = "expressvpn-daemon";
     targetPkgs = fhsTargetPkgs;
+    extraBwrapArgs = [
+      "--bind"
+      "/etc/resolv.conf" # host environment
+      "/host/etc/resolv.conf" # FHS environment
+    ];
     runScript =
       writeScript "expressvpn-daemon-wrapper" # bash
+
         ''
           # expressvpn-daemon expects a lot of things to be put at /opt/expressvpn.
           # So we symlink them from /nix/store to make it happy.
           # The symlink works because /nix on host is binded read-only to /nix in FHS
           mkdir -p /opt/expressvpn
           for subdir in bin lib plugins qml share; do
-            rm -f -r /opt/expressvpn/\$subdir
-            ln -s ${expressvpnBase}/libexec/expressvpn/\$subdir /opt/expressvpn/\$subdir
+            rm -f -r /opt/expressvpn/''$subdir
+            ln -s ${expressvpnBase}/libexec/expressvpn/''$subdir /opt/expressvpn/''$subdir
           done
 
           # When connected, it directly creates/deletes resolv.conf to change the DNS entries.
           # Since it's running in an FHS environment, it has no effect on actual resolv.conf.
           # Hence, place a watcher that updates host resolv.conf when FHS resolv.conf changes.
 
-          # Mount the host's resolv.conf to the container's /etc/resolv.conf
-          mkdir -p /host/etc
-          [ -e /host/etc/resolv.conf ] || touch /host/etc/resolv.conf
-          mount --bind /etc/resolv.conf /host/etc/resolv.conf
-          mount -o remount,rw /host/etc/resolv.conf
-          trap "umount /host/etc/resolv.conf" EXIT
-
-          while inotifywait /etc 2>/dev/null;
-          do
-            cp /etc/resolv.conf /host/etc/resolv.conf;
+          # Note that /etc/resolv.conf here belongs to FHS environment.
+          rm -f /etc/resolv.conf # This line is required, or else error on the next line.
+          cp /host/etc/resolv.conf /etc/resolv.conf
+          while inotifywait -e modify,create,delete /etc/resolv.conf 2>/dev/null; do
+            cp /etc/resolv.conf /host/etc/resolv.conf
           done &
 
           exec ${expressvpnBase}/libexec/expressvpn/bin/expressvpn-daemon
         '';
-
-    # expressvpn-daemon binary has hard-coded the path /sbin/sysctl hence below workaround.
-    extraBuildCommands = ''
-      mkdir -p sbin
-      chmod +w sbin
-      ln -s ${sysctl}/bin/sysctl sbin/sysctl
-    '';
   };
 
   # FHS environment for the client GUI
