@@ -38,12 +38,12 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "theCapypara";
     repo = "field-monitor";
-    tag = "v" + version;
+    tag = "v${finalAttrs.version}";
     hash = "sha256-ma1ltI2sVNVpSoFd5H5Tq7fo/uepX1OzM1qIKvMFs8c=";
   };
 
   cargoDeps = rustPlatform.fetchCargoVendor {
-    inherit src;
+    inherit (finalAttrs) src;
     hash = "sha256-3FimnzO9ja0OLaPRrMipVePD6x6Di5VvZRG31V8NSfg=";
   };
 
@@ -54,8 +54,6 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   nativeBuildInputs = [
-    glib
-    gtk4
     meson
     ninja
     pkg-config
@@ -103,4 +101,4 @@ stdenv.mkDerivation (finalAttrs: {
     platforms = lib.platforms.linux;
     mainProgram = "de.capypara.FieldMonitor";
   };
-}
+})
