@@ -20051,6 +20051,12 @@
     githubId = 387111;
     name = "Javier Olaechea";
   };
+  puckla = {
+    email = "kassandra@pucher.space";
+    github = "PucklaJ";
+    githubId = 25499721;
+    name = "Kassandra Pucher";
+  };
   puffnfresh = {
     email = "brian@brianmckenna.org";
     github = "puffnfresh";
