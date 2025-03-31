@@ -11,13 +11,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "portaudio";
-  version = "19.7.0";
+  version = "19.7.0-unstable-2025-03-24";
 
   src = fetchFromGitHub {
     owner = "PortAudio";
     repo = "portaudio";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-P2gIMSID2rclezJ/L7Uyu7uCmCpFGeoWyz7PRVDPIdc=";
+    rev = "27c85c52d70d692c1e7ee017b339891e53a9fffd";
+    hash = "sha256-SdUqM1ptkVQmEo0JezWNJe5PTtttmOjtO4SV9d3xrVs=";
   };
 
   strictDeps = true;
@@ -75,6 +75,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     api_version = 19;
-    updateScript = nix-update-script { };
+    updateScript = nix-update-script {
+      extraArgs = [ "--version=branch" ];
+    };
   };
 })
