@@ -34,7 +34,8 @@ stdenv.mkDerivation (finalAttrs: {
     pkg-config
     which
   ];
-  buildInputs =
+
+  propagatedBuildInputs =
     [
       libjack2
     ]
@@ -52,12 +53,6 @@ stdenv.mkDerivation (finalAttrs: {
       -e 's/^(includedir=).*/\1@CMAKE_INSTALL_FULL_INCLUDEDIR@/' \
       cmake/portaudio-2.0.pc.in
   '';
-
-  postInstall =
-    lib.optionalString stdenv.hostPlatform.isLinux ''
-      # fixup .pc file to find alsa library
-      sed -i "s|-lasound|-L${alsa-lib.out}/lib -lasound|" "$out/lib/pkgconfig/"*.pc
-    '';
 
   meta = {
     description = "Portable cross-platform Audio API";
