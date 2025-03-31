@@ -6,6 +6,7 @@
   libjack2,
   pkg-config,
   which,
+  nix-update-script,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -74,5 +75,6 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     api_version = 19;
+    updateScript = nix-update-script { };
   };
 })
