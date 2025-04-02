@@ -122,6 +122,7 @@
   ./hardware/wooting.nix
   ./hardware/xone.nix
   ./hardware/xpadneo.nix
+  ./hardware/xpad-noone.nix
   ./i18n/input-method/default.nix
   ./i18n/input-method/fcitx5.nix
   ./i18n/input-method/hime.nix
@@ -352,6 +353,7 @@
   ./programs/ydotool.nix
   ./programs/yubikey-touch-detector.nix
   ./programs/zmap.nix
+  ./programs/zoxide.nix
   ./programs/zsh/oh-my-zsh.nix
   ./programs/zsh/zsh-autoenv.nix
   ./programs/zsh/zsh-autosuggestions.nix
@@ -512,6 +514,7 @@
   ./services/databases/pgbouncer.nix
   ./services/databases/pgmanage.nix
   ./services/databases/postgresql.nix
+  ./services/databases/postgrest.nix
   ./services/databases/redis.nix
   ./services/databases/surrealdb.nix
   ./services/databases/tigerbeetle.nix
@@ -577,6 +580,7 @@
   ./services/development/vsmartcard-vpcd.nix
   ./services/development/zammad.nix
   ./services/display-managers/default.nix
+  ./services/display-managers/cosmic-greeter.nix
   ./services/display-managers/greetd.nix
   ./services/display-managers/sddm.nix
   ./services/display-managers/ly.nix
@@ -612,6 +616,7 @@
   ./services/hardware/asusd.nix
   ./services/hardware/auto-cpufreq.nix
   ./services/hardware/auto-epp.nix
+  ./services/hardware/bitbox-bridge.nix
   ./services/hardware/bluetooth.nix
   ./services/hardware/bolt.nix
   ./services/hardware/brltty.nix
@@ -785,6 +790,7 @@
   ./services/misc/dictd.nix
   ./services/misc/disnix.nix
   ./services/misc/docker-registry.nix
+  ./services/misc/docling-serve.nix
   ./services/misc/domoticz.nix
   ./services/misc/duckdns.nix
   ./services/misc/duckling.nix
@@ -858,6 +864,7 @@
   ./services/misc/parsoid.nix
   ./services/misc/persistent-evdev.nix
   ./services/misc/pghero.nix
+  ./services/misc/pinchflat.nix
   ./services/misc/pinnwand.nix
   ./services/misc/plex.nix
   ./services/misc/plikd.nix
@@ -1018,6 +1025,7 @@
   ./services/network-filesystems/kubo.nix
   ./services/network-filesystems/litestream/default.nix
   ./services/network-filesystems/moosefs.nix
+  ./services/network-filesystems/ipfs-cluster.nix
   ./services/network-filesystems/netatalk.nix
   ./services/network-filesystems/nfsd.nix
   ./services/network-filesystems/openafs/client.nix
@@ -1513,6 +1521,7 @@
   ./services/web-apps/flarum.nix
   ./services/web-apps/fluidd.nix
   ./services/web-apps/freshrss.nix
+  ./services/web-apps/froide-govplan.nix
   ./services/web-apps/galene.nix
   ./services/web-apps/gancio.nix
   ./services/web-apps/gerrit.nix
@@ -1603,6 +1612,7 @@
   ./services/web-apps/rutorrent.nix
   ./services/web-apps/screego.nix
   ./services/web-apps/sftpgo.nix
+  ./services/web-apps/strfry.nix
   ./services/web-apps/suwayomi-server.nix
   ./services/web-apps/readeck.nix
   ./services/web-apps/rss-bridge.nix
@@ -1778,6 +1788,7 @@
   ./tasks/filesystems.nix
   ./tasks/filesystems/apfs.nix
   ./tasks/filesystems/bcachefs.nix
+  ./tasks/filesystems/bindfs.nix
   ./tasks/filesystems/btrfs.nix
   ./tasks/filesystems/cifs.nix
   ./tasks/filesystems/ecryptfs.nix
