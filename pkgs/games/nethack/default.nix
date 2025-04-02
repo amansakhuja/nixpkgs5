@@ -193,7 +193,7 @@ stdenv.mkDerivation rec {
     for i in $out/games/lib/nethackdir/*; do
       ln -s \$i \$(basename \$i)
     done
-    $out/games/nethack
+    exec -a "\$0" $out/games/nethack "\$@"
     EOF
     chmod +x $out/bin/nethack
     ${lib.optionalString x11Mode "mv $out/bin/nethack $out/bin/nethack-x11"}
