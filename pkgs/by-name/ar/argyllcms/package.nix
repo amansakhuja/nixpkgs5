@@ -21,6 +21,7 @@
   buildPackages,
   replaceVars,
   writeScript,
+  zlib,
 }:
 
 stdenv.mkDerivation rec {
@@ -118,14 +119,14 @@ stdenv.mkDerivation rec {
         LINKFLAGS +=
           ${lib.concatStringsSep " " (map (x: "-L${x}/lib") buildInputs)}
           -lrt -lX11 -lXext -lXxf86vm -lXinerama -lXrandr -lXau -lXdmcp -lXss
-          -ljpeg -ltiff -lpng -lssl ;
+          -ljpeg -ltiff -lpng -lssl -lz ;
       '';
     in
     ''
       cp ${jamTop} Jamtop
       substituteInPlace Makefile --replace "-j 3" "-j $NIX_BUILD_CORES"
       # Remove tiff, jpg and png to be sure the nixpkgs-provided ones are used
-      rm -rf tiff jpg png
+      rm -rf tiff jpg png zlib
 
       export AR="$AR rusc"
     '';
@@ -144,6 +145,7 @@ stdenv.mkDerivation rec {
     libXdmcp
     libXau
     openssl
+    zlib
   ];
 
   buildFlags = [ "all" ];
