@@ -34,6 +34,7 @@ jobs:
           ref: ${{ needs.get-merge-commit.outputs.mergedSha }}
           fetch-depth: 2
           path: nixpkgs
+          persist-credentials: false
 
       - name: Determine target commit
         if: github.event_name == 'pull_request_target'
@@ -69,6 +70,7 @@ jobs:
         with:
           ref: ${{ needs.get-merge-commit.outputs.mergedSha }}
           path: nixpkgs
+          persist-credentials: false
 
       - name: Install Nix
         uses: cachix/install-nix-action@d1ca217b388ee87b2507a9a93bf01368bde7cec2 # v31
@@ -109,6 +111,7 @@ jobs:
         with:
           ref: ${{ needs.get-merge-commit.outputs.mergedSha }}
           path: nixpkgs
+          persist-credentials: false
 
       - name: Install Nix
         uses: cachix/install-nix-action@d1ca217b388ee87b2507a9a93bf01368bde7cec2 # v31
@@ -150,6 +153,7 @@ jobs:
           ref: ${{ needs.get-merge-commit.outputs.mergedSha }}
           fetch-depth: 2
           path: nixpkgs
+          persist-credentials: false
 
       - name: Install Nix
         uses: cachix/install-nix-action@d1ca217b388ee87b2507a9a93bf01368bde7cec2 # v31
@@ -212,8 +216,8 @@ jobs:
       - name: Compare against the target branch
         if: steps.targetRunId.outputs.targetRunId
         run: |
-          git -C nixpkgs worktree add ../target ${{ needs.attrs.outputs.targetSha }}
-          git -C nixpkgs diff --name-only ${{ needs.attrs.outputs.targetSha }} \
+          git -C nixpkgs worktree add ../target "$TARGET_SHA"
+          git -C nixpkgs diff --name-only "$TARGET_SHA" \
             | jq --raw-input --slurp 'split("\n")[:-1]' > touched-files.json
 
           # Use the target branch to get accurate maintainer info
@@ -224,6 +228,8 @@ jobs:
             -o comparison
 
           cat comparison/step-summary.md >> "$GITHUB_STEP_SUMMARY"
+        env:
+          TARGET_SHA: ${{ needs.attrs.outputs.targetSha }}
 
       - name: Upload the combined results
         if: steps.targetRunId.outputs.targetRunId
@@ -267,6 +273,7 @@ jobs:
           ref: ${{ needs.attrs.outputs.targetSha }}
           path: base
           sparse-checkout: ci
+          persist-credentials: false
 
       - name: Build the requestReviews derivation
         run: nix-build base/ci -A requestReviews
@@ -331,10 +338,11 @@ jobs:
           # There appears to be no API to request reviews based on GitHub IDs
           jq -r 'keys[]' comparison/maintainers.json \
             | while read -r id; do gh api /user/"$id" --jq .login; done \
-            | GH_TOKEN=${{ steps.app-token.outputs.token }} result/bin/request-reviewers.sh "$REPOSITORY" "$NUMBER" "$AUTHOR"
+            | GH_TOKEN="$APP_TOKEN" result/bin/request-reviewers.sh "$REPOSITORY" "$NUMBER" "$AUTHOR"
 
         env:
           GH_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
           REPOSITORY: ${{ github.repository }}
           NUMBER: ${{ github.event.number }}
           AUTHOR: ${{ github.event.pull_request.user.login }}

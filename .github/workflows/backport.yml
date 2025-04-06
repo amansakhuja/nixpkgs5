@@ -29,6 +29,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Create backport PRs
         uses: korthout/backport-action@436145e922f9561fc5ea157ff406f21af2d6b363 # v3.2.0
