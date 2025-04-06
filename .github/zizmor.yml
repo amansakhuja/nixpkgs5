@@ -1,0 +1,46 @@
+# This file defines the ignore rules for zizmor.
+#
+# For rules that contain a high number of false positives, prefer listing them here
+# instead of adding ignore comments. Note that zizmor cannot ignore by line-within-a-string, so
+# there are some ignore items that encompass multiple problems within one `run` block. An issue
+# tracking this is at https://github.com/woodruffw/zizmor/issues/648.
+#
+# For more info, see the documentation: https://woodruffw.github.io/zizmor/usage/#ignoring-results
+
+rules:
+  # These are all of our uses of "dangerous triggers," which in our case is basically
+  # always `pull_request_trigger`. We've taken care to use this sparingly and with
+  # care, but please think twice before adding a new usage here!
+  #
+  # https://woodruffw.github.io/zizmor/audits/#dangerous-triggers
+  dangerous-triggers:
+    ignore:
+      - backport.yml:8
+      - check-cherry-picks.yml:3
+      - check-maintainers-sorted.yml:3
+      - check-nix-format.yml:6
+      - check-nixf-tidy.yml:3
+      - check-shell.yml:3
+      - codeowners-v2.yml:25
+      - editorconfig-v2.yml:3
+      - eval-lib-tests.yml:3
+      - eval.yml:3
+      - keep-sorted.yml:3
+      - labels.yml:8
+      - manual-nixos-v2.yml:3
+      - manual-nixpkgs-v2.yml:3
+      - nix-parse-v2.yml:3
+      - nixpkgs-vet.yml:8
+      - no-channel.yml:3
+
+  # We use $GITHUB_ENV a few times to pass info between steps. More often than not, these are
+  # static strings constructed from sanitized variables, so it's usually fine.
+  #
+  # https://woodruffw.github.io/zizmor/audits/#github-env
+  github-env:
+    ignore:
+      - check-nixf-tidy.yml:23
+      - check-nixf-tidy.yml:31
+      - keep-sorted.yml:25
+      - nix-parse-v2.yml:21
+      - nixpkgs-vet.yml:42
