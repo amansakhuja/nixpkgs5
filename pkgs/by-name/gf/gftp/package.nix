@@ -5,23 +5,25 @@
   autoconf,
   automake,
   gettext,
-  gtk,
+  gtk2,
   intltool,
   libtool,
   ncurses,
   openssl,
   pkg-config,
   readline,
+  nix-update-script,
+  versionCheckHook,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "gftp";
   version = "2.9.1b";
 
   src = fetchFromGitHub {
     owner = "masneyb";
-    repo = pname;
-    tag = version;
+    repo = "gftp";
+    tag = finalAttrs.version;
     hash = "sha256-0zdv2oYl24BXh61IGCWby/2CCkzNjLpDrAFc0J89Pw4=";
   };
 
@@ -35,11 +37,15 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    gtk
+    gtk2
     ncurses
     openssl
     readline
   ];
+
+  postPatch = ''
+    substituteInPlace lib/gftp.h --replace-fail "size_t remote_addr_len" "socklen_t remote_addr_len"
+  '';
 
   preConfigure = ''
     ./autogen.sh
@@ -47,12 +53,16 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "format" ];
 
-  meta = with lib; {
+  doInstallCheck = true;
+  nativeInstallCheck = [ versionCheckHook ];
+
+  passthru.updateScript = nix-update-script { };
+
+  meta = {
     homepage = "https://github.com/masneyb/gftp";
     description = "GTK-based multithreaded FTP client for *nix-based machines";
-    license = licenses.gpl2Plus;
-    maintainers = with maintainers; [ ];
-    platforms = platforms.unix;
+    license = lib.licenses.gpl2Plus;
+    maintainers = [ lib.maintainers.haylin ];
+    platforms = lib.platforms.unix;
   };
-}
-# TODO: report the hardeningDisable to upstream
+})

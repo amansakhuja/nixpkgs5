@@ -3559,10 +3559,6 @@ with pkgs;
     gtk = gtk2-x11;
   };
 
-  gftp = callPackage ../applications/networking/ftp/gftp {
-    gtk = gtk2;
-  };
-
   ggshield = callPackage ../tools/security/ggshield {
     python3 = python311;
   };
