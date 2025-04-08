@@ -1,5 +1,5 @@
 import ./make-test-python.nix (
-  { pkgs, ... }:
+  { pkgs, lib, ... }:
   {
     name = "qbittorrent";
 
@@ -50,7 +50,7 @@ import ./make-test-python.nix (
                 Username = "user";
                 # Default password: adminadmin
                 Password_PBKDF2 = "@ByteArray(6DIf26VOpTCYbgNiO6DAFQ==:e6241eaAWGzRotQZvVA5/up9fj5wwSAThLgXI2lVMsYTu1StUgX9MgmElU3Sa/M8fs+zqwZv9URiUOObjqJGNw==)";
-                Port = "8181";
+                Port = lib.mkDefault "8181";
               };
             };
           };

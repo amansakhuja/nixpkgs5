@@ -19,6 +19,7 @@ let
     escape
     collect
     mapAttrsRecursive
+    optional
     ;
   inherit (lib.types)
     str
@@ -90,6 +91,7 @@ in
     };
 
     serverConfig = mkOption {
+      default = { };
       type = submodule {
         freeformType = attrsOf (attrsOf anything);
       };
@@ -149,7 +151,7 @@ in
             mode = "755";
             inherit (cfg) user group;
           };
-          "${cfg.profileDir}/qBittorrent/config/qBittorrent.conf"."L+" = lib.mkIf (cfg.serverConfig != null) {
+          "${cfg.profileDir}/qBittorrent/config/qBittorrent.conf"."L+" = mkIf (cfg.serverConfig != { }) {
             mode = "1400";
             inherit (cfg) user group;
             argument = "${configFile}";
@@ -165,7 +167,7 @@ in
           "nss-lookup.target"
         ];
         wantedBy = [ "multi-user.target" ];
-        restartTriggers = lib.optional (cfg.serverConfig != null) configFile;
+        restartTriggers = optional (cfg.serverConfig != { }) configFile;
 
         serviceConfig = {
           Type = "simple";
@@ -176,8 +178,8 @@ in
               (getExe cfg.package)
               "--profile=${cfg.profileDir}"
             ]
-            ++ lib.optional (cfg.webuiPort != null) "--webui-port=${toString cfg.webuiPort}"
-            ++ lib.optional (cfg.torrentingPort != null) "--torrenting-port=${toString cfg.torrentingPort}"
+            ++ optional (cfg.webuiPort != null) "--webui-port=${toString cfg.webuiPort}"
+            ++ optional (cfg.torrentingPort != null) "--torrenting-port=${toString cfg.torrentingPort}"
             ++ cfg.extraArgs
           );
           TimeoutStopSec = 1800;
@@ -228,8 +230,8 @@ in
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
-      lib.optional (cfg.webuiPort != null) cfg.webuiPort
-      ++ lib.optional (cfg.torrentingPort != null) cfg.torrentingPort
+      optional (cfg.webuiPort != null) cfg.webuiPort
+      ++ optional (cfg.torrentingPort != null) cfg.torrentingPort
     );
   };
   meta.maintainers = with maintainers; [ fsnkty ];
