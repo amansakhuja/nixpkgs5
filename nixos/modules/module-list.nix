@@ -1123,6 +1123,7 @@
   ./services/networking/firewall-iptables.nix
   ./services/networking/firewall-nftables.nix
   ./services/networking/firewall.nix
+  ./services/networking/firewalld
   ./services/networking/firezone/gateway.nix
   ./services/networking/firezone/gui-client.nix
   ./services/networking/firezone/headless-client.nix
