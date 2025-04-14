@@ -3819,6 +3819,10 @@ with pkgs;
     buildGoModule = buildGo123Module;
   };
 
+  headplane = callPackage ../by-name/he/headplane { };
+
+  hiera-eyaml = callPackage ../tools/system/hiera-eyaml { };
+
   hobbits = libsForQt5.callPackage ../tools/graphics/hobbits { };
 
   highlight = callPackage ../tools/text/highlight {
