@@ -3821,6 +3821,8 @@ with pkgs;
 
   headplane = callPackage ../by-name/he/headplane { };
 
+  headplane-agent = callPackage ../by-name/he/headplane-agent { };
+
   hiera-eyaml = callPackage ../tools/system/hiera-eyaml { };
 
   hobbits = libsForQt5.callPackage ../tools/graphics/hobbits { };
