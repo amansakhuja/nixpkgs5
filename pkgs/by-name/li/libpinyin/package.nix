@@ -5,7 +5,7 @@
   fetchFromGitHub,
   autoreconfHook,
   glib,
-  db,
+  kyotocabinet,
   pkg-config,
 }:
 
@@ -39,7 +39,11 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     glib
-    db
+    kyotocabinet
+  ];
+
+  configureFlags = [
+    "--with-dbm=KyotoCabinet"
   ];
 
   meta = {
