@@ -8960,6 +8960,8 @@ with pkgs;
     cudaPackages = cudaPackages_12;
   };
 
+  art-standalone = callPackage ../development/libraries/art-standalone { };
+
   asio_1_10 = callPackage ../development/libraries/asio/1.10.nix { };
   asio = callPackage ../development/libraries/asio { };
 
@@ -9012,6 +9014,8 @@ with pkgs;
       pkgs."androidndkPkgs_${stdenv.hostPlatform.androidNdkVersion}".libraries
     else
       callPackage ../os-specific/linux/bionic-prebuilt { };
+
+  bionic-translation = callPackage ../development/libraries/bionic-translation { };
 
   inherit (callPackage ../development/libraries/boost { inherit (buildPackages) boost-build; })
     boost177
