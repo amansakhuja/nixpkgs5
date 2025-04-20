@@ -6,9 +6,9 @@
 }:
 let
   inherit (lib)
-    mapAttrs
     mkIf
     mkOption
+    mkPackageOption
     optional
     optionals
     types
@@ -38,6 +38,8 @@ in
         type = types.bool;
         default = false;
       };
+
+      package = mkPackageOption pkgs "kmscon" { };
 
       hwRender = mkOption {
         description = "Whether to use 3D hardware acceleration to render the console.";
