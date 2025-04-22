@@ -11,7 +11,7 @@ stdenvNoCC.mkDerivation rec {
   src = fetchzip {
     name = "${pname}-${version}";
     url = "https://language.moe.gov.tw/001/Upload/Files/site_content/M0001/MoeLI-3.0.zip";
-    hash = "sha256-/X5jPtjOvJTUbiKV5r2dWIFL5ft0iemdwj+Zt+Q13OA=";
+    hash = "sha256-bDQtLugYPWwJJNusBLEJrgIVufocRK4NIR0CCGaTkyw=";
   };
 
   installPhase = ''
@@ -22,13 +22,9 @@ stdenvNoCC.mkDerivation rec {
   '';
 
   meta = {
-    description = "The MOE Li Font, a clerical Chinese font by the Ministry of Education, ROC (Taiwan)";
+    description = "The MOE Li font, a clerical-script-style Chinese character typeface";
     longDescription = ''
-      The MOE Li Font is a li (clerical srcipt) font
-      provided by
-      the Midistry of Education, Republic of China (Taiwan).
-      It currently includes 4,808 Chinese characters.
-      The clerical script (lishu) is an archaic style of Chinese calligraphy.
+        A clerical-script-style Chinese character typeface published by the Ministry of Education of the Republic of China (Taiwan). Clerical script is also referred to as 隸書, 隶书, or lìshū in Chinese; lệ thư or chữ lệ in Vietnamese; 예서, 隸書, or yeseo in Korean; 隷書体, れいしょたい, or reishotai in Japanese.
     '';
     homepage = "http://language.moe.gov.tw/result.aspx?classify_sn=23&subclassify_sn=436&content_sn=49";
     license = lib.licenses.cc-by-nd-30;
