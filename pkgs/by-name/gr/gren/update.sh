@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p cabal2nix curl jq nixfmt-rfc-style
+#!nix-shell -i bash -p cabal2nix node2nix curl jq nixfmt-rfc-style
 
 set -euo pipefail
 
@@ -18,5 +18,8 @@ EOF
 
 cabal2nix 'https://github.com/gren-lang/compiler.git' --revision "${latest_version}" --jailbreak >> "${derivation_file}"
 nixfmt "${derivation_file}"
+
+node2nix -i node-packages.json -o node-packages.nix
+nixfmt node-packages.nix
 
 echo 'Finished.'
