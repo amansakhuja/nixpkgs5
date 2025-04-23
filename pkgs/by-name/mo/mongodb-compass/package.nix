@@ -23,7 +23,7 @@
   libuuid,
   libxcb,
   libxkbcommon,
-  mesa,
+  libgbm,
   nspr,
   nss,
   pango,
@@ -34,7 +34,7 @@
 }:
 
 let
-  version = "1.45.0";
+  version = "1.45.4";
 
   rpath = lib.makeLibraryPath [
     alsa-lib
@@ -58,7 +58,7 @@ let
     libuuid
     libxcb
     libxkbcommon
-    mesa
+    libgbm
     nspr
     nss
     pango
@@ -84,7 +84,7 @@ let
     if stdenv.hostPlatform.system == "x86_64-linux" then
       fetchurl {
         url = "https://downloads.mongodb.com/compass/mongodb-compass_${version}_amd64.deb";
-        hash = "sha256-p8EcsjAyzrwPfVgpmY5OlDYoikdblJDFKwtD0bCq0sA=";
+        hash = "sha256-q+nEMJ6GtWNPKqYdab6DXWGTgRmmLWvG3qcR9tRi9YY=";
       }
     else
       throw "MongoDB compass is not supported on ${stdenv.hostPlatform.system}";

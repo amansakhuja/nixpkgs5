@@ -15,13 +15,13 @@
 
 buildPythonPackage rec {
   pname = "jupyter-server-ydoc";
-  version = "1.0.1";
+  version = "2.0.1";
   pyproject = true;
 
   src = fetchPypi {
     pname = "jupyter_server_ydoc";
     inherit version;
-    hash = "sha256-bJk3+T/H8Y1D3NToLlyLceQBPjlTJA7y+9c7PDN6KPc=";
+    hash = "sha256-9P2n9D0HUkU+lmIffniD7tAJEUbe7Q7jjC/l+Cxps/U=";
   };
 
   build-system = [ hatchling ];

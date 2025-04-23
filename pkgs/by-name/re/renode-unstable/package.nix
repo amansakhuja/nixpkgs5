@@ -7,16 +7,16 @@
 renode.overrideAttrs (
   finalAttrs: _: {
     pname = "renode-unstable";
-    version = "1.15.3+20241112git6e850cb52";
+    version = "1.15.3+20250314git5b219d820";
 
     src = fetchurl {
       url = "https://builds.renode.io/renode-${finalAttrs.version}.linux-dotnet.tar.gz";
-      hash = "sha256-GkmzPc0pPRglkuGzPU+rLUcwlhw8v4VgQnxnkzT/+cI=";
+      hash = "sha256-v23MC22DVYV+czmpktKKP8lU0JKjgoOfNkTDhm0q/4o=";
     };
 
     passthru.updateScript =
       let
-        versionRegex = "[0-9\.\+]+[^\+]*.";
+        versionRegex = "[0-9\\.\\+]+[^\\+]*.";
       in
       writeScript "${finalAttrs.pname}-updater" ''
         #!/usr/bin/env nix-shell

@@ -12,8 +12,8 @@ stdenv.mkDerivation rec {
 
   src = fetchFromGitHub {
     owner = "KDAB";
-    repo = pname;
-    rev = "refs/tags/v${version}";
+    repo = "KDSingleApplication";
+    tag = "v${version}";
     hash = "sha256-Ymm+qOZMWULg7u5xEpGzcAfIrbWBQ3jsndnFSnh6/PA=";
   };
 

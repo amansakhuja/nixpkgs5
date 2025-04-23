@@ -4,6 +4,8 @@
   rustPlatform,
   fetchFromGitHub,
 
+  jq,
+  moreutils,
   fetchNpmDeps,
   npmHooks,
   nodejs,
@@ -11,32 +13,41 @@
   pkg-config,
   wrapGAppsHook3,
 
-  openssl,
+  glib-networking,
   libsoup_3,
+  openssl,
   webkitgtk_4_1,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "gale";
-  version = "1.1.4";
+  version = "1.5.6";
 
   src = fetchFromGitHub {
     owner = "Kesomannen";
     repo = "gale";
-    rev = "refs/tags/${finalAttrs.version}";
-    hash = "sha256-yAfQuLfucz522ln0YNMy8nppp2jk6tGJnP/WhK7JdhI=";
+    tag = finalAttrs.version;
+    hash = "sha256-YNTmREWSsXjQ8S2bM9JTsoTdPCmPnmt/svhTOoUFEs4=";
   };
+
+  postPatch = ''
+    jq '.bundle.createUpdaterArtifacts = false' src-tauri/tauri.conf.json | sponge src-tauri/tauri.conf.json
+  '';
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src;
-    hash = "sha256-xKg/ABUdtylFpT3EisXVvyv38++KjucrZ+s3/fFjzmM=";
+    hash = "sha256-EFP2Lwqg2bFaSCXXDPIAF6nfeV7/CH3XgI9fzxE+veA=";
   };
 
-  cargoDeps = rustPlatform.fetchCargoTarball {
-    inherit (finalAttrs) pname version src;
-    sourceRoot = "${finalAttrs.src.name}/${finalAttrs.cargoRoot}";
-    hash = "sha256-u7UbC9TyEQwYpcVWt8/NsweDNWbQi6NuD9ay9gmMDjg=";
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      cargoRoot
+      ;
+    hash = "sha256-AsViBPdXNzQBnN3Vv8ojfdG7fvy5DN3FiQHTzdLmxyQ=";
   };
 
   cargoRoot = "src-tauri";
@@ -44,6 +55,8 @@ stdenv.mkDerivation (finalAttrs: {
   buildAndTestSubdir = finalAttrs.cargoRoot;
 
   nativeBuildInputs = [
+    jq
+    moreutils
     npmHooks.npmConfigHook
     nodejs
     rustPlatform.cargoSetupHook
@@ -54,9 +67,10 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildInputs = [
+    glib-networking # needed to load icons
     libsoup_3
-    webkitgtk_4_1
     openssl
+    webkitgtk_4_1
   ];
 
   meta = {

@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   buildPythonPackage,
   distutils,
   fetchPypi,
@@ -8,44 +9,54 @@
   packaging,
   setuptools,
   filelock,
-  wheel,
   patchelf,
+  tomli,
+  importlib-metadata,
+  typing-extensions,
+  dmgbuild,
 }:
 
 buildPythonPackage rec {
   pname = "cx-freeze";
-  version = "7.2.2";
+  version = "8.0.0";
   pyproject = true;
 
-  disabled = pythonOlder "3.11";
+  disabled = pythonOlder "3.8";
 
   src = fetchPypi {
     pname = "cx_freeze";
     inherit version;
-    hash = "sha256-6bLEvWjr9PuZtq8v8oHA5TewSa7pSIBcxKAo4XGKvGo=";
+    hash = "sha256-gOH4e7FS7Q+X98ZDXgI31Eqt6Zl5knxGJ3cTIqJdVQ0=";
   };
 
   postPatch = ''
     sed -i /patchelf/d pyproject.toml
     # Build system requirements
     substituteInPlace pyproject.toml \
-      --replace-fail "setuptools>=70.1,<75" "setuptools"
+      --replace-fail "setuptools>=70.1,<76" "setuptools"
   '';
 
   build-system = [
     setuptools
-    wheel
   ];
 
   buildInputs = [ ncurses ];
 
-  dependencies = [
-    distutils
-    filelock
-    packaging
-    setuptools
-    wheel
-  ];
+  dependencies =
+    [
+      distutils
+      packaging
+      setuptools
+    ]
+    ++ lib.optionals (pythonOlder "3.11") [
+      tomli
+    ]
+    ++ lib.optionals (pythonOlder "3.10") [
+      importlib-metadata
+      typing-extensions
+    ]
+    ++ lib.optional stdenv.hostPlatform.isLinux filelock
+    ++ lib.optional stdenv.hostPlatform.isDarwin dmgbuild;
 
   makeWrapperArgs = [
     "--prefix"

@@ -7,14 +7,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "zapzap";
-  version = "5.3.8";
+  version = "6.0.1.8";
   format = "setuptools";
 
   src = fetchFromGitHub {
     owner = "rafatosta";
     repo = "zapzap";
-    rev = "refs/tags/${version}";
-    hash = "sha256-UIr6EYE2Y/05a3kO6waAnf6+5gb3r5UzgKaHwDbbfZw=";
+    tag = version;
+    hash = "sha256-JsBKss/E3YQ85YqDdw4slN7uMssZ4l5HgbXSZW1AIZM=";
   };
 
   nativeBuildInputs = with python3Packages; [
@@ -56,7 +56,7 @@ python3Packages.buildPythonApplication rec {
     homepage = "https://rtosta.com/zapzap-web/";
     mainProgram = "zapzap";
     license = licenses.gpl3Only;
-    changelog = "https://github.com/rafatosta/zapzap/releases/tag/${version}";
+    changelog = "https://github.com/rafatosta/zapzap/releases/tag/${src.tag}";
     maintainers = [ maintainers.eymeric ];
   };
 }

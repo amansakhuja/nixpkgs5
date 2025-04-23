@@ -28,15 +28,13 @@ if lib.versionAtLeast ocaml.version "4.02" then
 
   buildDunePackage rec {
     inherit pname;
-    version = "1.6.9";
-
-    duneVersion = "3";
+    version = "1.8.0";
 
     src = fetchFromGitHub {
       owner = "ocaml-community";
       repo = pname;
       rev = "v${version}";
-      sha256 = "sha256-NdN2QnVRfRq9hEcSAnO2Wha7icDlf2Zg4JQqoEWmErE=";
+      hash = "sha256-+HnAGM+GddYJK0RCvKrs+baZS+1o8Yq+/cVa3U3nFWg=";
     };
 
     doCheck = true;

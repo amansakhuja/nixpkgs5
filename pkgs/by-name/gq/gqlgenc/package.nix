@@ -6,18 +6,18 @@
 
 buildGoModule rec {
   pname = "gqlgenc";
-  version = "0.27.3";
+  version = "0.32.0";
 
   src = fetchFromGitHub {
     owner = "yamashou";
     repo = "gqlgenc";
     rev = "v${version}";
-    sha256 = "sha256-Ep8wrb/s3mMAMNAl2sSRBwxs9Zifls8+12/D6CgCzXg=";
+    sha256 = "sha256-3Qz1o91IPKjhzIYzKcdl456AWn6nsrcQ04VglBlpe54=";
   };
 
   excludedPackages = [ "example" ];
 
-  vendorHash = "sha256-ln26CHD0q+iPyAx5DalOGyCtVB1QR+7ls1ZjNK8APBU=";
+  vendorHash = "sha256-Ax5MA4wqQdXSDEIkiG5TcvFIN6YtyXuiJOdQGPYIb+Y=";
 
   meta = with lib; {
     description = "Go tool for building GraphQL client with gqlgen";

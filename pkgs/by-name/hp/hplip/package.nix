@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchurl,
-  substituteAll,
+  replaceVars,
   pkg-config,
   autoreconfHook,
   gobject-introspection,
@@ -11,7 +11,7 @@
   zlib,
   libjpeg,
   libusb1,
-  python311Packages,
+  python3Packages,
   sane-backends,
   dbus,
   file,
@@ -43,13 +43,12 @@ let
   };
 
   plugin = fetchurl {
-    url = "https://developers.hp.com/sites/default/files/${pname}-${version}-plugin.run";
+    url = "https://www.openprinting.org/download/printdriver/auxfiles/HP/plugins/${pname}-${version}-plugin.run";
     hash = "sha256-Hzxr3SVmGoouGBU2VdbwbwKMHZwwjWnI7P13Z6LQxao=";
   };
 
-  hplipState = substituteAll {
+  hplipState = replaceVars ./hplip.state {
     inherit version;
-    src = ./hplip.state;
   };
 
   hplipPlatforms = {
@@ -79,9 +78,20 @@ assert
     builtins.elem hplipArch pluginArches
     || throw "HPLIP plugin not supported on ${stdenv.hostPlatform.system}";
 
-python311Packages.buildPythonApplication {
-  inherit pname version src;
+python3Packages.buildPythonApplication {
+  inherit pname version;
   format = "other";
+
+  srcs = [ src ] ++ lib.optional withPlugin plugin;
+
+  unpackCmd = lib.optionalString withPlugin ''
+    if ! [[ "$curSrc" =~ -plugin\.run$ ]]; then return 1; fi # fallback to regular unpackCmdHooks
+
+    # Unpack plugin shar
+    sh "$curSrc" --noexec --keep
+  '';
+
+  sourceRoot = "${pname}-${version}";
 
   buildInputs =
     [
@@ -111,7 +121,7 @@ python311Packages.buildPythonApplication {
   ] ++ lib.optional withQt5 qt5.wrapQtAppsHook;
 
   pythonPath =
-    with python311Packages;
+    with python3Packages;
     [
       dbus
       pillow
@@ -120,6 +130,7 @@ python311Packages.buildPythonApplication {
       usbutils
       dbus-python
       distro
+      distutils
     ]
     ++ lib.optionals withQt5 [
       pyqt5
@@ -143,7 +154,7 @@ python311Packages.buildPythonApplication {
     # Remove all ImageProcessor functionality since that is closed source
     (fetchurl {
       url = "https://web.archive.org/web/20230226174550/https://sources.debian.org/data/main/h/hplip/3.22.10+dfsg0-1/debian/patches/0028-Remove-ImageProcessor-binary-installs.patch";
-      sha256 = "sha256:18njrq5wrf3fi4lnpd1jqmaqr7ph5d7jxm7f15b1wwrbxir1rmml";
+      hash = "sha256-tNYccuwrcx5WCe7ULk8r8J6MVcUytGspiW64zAvO0qI=";
     })
   ];
 
@@ -225,6 +236,16 @@ python311Packages.buildPythonApplication {
   enableParallelBuilding = true;
   enableParallelInstalling = false;
 
+  env = {
+    NIX_CFLAGS_COMPILE = toString [
+      "-Wno-error=implicit-int"
+      "-Wno-error=implicit-function-declaration"
+      "-Wno-error=return-mismatch"
+      "-Wno-error=int-conversion"
+      "-Wno-error=incompatible-pointer-types"
+    ];
+  };
+
   #
   # Running `hp-diagnose_plugin -g` can be used to diagnose
   # issues with plugins.
@@ -238,8 +259,7 @@ python311Packages.buildPythonApplication {
       done
     ''
     + lib.optionalString withPlugin ''
-      sh ${plugin} --noexec --keep
-      cd plugin_tmp
+      pushd $NIX_BUILD_TOP/plugin_tmp
 
       cp plugin.spec $out/share/hplip/
 
@@ -275,6 +295,8 @@ python311Packages.buildPythonApplication {
 
       mkdir -p $out/var/lib/hp
       cp ${hplipState} $out/var/lib/hp/hplip.state
+
+      popd
     '';
 
   # The installed executables are just symlinks into $out/share/hplip,
@@ -321,7 +343,7 @@ python311Packages.buildPythonApplication {
     "share/hplip"
     "lib/cups/backend"
     "lib/cups/filter"
-    python311Packages.python.sitePackages
+    python3Packages.python.sitePackages
     "lib/sane"
   ];
 

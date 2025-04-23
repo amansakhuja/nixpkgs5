@@ -3,10 +3,8 @@
   stdenv,
   fetchurl,
   tzdata,
-  substituteAll,
+  replaceVars,
   iana-etc,
-  apple-sdk_11,
-  xcbuild,
   mailcap,
   buildPackages,
   pkgsBuildTarget,
@@ -30,6 +28,7 @@ let
       "armv6l" = "arm";
       "armv7l" = "arm";
       "i686" = "386";
+      "loongarch64" = "loong64";
       "mips" = "mips";
       "mips64el" = "mips64le";
       "mipsel" = "mipsle";
@@ -50,11 +49,11 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "go";
-  version = "1.23.3";
+  version = "1.23.8";
 
   src = fetchurl {
     url = "https://go.dev/dl/go${finalAttrs.version}.src.tar.gz";
-    hash = "sha256-jWp3MySHVXxq+iQhExtQ+D20rjxXnDvHLmcO4faWhZk=";
+    hash = "sha256-DKHx436iVePOKDrz9OYoUC+0RFh9qYelu5bWxvFZMNQ=";
   };
 
   strictDeps = true;
@@ -62,11 +61,6 @@ stdenv.mkDerivation (finalAttrs: {
     [ ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ stdenv.cc.libc.out ]
     ++ lib.optionals (stdenv.hostPlatform.libc == "glibc") [ stdenv.cc.libc.static ];
-
-  depsTargetTargetPropagated = lib.optionals stdenv.targetPlatform.isDarwin [
-    apple-sdk_11
-    xcbuild
-  ];
 
   depsBuildTarget = lib.optional isCross targetCC;
 
@@ -77,24 +71,21 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   patches = [
-    (substituteAll {
-      src = ./iana-etc-1.17.patch;
+    (replaceVars ./iana-etc-1.17.patch {
       iana = iana-etc;
     })
     # Patch the mimetype database location which is missing on NixOS.
     # but also allow static binaries built with NixOS to run outside nix
-    (substituteAll {
-      src = ./mailcap-1.17.patch;
+    (replaceVars ./mailcap-1.17.patch {
       inherit mailcap;
     })
     # prepend the nix path to the zoneinfo files but also leave the original value for static binaries
     # that run outside a nix server
-    (substituteAll {
-      src = ./tzdata-1.19.patch;
+    (replaceVars ./tzdata-1.19.patch {
       inherit tzdata;
     })
     ./remove-tools-1.11.patch
-    ./go_no_vendor_checks-1.22.patch
+    ./go_no_vendor_checks-1.23.patch
   ];
 
   GOOS = if stdenv.targetPlatform.isWasi then "wasip1" else stdenv.targetPlatform.parsed.kernel.name;
@@ -171,7 +162,7 @@ stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/share/go
-    cp -a bin pkg src lib misc api doc go.env $out/share/go
+    cp -a bin pkg src lib misc api doc go.env VERSION $out/share/go
     mkdir -p $out/bin
     ln -s $out/share/go/bin/* $out/bin
     runHook postInstall
@@ -192,7 +183,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = with lib; {
-    changelog = "https://go.dev/doc/devel/release#go${lib.versions.majorMinor finalAttrs.version}";
+    changelog = "https://go.dev/doc/devel/release#go${finalAttrs.version}";
     description = "Go Programming language";
     homepage = "https://go.dev/";
     license = licenses.bsd3;

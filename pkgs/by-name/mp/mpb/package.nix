@@ -19,13 +19,13 @@ assert !lapack.isILP64;
 
 stdenv.mkDerivation rec {
   pname = "mpb";
-  version = "1.11.1";
+  version = "1.12.0";
 
   src = fetchFromGitHub {
     owner = "NanoComp";
-    repo = pname;
-    rev = "refs/tags/v${version}";
-    hash = "sha256-+2cMjZSGdfngtGoAeZRPRPBDvflTEIOWO8Se0W6jv9k=";
+    repo = "mpb";
+    tag = "v${version}";
+    hash = "sha256-naxVKD7pxefb/ht5Pa4e/T9eDzlZ0raNYPSvKNaZUn8=";
   };
 
   nativeBuildInputs = [
@@ -43,6 +43,9 @@ stdenv.mkDerivation rec {
     guile
     perl
   ];
+
+  # Required for build with gcc-14
+  env.NIX_CFLAGS_COMPILE = "-Wno-error=int-conversion";
 
   enableParallelBuilding = true;
 

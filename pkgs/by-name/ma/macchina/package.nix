@@ -1,23 +1,25 @@
-{ lib
-, rustPlatform
-, fetchFromGitHub
-, installShellFiles
-, stdenv
-, darwin
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  installShellFiles,
+  stdenv,
+  darwin,
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "macchina";
-  version = "6.2.1";
+  version = "6.4.0";
 
   src = fetchFromGitHub {
     owner = "Macchina-CLI";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-v1EaC4VBOvZFL2GoKlTDBMjSe8+4bxaLFvy2V7e7RW4=";
+    hash = "sha256-GZO9xGc3KGdq2WdA10m/XV8cNAlQjUZFUVu1CzidJ5c=";
   };
 
-  cargoHash = "sha256-k17x7BEaBWo4Ka2HIjHd4DrO/tolKR/+s7Mm5ZzJk/Y=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-B3dylFOMQ1a1DfemfQFFlLVKCmB+ipUMV45iDh8fSqY=";
 
   nativeBuildInputs = [
     installShellFiles
@@ -37,7 +39,10 @@ rustPlatform.buildRustPackage rec {
     homepage = "https://github.com/Macchina-CLI/macchina";
     changelog = "https://github.com/Macchina-CLI/macchina/releases/tag/v${version}";
     license = with licenses; [ mit ];
-    maintainers = with maintainers; [ _414owen figsoda ];
+    maintainers = with maintainers; [
+      _414owen
+      figsoda
+    ];
     mainProgram = "macchina";
   };
 }

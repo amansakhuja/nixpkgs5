@@ -101,13 +101,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "mlterm";
-  version = "3.9.3";
+  version = "3.9.4";
 
   src = fetchFromGitHub {
     owner = "arakiken";
     repo = "mlterm";
-    rev = finalAttrs.version;
-    sha256 = "sha256-gfs5cdwUUwSBWwJJSaxrQGWJvLkI27RMlk5QvDALEDg=";
+    tag = finalAttrs.version;
+    sha256 = "sha256-YogapVTmW4HAyVgvhR4ZvW4Q6v0kGiW11CCxN6SpPCY=";
   };
 
   nativeBuildInputs =
@@ -165,14 +165,14 @@ stdenv.mkDerivation (finalAttrs: {
 
   #bad configure.ac and Makefile.in everywhere
   preConfigure = ''
-    sed -ie 's;-L/usr/local/lib -R/usr/local/lib;;g' \
+    sed -i -e 's;-L/usr/local/lib -R/usr/local/lib;;g' \
       main/Makefile.in \
       tool/mlfc/Makefile.in \
       tool/mlimgloader/Makefile.in \
       tool/mlconfig/Makefile.in \
       uitoolkit/libtype/Makefile.in \
       uitoolkit/libotl/Makefile.in
-    sed -ie 's;cd ..srcdir. && rm -f ...lang..gmo.*;;g' \
+    sed -i -e 's;cd ..srcdir. && rm -f ...lang..gmo.*;;g' \
       tool/mlconfig/po/Makefile.in.in
     #utmp and mlterm-fb
     substituteInPlace configure.in \
@@ -240,16 +240,16 @@ stdenv.mkDerivation (finalAttrs: {
       ;
   };
 
-  meta = with lib; {
+  meta = {
     description = "Multi Lingual TERMinal emulator";
     homepage = "https://mlterm.sourceforge.net/";
-    license = licenses.bsd3;
-    maintainers = with maintainers; [
+    license = lib.licenses.bsd3;
+    maintainers = with lib.maintainers; [
       ramkromberg
       atemu
       doronbehar
     ];
-    platforms = platforms.all;
+    platforms = lib.platforms.all;
     mainProgram = desktopBinary;
   };
 })

@@ -4,6 +4,7 @@
   fetchFromGitHub,
   testers,
   gojq,
+  installShellFiles,
 }:
 
 buildGoModule rec {
@@ -24,16 +25,22 @@ buildGoModule rec {
     "-w"
   ];
 
+  nativeBuildInputs = [ installShellFiles ];
+
+  postInstall = ''
+    installShellCompletion --cmd gojq --zsh _gojq
+  '';
+
   passthru.tests.version = testers.testVersion {
     package = gojq;
   };
 
-  meta = with lib; {
+  meta = {
     description = "Pure Go implementation of jq";
     homepage = "https://github.com/itchyny/gojq";
     changelog = "https://github.com/itchyny/gojq/blob/v${version}/CHANGELOG.md";
-    license = licenses.mit;
-    maintainers = with maintainers; [ aaronjheng ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ aaronjheng ];
     mainProgram = "gojq";
   };
 }

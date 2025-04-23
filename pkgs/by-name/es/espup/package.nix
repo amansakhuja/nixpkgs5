@@ -11,21 +11,23 @@
   stdenv,
   darwin,
   testers,
-  espup,
+  writableTmpDirAsHomeHook,
+  nix-update-script,
 }:
 
-rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "espup";
-  version = "0.13.0";
+  version = "0.15.0";
 
   src = fetchFromGitHub {
     owner = "esp-rs";
     repo = "espup";
-    rev = "v${version}";
-    hash = "sha256-okB8K0ly3MvnkVve41eT0SNr5dPn5E5QXewqLHGL/Tc=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-1muyZd7jhhDkif/8mX7QZEMnV105jNMHT0RaZPinD/4=";
   };
 
-  cargoHash = "sha256-n2tLG3logtc73Ut/R1UGuLSm7MpZ4Bxp/08SOhGL+80=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-fX6nl0DZZNiH/VWR9eWMnTuBW9r1jz3IWIxbOGC4Amg=";
 
   nativeBuildInputs = [
     pkg-config
@@ -50,9 +52,7 @@ rustPlatform.buildRustPackage rec {
     ZSTD_SYS_USE_PKG_CONFIG = true;
   };
 
-  preCheck = ''
-    export HOME=$(mktemp -d)
-  '';
+  nativeCheckInputs = [ writableTmpDirAsHomeHook ];
 
   checkFlags = [
     # makes network calls
@@ -66,21 +66,24 @@ rustPlatform.buildRustPackage rec {
       --zsh <($out/bin/espup completions zsh)
   '';
 
-  passthru.tests.version = testers.testVersion {
-    package = espup;
+  passthru = {
+    updateScript = nix-update-script { };
+    tests.version = testers.testVersion {
+      package = finalAttrs.finalPackage;
+    };
   };
 
-  meta = with lib; {
+  meta = {
     description = "Tool for installing and maintaining Espressif Rust ecosystem";
     homepage = "https://github.com/esp-rs/espup/";
-    license = with licenses; [
+    license = with lib.licenses; [
       mit
       asl20
     ];
-    maintainers = with maintainers; [
+    maintainers = with lib.maintainers; [
       knightpp
       beeb
     ];
     mainProgram = "espup";
   };
-}
+})

@@ -7,15 +7,15 @@
   distribution,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "distribution";
-  version = "3.0.0-rc.1";
+  version = "3.0.0";
 
   src = fetchFromGitHub {
     owner = "distribution";
     repo = "distribution";
-    rev = "v${version}";
-    hash = "sha256-dfy3P8zAFlni2heQcz61+sjivHE97Syh/ICreTgxUAM=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-myezQTEdH7kkpCoAeZMf5OBxT4Bz8Qx6vCnwim230RY=";
   };
 
   vendorHash = null;
@@ -25,11 +25,12 @@ buildGoModule rec {
     # TestInMemoryDriverSuite: timeout after 10 minutes, looks like a deadlock.
     "-skip=^TestHTTPChecker$|^TestInMemoryDriverSuite$"
   ];
+  __darwinAllowLocalNetworking = true;
 
   passthru = {
     tests.version = testers.testVersion {
       package = distribution;
-      version = "v${version}";
+      version = "v${finalAttrs.version}";
     };
     updateScript = nix-update-script { };
   };
@@ -49,4 +50,4 @@ buildGoModule rec {
     mainProgram = "registry";
     platforms = platforms.unix;
   };
-}
+})

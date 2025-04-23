@@ -1,7 +1,8 @@
-{ lib
-, fetchFromGitHub
-, python3
-, gettext
+{
+  lib,
+  fetchFromGitHub,
+  python3,
+  gettext,
 }:
 
 python3.pkgs.buildPythonApplication rec {
@@ -12,7 +13,7 @@ python3.pkgs.buildPythonApplication rec {
   src = fetchFromGitHub {
     owner = "linkchecker";
     repo = "linkchecker";
-    rev = "refs/tags/v${version}";
+    tag = "v${version}";
     hash = "sha256-z7Qp74cai8GfsxB4n9dSCWQepp0/4PimFiRJQBaVSoo=";
   };
 
@@ -58,6 +59,9 @@ python3.pkgs.buildPythonApplication rec {
     homepage = "https://linkcheck.github.io/linkchecker/";
     changelog = "https://github.com/linkchecker/linkchecker/releases/tag/v${version}";
     license = licenses.gpl2Plus;
-    maintainers = with maintainers; [ peterhoeg tweber ];
+    maintainers = with maintainers; [
+      peterhoeg
+      tweber
+    ];
   };
 }

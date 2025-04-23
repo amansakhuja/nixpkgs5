@@ -8,16 +8,16 @@
 
 buildGoModule rec {
   pname = "carapace";
-  version = "1.1.0";
+  version = "1.3.0";
 
   src = fetchFromGitHub {
     owner = "carapace-sh";
     repo = "carapace-bin";
     rev = "v${version}";
-    hash = "sha256-UUWZ/ZI8GTwvS8811Uzc8CjBsM/9ALxJLSFnzEE5pi4=";
+    hash = "sha256-ewZ06HPAS7UXmnRlrOaHegVrfYxwko/jyHqtQV/0JwY=";
   };
 
-  vendorHash = "sha256-Fd1tbeBfbGnhOfowas2lF90TwjoRwOuk5xx9GhYEiRc=";
+  vendorHash = "sha256-+jOZ7EhMQZHvu4XToM7L1w2YCKCTOHKzZCOBsulLsH8=";
 
   ldflags = [
     "-s"

@@ -1,5 +1,4 @@
 {
-  pkgs,
   lib,
   stdenv,
   fetchFromGitHub,
@@ -13,25 +12,24 @@
   openssl,
   perl,
   runtimeShell,
-  autoconf,
   openjdk11 ? null, # javacSupport
   unixODBC ? null, # odbcSupport
   libGL ? null,
   libGLU ? null,
   wxGTK ? null,
   xorg ? null,
-  ex_doc ? null,
   parallelBuild ? false,
   systemd,
   wxSupport ? true,
-  ex_docSupport ? false,
-  systemdSupport ? lib.meta.availableOn stdenv.hostPlatform systemd, # systemd support in epmd
+  # systemd support for epmd
+  systemdSupport ? lib.meta.availableOn stdenv.hostPlatform systemd,
   # updateScript deps
   writeScript,
   common-updater-scripts,
   coreutils,
   git,
   wrapGAppsHook3,
+  zlib,
 }:
 {
   baseName ? "erlang",
@@ -76,14 +74,6 @@
   installPhase ? "",
   preInstall ? "",
   postInstall ? "",
-  installTargets ?
-    if ((lib.versionOlder version "27.0") || ex_docSupport) then
-      [
-        "install"
-        "install-docs"
-      ]
-    else
-      [ "install" ],
   checkPhase ? "",
   preCheck ? "",
   postCheck ? "",
@@ -104,7 +94,6 @@ assert
 
 assert odbcSupport -> unixODBC != null;
 assert javacSupport -> openjdk11 != null;
-assert ex_docSupport -> ex_doc != null;
 
 let
   inherit (lib)
@@ -132,7 +121,6 @@ stdenv.mkDerivation (
     LANG = "C.UTF-8";
 
     nativeBuildInputs = [
-      autoconf
       makeWrapper
       perl
       gnum4
@@ -140,24 +128,21 @@ stdenv.mkDerivation (
       libxml2
     ];
 
+    env = {
+      # only build shell/IDE docs and man pages
+      DOC_TARGETS = "chunks man";
+    };
+
     buildInputs =
       [
         ncurses
         opensslPackage
+        zlib
       ]
       ++ optionals wxSupport wxPackages2
       ++ optionals odbcSupport odbcPackages
       ++ optionals javacSupport javacPackages
-      ++ optional systemdSupport systemd
-      ++ optionals stdenv.hostPlatform.isDarwin (
-        with pkgs.darwin.apple_sdk.frameworks;
-        [
-          AGL
-          Carbon
-          Cocoa
-          WebKit
-        ]
-      );
+      ++ optional systemdSupport systemd;
 
     debugInfo = enableDebugInfo;
 
@@ -173,25 +158,6 @@ stdenv.mkDerivation (
       + optionalString (lib.versionOlder "25" version) ''
         substituteInPlace lib/os_mon/src/disksup.erl \
           --replace-fail '"sh ' '"${runtimeShell} '
-      '';
-
-    # For OTP 27+ we need ex_doc to build the documentation
-    # When ex_docSupport is enabled, grab the raw ex_doc executable from the ex_doc
-    # derivation. Next, patch the first line to use the escript that will be
-    # built during the build phase of this derivation. Finally, building the
-    # documentation requires the erlang-logo.png asset.
-    preConfigure =
-      ''
-        ./otp_build autoconf
-      ''
-      + optionalString ex_docSupport ''
-        mkdir -p $out/bin
-        cp ${ex_doc}/bin/.ex_doc-wrapped $out/bin/ex_doc
-        sed -i "1 s:^.*$:#!$out/bin/escript:" $out/bin/ex_doc
-        export EX_DOC=$out/bin/ex_doc
-
-        mkdir -p $out/lib/erlang/system/doc/assets
-        cp $src/system/doc/assets/erlang-logo.png $out/lib/erlang/system/doc/assets
       '';
 
     configureFlags =
@@ -212,6 +178,10 @@ stdenv.mkDerivation (
 
     # install-docs will generate and install manpages and html docs
     # (PDFs are generated only when fop is available).
+    installTargets = [
+      "install"
+      "install-docs"
+    ];
 
     postInstall = ''
       ln -s $out/lib/erlang/lib/erl_interface*/bin/erl_call $out/bin/erl_call
@@ -250,7 +220,7 @@ stdenv.mkDerivation (
           if [ "$latest" != "${version}" ]; then
             nixpkgs="$(git rev-parse --show-toplevel)"
             nix_file="$nixpkgs/pkgs/development/interpreters/erlang/${major}.nix"
-            update-source-version ${baseName}R${major} "$latest" --version-key=version --print-changes --file="$nix_file"
+            update-source-version ${baseName}_${major} "$latest" --version-key=version --print-changes --file="$nix_file"
           else
             echo "${baseName}R${major} is already up-to-date"
           fi
@@ -296,7 +266,6 @@ stdenv.mkDerivation (
   // optionalAttrs (preCheck != "") { inherit preCheck; }
   // optionalAttrs (postCheck != "") { inherit postCheck; }
   // optionalAttrs (installPhase != "") { inherit installPhase; }
-  // optionalAttrs (installTargets != [ ]) { inherit installTargets; }
   // optionalAttrs (preInstall != "") { inherit preInstall; }
   // optionalAttrs (fixupPhase != "") { inherit fixupPhase; }
   // optionalAttrs (preFixup != "") { inherit preFixup; }

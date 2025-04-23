@@ -1,19 +1,21 @@
-{ lib
-, stdenv
-, buildPackages
-, fetchurl
-, getconf
-, gitUpdater
-, testers
+{
+  lib,
+  stdenv,
+  buildPackages,
+  fetchurl,
+  getconf,
+  gitUpdater,
+  testers,
+  unixtools,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "passt";
-  version = "2024_10_30.ee7d0b6";
+  version = "2025_03_20.32f6212";
 
   src = fetchurl {
     url = "https://passt.top/passt/snapshot/passt-${finalAttrs.version}.tar.gz";
-    hash = "sha256-x5WIqtWBfVt7+u47bfT2g92ghhaIjYt2GW279+sbKdE=";
+    hash = "sha256-TRtFwBUUOnRwcLtB3vwU5nG/ufi9D36waXW5Yuboowk=";
   };
 
   postPatch = ''
@@ -30,6 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
   passthru = {
     tests.version = testers.testVersion {
       package = finalAttrs.finalPackage;
+      command = "${unixtools.script}/bin/script -c 'passt --version'";
     };
 
     updateScript = gitUpdater {
@@ -52,7 +55,10 @@ stdenv.mkDerivation (finalAttrs: {
       interfaces on the host, hence not requiring any capabilities or
       privileges.
     '';
-    license = [ licenses.bsd3 /* and */ licenses.gpl2Plus ];
+    license = [
+      licenses.bsd3 # and
+      licenses.gpl2Plus
+    ];
     platforms = platforms.linux;
     maintainers = with maintainers; [ _8aed ];
     mainProgram = "passt";

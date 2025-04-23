@@ -6,35 +6,29 @@
   pkg-config,
   sqlite,
   openssl,
-  darwin,
+  versionCheckHook,
+  nix-update-script,
 }:
 
-rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "arti";
-  version = "1.3.1";
+  version = "1.4.2";
 
   src = fetchFromGitLab {
     domain = "gitlab.torproject.org";
     group = "tpo";
     owner = "core";
     repo = "arti";
-    rev = "arti-v${version}";
-    hash = "sha256-Nb1lZszq09yW16/Kr5SuxW767iYGPsUhNN7p7bTpBzs=";
+    tag = "arti-v${finalAttrs.version}";
+    hash = "sha256-dryW7znckIsa7O2H0U7p1urBXtANU6B9Pv11A+pBiho=";
   };
 
-  cargoHash = "sha256-ESZKUOPzax+RVI4G3ioZE08sqB7wtPmrFUkQ7qZOg/o=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-o4he+WVsXf5GymTOvbBIsdhnGrvDtD8AMWmRMQMNiOw=";
 
   nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
 
-  buildInputs =
-    [ sqlite ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [ openssl ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin (
-      with darwin.apple_sdk.frameworks;
-      [
-        CoreServices
-      ]
-    );
+  buildInputs = [ sqlite ] ++ lib.optionals stdenv.hostPlatform.isLinux [ openssl ];
 
   cargoBuildFlags = [
     "--package"
@@ -51,15 +45,25 @@ rustPlatform.buildRustPackage rec {
     "--skip=reload_cfg::test::watch_multiple"
   ];
 
+  nativeInstallCheckInputs = [
+    versionCheckHook
+  ];
+  versionCheckProgramArg = "--version";
+  doInstallCheck = true;
+
+  passthru = {
+    updateScript = nix-update-script { extraArgs = [ "--version-regex=^arti-v(.*)$" ]; };
+  };
+
   meta = {
     description = "Implementation of Tor in Rust";
     mainProgram = "arti";
     homepage = "https://arti.torproject.org/";
-    changelog = "https://gitlab.torproject.org/tpo/core/arti/-/blob/${src.rev}/CHANGELOG.md";
+    changelog = "https://gitlab.torproject.org/tpo/core/arti/-/blob/arti-v${finalAttrs.version}/CHANGELOG.md";
     license = with lib.licenses; [
       asl20
       mit
     ];
     maintainers = with lib.maintainers; [ rapiteanu ];
   };
-}
+})

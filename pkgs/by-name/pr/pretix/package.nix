@@ -14,16 +14,6 @@ let
   python = python3.override {
     self = python;
     packageOverrides = self: super: {
-      bleach = super.bleach.overridePythonAttrs (oldAttrs: rec {
-        version = "5.0.1";
-
-        src = fetchPypi {
-          pname = "bleach";
-          inherit version;
-          hash = "sha256-DQMlXEfrm9Lyaqm7fyEHcy5+j+GVyi9kcJ/POwpKCFw=";
-        };
-      });
-
       django = super.django_4;
 
       django-oauth-toolkit = super.django-oauth-toolkit.overridePythonAttrs (oldAttrs: {
@@ -46,19 +36,17 @@ let
       };
 
       pretix-plugin-build = self.callPackage ./plugin-build.nix { };
-
-      sentry-sdk = super.sentry-sdk_2;
     };
   };
 
   pname = "pretix";
-  version = "2024.10.0";
+  version = "2025.3.0";
 
   src = fetchFromGitHub {
     owner = "pretix";
     repo = "pretix";
     rev = "refs/tags/v${version}";
-    hash = "sha256-MCiCr00N7894DjckAw3vpxdiNtlgzqivlbSY4A/327E=";
+    hash = "sha256-D/j1RzKhRvdqMxcHg/NPZSoroN3etzh6/V38XV9W1cs=";
   };
 
   npmDeps = buildNpmPackage {
@@ -66,7 +54,7 @@ let
     inherit version src;
 
     sourceRoot = "${src.name}/src/pretix/static/npm_dir";
-    npmDepsHash = "sha256-PPcA6TBsU/gGk4wII+w7VZOm65nS7qGjZ/UoQs31s9M=";
+    npmDepsHash = "sha256-6qjG0p7pLtTd9CBVVzoeUPv6Vdr5se1wuI5qcKJH2Os=";
 
     dontBuild = true;
 
@@ -91,25 +79,33 @@ python.pkgs.buildPythonApplication rec {
   ];
 
   pythonRelaxDeps = [
+    "beautifulsoup4"
+    "celery"
+    "django-bootstrap3"
     "django-phonenumber-field"
     "dnspython"
+    "drf_ujson2"
     "importlib-metadata"
     "kombu"
     "markdown"
+    "phonenumberslite"
     "pillow"
     "protobuf"
     "pycryptodome"
     "pyjwt"
+    "pypdf"
     "python-bidi"
     "qrcode"
     "redis"
+    "reportlab"
     "requests"
     "sentry-sdk"
     "ua-parser"
+    "webauthn"
   ];
 
   pythonRemoveDeps = [
-    "vat-moss-forked" # we provide a patched vat-moss package
+    "vat_moss_forked" # we provide a patched vat-moss package
   ];
 
   postPatch = ''
@@ -275,8 +271,9 @@ python.pkgs.buildPythonApplication rec {
       python
       ;
     plugins = lib.recurseIntoAttrs (
-      python.pkgs.callPackage ./plugins {
+      lib.packagesFromDirectoryRecursive {
         inherit (python.pkgs) callPackage;
+        directory = ./plugins;
       }
     );
     tests = {

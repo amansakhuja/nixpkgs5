@@ -1,17 +1,24 @@
-{ lib, rustPlatform, fetchFromGitHub, installShellFiles, stdenv }:
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  installShellFiles,
+  stdenv,
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "ab-av1";
-  version = "0.7.19";
+  version = "0.9.4";
 
   src = fetchFromGitHub {
     owner = "alexheretic";
     repo = "ab-av1";
     rev = "v${version}";
-    hash = "sha256-5gDPbljvy5Kp3s+oo5LkI0rUR2zSVK2wDh4k2HrsLFc=";
+    hash = "sha256-dDD0hnKov5cgNoc1m/0rG/cx2ZaB7TmLfcXdm8myRUQ=";
   };
 
-  cargoHash = "sha256-MIZGAlcBeQ03ScleOcM0WxgQEfjpFbRq1dK1/PjZbCQ=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-01tH5uvfrPIKRv+iYJWm/5QyQZtz1d/nEtN/tmGXD14=";
 
   nativeBuildInputs = [ installShellFiles ];
 

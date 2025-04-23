@@ -10,7 +10,7 @@
 
 buildPythonPackage rec {
   pname = "meilisearch";
-  version = "0.33.0";
+  version = "0.34.1";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
@@ -18,8 +18,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "meilisearch";
     repo = "meilisearch-python";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-Eo1KBpSek1FnSp21vpsJEwISvUYEqOaodwrbarVcu7c=";
+    tag = "v${version}";
+    hash = "sha256-y4iGA0SJxjzddej5uXH2k3doaKBfXFVHlrRAjrD0CBA=";
   };
 
   build-system = [ setuptools ];
@@ -37,7 +37,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Client for the Meilisearch API";
     homepage = "https://github.com/meilisearch/meilisearch-python";
-    changelog = "https://github.com/meilisearch/meilisearch-python/releases/tag/v${version}";
+    changelog = "https://github.com/meilisearch/meilisearch-python/releases/tag/${src.tag}";
     license = with licenses; [ mit ];
     maintainers = with maintainers; [ fab ];
   };

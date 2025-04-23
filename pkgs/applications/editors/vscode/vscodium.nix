@@ -24,13 +24,13 @@ let
 
   archive_fmt = if stdenv.hostPlatform.isDarwin then "zip" else "tar.gz";
 
-  sha256 =
+  hash =
     {
-      x86_64-linux = "0948jbnhjra09bvf9acrl6b2dp1xar5ajahmzy0cwf6dbidfms5y";
-      x86_64-darwin = "1a8ga66526lfy2xrgshhizmidp8aaiwvpr38rvhsx0hqb4vmm0hy";
-      aarch64-linux = "08la7kbb6myf9iz23p60vd00mrmhnizw8dgh54gb0msh8wbasidq";
-      aarch64-darwin = "01z1dx77briqzhfx45c2f2np78r11b5xm92smi9idivbsia800i3";
-      armv7l-linux = "0h3f9sy7d4ylk0ay63adhnz9s7jlpwlf3x831v8pygzm2r7k9zgc";
+      x86_64-linux = "sha256-NgbN8hqayBG/5bFS+2f+Jmx8a1RSjHJG8zvvJvtOLGs=";
+      x86_64-darwin = "sha256-Gt8K3sL81cxeldiG/mNXFzQG1/M2D7Klj/scCAa+RgI=";
+      aarch64-linux = "sha256-YXKiYVHwo5Nn8e8JGtuuKcXx4JgxfnDr10rvwEy2m3Y=";
+      aarch64-darwin = "sha256-uBimHECN3qvyHvmGDleR228ms5OBlBFPHafRueUfzBU=";
+      armv7l-linux = "sha256-DacykoqnE4ZFNn8t5i93k3k/OK0H9krWzw5YoX4+rrM=";
     }
     .${system} or throwSystem;
 
@@ -41,7 +41,7 @@ callPackage ./generic.nix rec {
 
   # Please backport all compatible updates to the stable release.
   # This is important for the extension ecosystem.
-  version = "1.95.3.24321";
+  version = "1.99.32562";
   pname = "vscodium";
 
   executableName = "codium";
@@ -50,14 +50,19 @@ callPackage ./generic.nix rec {
 
   src = fetchurl {
     url = "https://github.com/VSCodium/vscodium/releases/download/${version}/VSCodium-${plat}-${version}.${archive_fmt}";
-    inherit sha256;
+    inherit hash;
   };
 
   tests = nixosTests.vscodium;
 
   updateScript = ./update-vscodium.sh;
 
-  meta = with lib; {
+  # Editing the `codium` binary (and shell scripts) within the app bundle causes the bundle's signature
+  # to be invalidated, which prevents launching starting with macOS Ventura, because VSCodium is notarized.
+  # See https://eclecticlight.co/2022/06/17/app-security-changes-coming-in-ventura/ for more information.
+  dontFixup = stdenv.hostPlatform.isDarwin;
+
+  meta = {
     description = ''
       Open source source code editor developed by Microsoft for Windows,
       Linux and macOS (VS Code without MS branding/telemetry/licensing)
@@ -71,9 +76,9 @@ callPackage ./generic.nix rec {
     '';
     homepage = "https://github.com/VSCodium/vscodium";
     downloadPage = "https://github.com/VSCodium/vscodium/releases";
-    license = licenses.mit;
-    sourceProvenance = with sourceTypes; [ binaryNativeCode ];
-    maintainers = with maintainers; [
+    license = lib.licenses.mit;
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+    maintainers = with lib.maintainers; [
       synthetica
       bobby285271
       ludovicopiero
@@ -86,5 +91,7 @@ callPackage ./generic.nix rec {
       "aarch64-darwin"
       "armv7l-linux"
     ];
+    # requires libc.so.6 and other glibc specifics
+    broken = stdenv.hostPlatform.isLinux && !stdenv.hostPlatform.isGnu;
   };
 }

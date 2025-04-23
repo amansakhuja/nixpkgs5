@@ -27,7 +27,7 @@
   python3,
   zlib,
   redisSupport ? true,
-  redis,
+  valkey,
   hiredis,
   rustSupport ? true,
   rustc,
@@ -40,11 +40,11 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "suricata";
-  version = "7.0.7";
+  version = "7.0.9";
 
   src = fetchurl {
     url = "https://www.openinfosecfoundation.org/download/${pname}-${version}.tar.gz";
-    hash = "sha256-JtCjYZTVMID8iwm5mbK1qDxASfQK0H72rmnHIlpyi4Y=";
+    hash = "sha256-5XspNDx7ahhXyZG9crCzRKuimOThGVM7F56BfampnT0=";
   };
 
   nativeBuildInputs =
@@ -87,7 +87,7 @@ stdenv.mkDerivation rec {
     ]
     ++ lib.optional hyperscanSupport hyperscan
     ++ lib.optionals redisSupport [
-      redis
+      valkey
       hiredis
     ];
 

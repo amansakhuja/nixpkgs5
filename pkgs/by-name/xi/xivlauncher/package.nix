@@ -17,7 +17,7 @@
 }:
 
 let
-  rev = "1.1.1";
+  rev = "1.1.2";
 in
 buildDotnetModule rec {
   pname = "XIVLauncher";
@@ -27,7 +27,7 @@ buildDotnetModule rec {
     owner = "goatcorp";
     repo = "XIVLauncher.Core";
     inherit rev;
-    hash = "sha256-gXec5Btnm/9M7jgPdrnLn8im0jCdLCJjsEBPpuCNz2I=";
+    hash = "sha256-QkA18C3oWxcW0vK6sji7vbm4bY5LxwIWierAg5qf38Q=";
     fetchSubmodules = true;
   };
 
@@ -46,7 +46,7 @@ buildDotnetModule rec {
   ];
 
   projectFile = "src/XIVLauncher.Core/XIVLauncher.Core.csproj";
-  nugetDeps = ./deps.nix; # File generated with `nix-build -A xivlauncher.passthru.fetch-deps`
+  nugetDeps = ./deps.json; # File generated with `nix-build -A xivlauncher.passthru.fetch-deps`
 
   # please do not unpin these even if they match the defaults, xivlauncher is sensitive to .NET versions
   dotnet-sdk = dotnetCorePackages.sdk_8_0;

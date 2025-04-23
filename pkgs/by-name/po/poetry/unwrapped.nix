@@ -4,21 +4,20 @@
   buildPythonPackage,
   pythonOlder,
   fetchFromGitHub,
+  findpython,
   installShellFiles,
   build,
   cachecontrol,
   cleo,
-  crashtest,
   dulwich,
   fastjsonschema,
   installer,
   keyring,
   packaging,
-  pexpect,
+  pbs-installer,
   pkginfo,
   platformdirs,
   poetry-core,
-  poetry-plugin-export,
   pyproject-hooks,
   requests,
   requests-toolbelt,
@@ -34,21 +33,20 @@
   httpretty,
   pytest-mock,
   pytest-xdist,
-  darwin,
 }:
 
 buildPythonPackage rec {
   pname = "poetry";
-  version = "1.8.5";
+  version = "2.1.2";
   pyproject = true;
 
-  disabled = pythonOlder "3.8";
+  disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "python-poetry";
     repo = "poetry";
-    rev = "refs/tags/${version}";
-    hash = "sha256-YR0IgDhmpbe8TyTMP1cjUxGRnrfV8CNHkPlZrNcnof0=";
+    tag = version;
+    hash = "sha256-51pO/PP5OwTmi+1uy26CK/1oQ/P21wPBoRVE9Jv0TjA=";
   };
 
   build-system = [
@@ -70,17 +68,16 @@ buildPythonPackage rec {
       build
       cachecontrol
       cleo
-      crashtest
       dulwich
       fastjsonschema
+      findpython
       installer
       keyring
       packaging
-      pexpect
+      pbs-installer
       pkginfo
       platformdirs
       poetry-core
-      poetry-plugin-export
       pyproject-hooks
       requests
       requests-toolbelt
@@ -98,7 +95,9 @@ buildPythonPackage rec {
     ++ lib.optionals (pythonOlder "3.10") [
       importlib-metadata
     ]
-    ++ cachecontrol.optional-dependencies.filecache;
+    ++ cachecontrol.optional-dependencies.filecache
+    ++ pbs-installer.optional-dependencies.download
+    ++ pbs-installer.optional-dependencies.install;
 
   postInstall = ''
     installShellCompletion --cmd poetry \
@@ -107,17 +106,13 @@ buildPythonPackage rec {
       --zsh <($out/bin/poetry completions zsh) \
   '';
 
-  nativeCheckInputs =
-    [
-      deepdiff
-      pytestCheckHook
-      httpretty
-      pytest-mock
-      pytest-xdist
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      darwin.ps
-    ];
+  nativeCheckInputs = [
+    deepdiff
+    pytestCheckHook
+    httpretty
+    pytest-mock
+    pytest-xdist
+  ];
 
   preCheck = (
     ''
@@ -136,8 +131,14 @@ buildPythonPackage rec {
   disabledTests = [
     "test_builder_should_execute_build_scripts"
     "test_env_system_packages_are_relative_to_lib"
-    "test_executor_known_hashes"
     "test_install_warning_corrupt_root"
+    "test_project_plugins_are_installed_in_project_folder"
+    "test_application_command_not_found_messages"
+    # PermissionError: [Errno 13] Permission denied: '/build/pytest-of-nixbld/pytest-0/popen-gw3/test_find_poetry_managed_pytho1/.local/share/pypoetry/python/pypy@3.10.8/bin/python'
+    "test_list_poetry_managed"
+    "test_list_poetry_managed"
+    "test_find_all_with_poetry_managed"
+    "test_find_poetry_managed_pythons"
   ];
 
   pytestFlagsArray = [

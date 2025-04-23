@@ -22,14 +22,14 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "pkcs11-provider";
-  version = "0.6";
+  version = "1.0";
 
   src = fetchFromGitHub {
     owner = "latchset";
     repo = "pkcs11-provider";
     rev = "v${version}";
     fetchSubmodules = true;
-    hash = "sha256-wYqmxxAzraaVR2+mbsRfgyvD/tapn8UOO0UzBX2ZJH4=";
+    hash = "sha256-Q9dmzYDBco+LLVWdORFTjRyk0RX8qhmZ1m+Kgfeyr04=";
   };
 
   buildInputs = [
@@ -80,7 +80,7 @@ stdenv.mkDerivation rec {
   passthru.updateScript = nix-update-script {
     extraArgs = [
       "--version-regex"
-      "v(\d\.\d)"
+      "v(\\d\\.\\d)"
     ];
   };
 

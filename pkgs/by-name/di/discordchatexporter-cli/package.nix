@@ -1,9 +1,10 @@
-{ lib
-, buildDotnetModule
-, dotnetCorePackages
-, fetchFromGitHub
-, testers
-, discordchatexporter-cli
+{
+  lib,
+  buildDotnetModule,
+  dotnetCorePackages,
+  fetchFromGitHub,
+  testers,
+  discordchatexporter-cli,
 }:
 
 buildDotnetModule rec {
@@ -18,7 +19,7 @@ buildDotnetModule rec {
   };
 
   projectFile = "DiscordChatExporter.Cli/DiscordChatExporter.Cli.csproj";
-  nugetDeps = ./deps.nix;
+  nugetDeps = ./deps.json;
   dotnet-sdk = dotnetCorePackages.sdk_8_0;
   dotnet-runtime = dotnetCorePackages.runtime_8_0;
 

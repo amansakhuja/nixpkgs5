@@ -1,22 +1,32 @@
-{ lib, fetchFromGitHub, buildGoModule }:
+{
+  lib,
+  fetchFromGitHub,
+  buildGoModule,
+}:
 
 buildGoModule rec {
   pname = "galene";
-  version = "0.9.1";
+  version = "0.96.3";
 
   src = fetchFromGitHub {
     owner = "jech";
     repo = "galene";
     rev = "galene-${version}";
-    hash = "sha256-Ky38PM9HX1jV1LTMUeqaY8fUjZAxe4uK52YKQF8WOMA=";
+    hash = "sha256-loAiPfwTyPi4BKn4TNgVVde2mO119h443A+HwlLvi4g=";
   };
 
-  vendorHash = "sha256-U8DH3b2KbFQbEV+7suVsBiTA42FEl6DebH+GJDaH6aE=";
+  vendorHash = "sha256-LDLKjD4qYn/Aae6GUX6gZ57+MUfKc058H+YHM0bNZV0=";
 
-  ldflags = [ "-s" "-w" ];
+  ldflags = [
+    "-s"
+    "-w"
+  ];
   preCheck = "export TZ=UTC";
 
-  outputs = [ "out" "static" ];
+  outputs = [
+    "out"
+    "static"
+  ];
 
   postInstall = ''
     mkdir $static
@@ -29,6 +39,9 @@ buildGoModule rec {
     changelog = "https://github.com/jech/galene/raw/galene-${version}/CHANGES";
     license = licenses.mit;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ rgrunbla erdnaxe ];
+    maintainers = with maintainers; [
+      rgrunbla
+      erdnaxe
+    ];
   };
 }

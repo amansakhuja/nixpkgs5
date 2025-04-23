@@ -28,14 +28,14 @@
 
 python.pkgs.buildPythonApplication rec {
   pname = "sbomnix";
-  version = "1.7.0";
+  version = "1.7.2";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "tiiuae";
     repo = "sbomnix";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-n5nK9fqgAC10jU9BcO+EEVrSD0YEr/hp6XDcTqVrvP8=";
+    tag = "v${version}";
+    hash = "sha256-Vtrxpb6nTTR5a9sFi1NrhEflhPOwv1gt6i7DnggJwMs=";
 
     # Remove documentation as it contains references to nix store
     postFetch = ''
@@ -93,5 +93,6 @@ python.pkgs.buildPythonApplication rec {
       henrirosten
       jk
     ];
+    mainProgram = "sbomnix";
   };
 }

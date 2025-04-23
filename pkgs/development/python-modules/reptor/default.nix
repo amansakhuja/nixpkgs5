@@ -30,7 +30,7 @@
 
 buildPythonPackage rec {
   pname = "reptor";
-  version = "0.24";
+  version = "0.28";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
@@ -38,8 +38,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "Syslifters";
     repo = "reptor";
-    rev = "refs/tags/${version}";
-    hash = "sha256-OHS9fkJ9BomZNYgnmIv4AVFfLH40LSdvmZskhzdE9II=";
+    tag = version;
+    hash = "sha256-hzdgG2/bTkzTUPK/Rnch4q12R5kY+qlr6gRwx54vbcE=";
   };
 
   pythonRelaxDeps = true;
@@ -98,7 +98,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Module to do automated pentest reporting with SysReptor";
     homepage = "https://github.com/Syslifters/reptor";
-    changelog = "https://github.com/Syslifters/reptor/releases/tag/${version}";
+    changelog = "https://github.com/Syslifters/reptor/releases/tag/${src.tag}";
     license = licenses.mit;
     maintainers = with maintainers; [ fab ];
     mainProgram = "reptor";

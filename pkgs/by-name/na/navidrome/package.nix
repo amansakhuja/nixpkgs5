@@ -18,23 +18,23 @@
 
 buildGo123Module rec {
   pname = "navidrome";
-  version = "0.53.3";
+  version = "0.55.1";
 
   src = fetchFromGitHub {
     owner = "navidrome";
     repo = "navidrome";
     rev = "v${version}";
-    hash = "sha256-RLmGjkeBHuvVdxXaGvlIFPI+6beAdtSLukVmwe6Hnag=";
+    hash = "sha256-BkgHUX2kQ7OMnb9vOIwsQ9eNcqCzekz2IVMtG0IMUaA=";
   };
 
-  vendorHash = "sha256-XjiRMRfsmcw/4RLZXN36BbzbCKu98BgD3cn89e/vra4=";
+  vendorHash = "sha256-IF2RaEsuHADnwONrvwbL6KZVrE3bZx1sX03zpmtQZq8=";
 
   npmRoot = "ui";
 
   npmDeps = fetchNpmDeps {
     inherit src;
     sourceRoot = "${src.name}/ui";
-    hash = "sha256-0vHInRly5xirjfV7tcYVNVLaMk4YtJeB7Ky0mrDDDnY=";
+    hash = "sha256-lM8637tcKc9iSPjXJPDZXFCGj7pShOXTC6X2iketg90=";
   };
 
   nativeBuildInputs = [
@@ -61,9 +61,17 @@ buildGo123Module rec {
 
   CGO_CFLAGS = lib.optionals stdenv.cc.isGNU [ "-Wno-return-local-addr" ];
 
+  postPatch = ''
+    patchShebangs ui/bin/update-workbox.sh
+  '';
+
   preBuild = ''
     make buildjs
   '';
+
+  tags = [
+    "netgo"
+  ];
 
   postFixup = lib.optionalString ffmpegSupport ''
     wrapProgram $out/bin/navidrome \

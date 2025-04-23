@@ -8,10 +8,10 @@
   libX11,
   libcxx,
   libdrm,
+  libgbm,
   libglvnd,
   libpulseaudio,
   libxcb,
-  mesa,
   wayland,
   xz,
   zlib,
@@ -33,11 +33,11 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "mdk-sdk";
-  version = "0.30.1";
+  version = "0.32.0";
 
   src = fetchurl {
     url = "https://github.com/wang-bin/mdk-sdk/releases/download/v${version}/mdk-sdk-linux.tar.xz";
-    hash = "sha256-e0NxM+H0RWokJyAqw1SMGykrGgqOTsyqyWQKcTFVXGY=";
+    hash = "sha256-iqoOqGebdAHYwxPH0LYu63apiQdkhFVyssylFcFIYuE=";
   };
 
   nativeBuildInputs = [ autoPatchelfHook ];
@@ -48,10 +48,10 @@ stdenv.mkDerivation rec {
     libX11
     libcxx
     libdrm
+    libgbm
     libglvnd
     libpulseaudio
     libxcb
-    mesa
     wayland
     xz
     zlib

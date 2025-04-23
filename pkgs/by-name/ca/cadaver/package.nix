@@ -1,19 +1,20 @@
-{ lib
-, stdenv
-, fetchurl
-, neon
-, pkg-config
-, zlib
-, openssl
+{
+  lib,
+  stdenv,
+  fetchurl,
+  neon,
+  pkg-config,
+  zlib,
+  openssl,
 }:
 
 stdenv.mkDerivation rec {
   pname = "cadaver";
-  version = "0.24";
+  version = "0.26";
 
   src = fetchurl {
     url = "https://notroj.github.io/cadaver/cadaver-${version}.tar.gz";
-    hash = "sha256-Rs/y8+vTLNMoNoEspHvMdTU/wr51fwk9qIwN2PEP1fY=";
+    hash = "sha256-kjbkPN81BdnvBhhf2kMlKEAQXAwC2TcLbhB32GY1e1U=";
   };
 
   configureFlags = [

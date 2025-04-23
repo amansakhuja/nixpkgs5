@@ -9,17 +9,18 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "mountpoint-s3";
-  version = "1.12.0";
+  version = "1.16.2";
 
   src = fetchFromGitHub {
     owner = "awslabs";
     repo = "mountpoint-s3";
     rev = "v${version}";
-    hash = "sha256-tKeQn7yyw0AL/Rx8P1FSZU3Zd2UAlDYE6/85e6Ex9IA=";
+    hash = "sha256-5zib6F+OtOqxJei4+HzzEEMvjOoltdcPfIc6kzUJYgw=";
     fetchSubmodules = true;
   };
 
-  cargoHash = "sha256-MU4wrThhy9y4ni2lfD0VcYqIEUpi/4TqKIaPSFHCkws=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-3wEmtBEYvvHZ0Tde+o//YW8J20o6t/v8C0vq/CICHD0=";
 
   # thread 'main' panicked at cargo-auditable/src/collect_audit_data.rs:77:9:
   # cargo metadata failure: error: none of the selected packages contains these features: libfuse3

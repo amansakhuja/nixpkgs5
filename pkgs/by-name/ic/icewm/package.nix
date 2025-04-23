@@ -41,13 +41,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "icewm";
-  version = "3.6.0";
+  version = "3.7.3";
 
   src = fetchFromGitHub {
     owner = "ice-wm";
     repo = "icewm";
-    rev = finalAttrs.version;
-    hash = "sha256-gxRKLukwdyCvqQ+gRYb4cv/8B52nRAFwdcps6FcKFXk=";
+    tag = finalAttrs.version;
+    hash = "sha256-A9LLVIU00ddINMiiuBapp4dc4/w8Z+TeC+zXV1CtTCE=";
   };
 
   strictDeps = true;
@@ -122,7 +122,7 @@ stdenv.mkDerivation (finalAttrs: {
       a simple session manager and a system tray.
     '';
     license = licenses.lgpl2Only;
-    maintainers = [ maintainers.AndersonTorres ];
+    maintainers = [ ];
     platforms = platforms.linux;
   };
 })

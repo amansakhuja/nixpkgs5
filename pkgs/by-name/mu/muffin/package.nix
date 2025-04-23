@@ -2,7 +2,7 @@
   stdenv,
   lib,
   fetchFromGitHub,
-  substituteAll,
+  replaceVars,
   cairo,
   cinnamon-desktop,
   dbus,
@@ -15,6 +15,7 @@
   json-glib,
   libcanberra,
   libdrm,
+  libgbm,
   libgnomekbd,
   libgudev,
   libinput,
@@ -24,7 +25,7 @@
   libXdamage,
   libxkbcommon,
   libXtst,
-  mesa,
+  mesa-gl-headers,
   meson,
   ninja,
   pipewire,
@@ -58,15 +59,13 @@ stdenv.mkDerivation rec {
   };
 
   patches = [
-    (substituteAll {
-      src = ./fix-paths.patch;
+    (replaceVars ./fix-paths.patch {
       inherit zenity;
     })
   ];
 
   nativeBuildInputs = [
     desktop-file-utils
-    mesa # needed for gbm
     meson
     ninja
     pkg-config
@@ -86,6 +85,7 @@ stdenv.mkDerivation rec {
     gtk3
     libcanberra
     libdrm
+    libgbm
     libgnomekbd
     libgudev
     libinput
@@ -106,6 +106,7 @@ stdenv.mkDerivation rec {
     json-glib
     libXtst
     graphene
+    mesa-gl-headers
   ];
 
   mesonFlags = [

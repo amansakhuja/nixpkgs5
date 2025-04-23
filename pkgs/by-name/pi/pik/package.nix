@@ -8,16 +8,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "pik";
-  version = "0.10.0";
+  version = "0.19.0";
 
   src = fetchFromGitHub {
     owner = "jacek-kurlit";
     repo = "pik";
     rev = version;
-    hash = "sha256-q1nNQC9qGa7nUNIaDdqW3wIrfzH7JKS/yZAe9KNmX3k=";
+    hash = "sha256-G4GTrS3zUQVLsdc/19qPl4GWZZe4U8jV+UOkX36fMWU=";
   };
 
-  cargoHash = "sha256-gqzt3cFOS4uzIstIvmPS0n18aFUt0YnoTRz7EVTV7sA=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-T8kgWjmmffPFewtp+5g15RoNXCoQH5bliTukM26JnlI=";
 
   passthru.tests.version = testers.testVersion { package = pik; };
 

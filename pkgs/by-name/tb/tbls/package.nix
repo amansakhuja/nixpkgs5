@@ -10,16 +10,18 @@
 
 buildGoModule rec {
   pname = "tbls";
-  version = "1.79.4";
+  version = "1.85.0";
 
   src = fetchFromGitHub {
     owner = "k1LoW";
     repo = "tbls";
-    rev = "v${version}";
-    hash = "sha256-o/ZhXoenK3xlflRMXS9NtnW23VBiDmDPSGlHtE3cNiM=";
+    tag = "v${version}";
+    hash = "sha256-zXaygbcKUZ5BzTKur+K0gUGtoc4FFG0EPwl0KxaJGJo=";
   };
 
-  vendorHash = "sha256-SkddF8ZxvGRQ+/tWnmlcoaTs3MRfVgQWX4MZ05nZ9XA=";
+  vendorHash = "sha256-hARsbsy9us/knGg6dwNgDezjas5IC6GtL7neEZbwgvo=";
+
+  excludedPackages = [ "scripts/jsonschema" ];
 
   nativeBuildInputs = [ installShellFiles ];
 
@@ -50,12 +52,12 @@ buildGoModule rec {
     inherit version;
   };
 
-  meta = with lib; {
+  meta = {
     description = "Tool to generate documentation based on a database structure";
     homepage = "https://github.com/k1LoW/tbls";
     changelog = "https://github.com/k1LoW/tbls/blob/${src.rev}/CHANGELOG.md";
-    license = licenses.mit;
-    maintainers = with maintainers; [ azahi ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ azahi ];
     mainProgram = "tbls";
   };
 }

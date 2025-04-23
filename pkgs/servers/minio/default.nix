@@ -30,22 +30,22 @@ let
 in
 buildGoModule rec {
   pname = "minio";
-  version = "2024-11-07T00-52-20Z";
+  version = "2025-03-12T18-04-18Z";
 
   src = fetchFromGitHub {
     owner = "minio";
     repo = "minio";
     rev = "RELEASE.${version}";
-    hash = "sha256-vWrNqfB41Y3MAF9PuyopIDrGq4Bj41Y4gISbN6nO0zU=";
+    hash = "sha256-wN8eiBn1XGsaxeuFvJ9KJtL5flBfNq0dYcuIbkgl2Ko=";
   };
 
-  vendorHash = "sha256-yYAEh4L1eStx0/bID0+wZ5kdqPYshJrSZgVGuXgtgvs=";
+  vendorHash = "sha256-z8uaMUdboJzQ2pSeG6IGhArnxH40+INrBAjpnmZMdg8=";
 
   doCheck = false;
 
   subPackages = [ "." ];
 
-  CGO_ENABLED = 0;
+  env.CGO_ENABLED = 0;
 
   tags = [ "kqueue" ];
 

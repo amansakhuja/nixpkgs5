@@ -1,8 +1,7 @@
 {
   lib,
-  fetchFromGitHub,
   buildPythonPackage,
-  pythonOlder,
+  fetchPypi,
 
   # build-system
   hatchling,
@@ -29,31 +28,24 @@
 
 buildPythonPackage rec {
   pname = "dbt-common";
-  version = "1.12.0";
+  version = "1.22.0";
   pyproject = true;
 
-  disabled = pythonOlder "3.9";
-
-  src = fetchFromGitHub {
-    owner = "dbt-labs";
-    repo = "dbt-common";
-    # Unfortunately, upstream doesn't tag commits on GitHub, and the pypi source
-    # doesn't include tests. TODO: Write an update script that will detect the
-    # version from `dbt_common/__about__.py`.
-    rev = "5a401a9e8dd46e4582ac4edd2883e34714e77530";
-    hash = "sha256-SIMg6ewnE6kY+drqcPlYrxt1XlWBurZU62FI/QnHAHY=";
+  # No tags on GitHub
+  src = fetchPypi {
+    pname = "dbt_common";
+    inherit version;
+    hash = "sha256-6cdTMVCCB6SNEUsQtzKUBnKuJgwfttl7o2+zBp8Fu5g=";
   };
-
-  patches = [
-    # https://github.com/dbt-labs/dbt-common/pull/211
-    ./protobuf_5.patch
-  ];
 
   build-system = [ hatchling ];
 
   pythonRelaxDeps = [
     "agate"
     "deepdiff"
+    # 0.6.x -> 0.7.2 doesn't seem too risky at a glance
+    # https://pypi.org/project/isodate/0.7.2/
+    "isodate"
   ];
 
   dependencies = [
@@ -83,6 +75,9 @@ buildPythonPackage rec {
     "test_events"
     "test_extra_dict_on_event"
   ];
+
+  # No tests in the pypi archive
+  doCheck = false;
 
   pythonImportsCheck = [ "dbt_common" ];
 

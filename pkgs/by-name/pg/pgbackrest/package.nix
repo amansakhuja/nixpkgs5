@@ -9,7 +9,7 @@
   libbacktrace,
   bzip2,
   lz4,
-  postgresql,
+  libpq,
   libxml2,
   libyaml,
   zlib,
@@ -19,13 +19,13 @@
 
 stdenv.mkDerivation rec {
   pname = "pgbackrest";
-  version = "2.54.0";
+  version = "2.55.0";
 
   src = fetchFromGitHub {
     owner = "pgbackrest";
     repo = "pgbackrest";
     rev = "release/${version}";
-    sha256 = "sha256-EYpzVrEM0GrCJcGnFT4XfN6pULqsSMyH02b0zGInH7U=";
+    sha256 = "sha256-w4jgIyZPglmI0yj8eyoIvFgNX7izpo3lBixuv7qSAxM=";
   };
 
   strictDeps = true;
@@ -41,21 +41,13 @@ stdenv.mkDerivation rec {
     libbacktrace
     bzip2
     lz4
-    postgresql
+    libpq
     libxml2
     libyaml
     zlib
     libssh2
     zstd
   ];
-
-  installPhase = ''
-    runHook preInstall
-
-    install -Dm555 -t "$out/bin" src/pgbackrest
-
-    runHook postInstall
-  '';
 
   meta = with lib; {
     description = "Reliable PostgreSQL backup & restore";

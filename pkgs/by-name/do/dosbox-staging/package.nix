@@ -29,8 +29,6 @@
   stdenv,
   testers,
   zlib-ng,
-  apple-sdk_15,
-  darwinMinVersionHook,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -60,34 +58,31 @@ stdenv.mkDerivation (finalAttrs: {
     pkg-config
   ];
 
-  buildInputs =
-    [
-      SDL2
-      SDL2_image
-      SDL2_net
-      fluidsynth
-      glib
-      iir1
-      libGL
-      libGLU
-      libjack2
-      libmt32emu
-      libogg
-      libpng
-      libpulseaudio
-      libslirp
-      libsndfile
-      opusfile
-      speexdsp
-      zlib-ng
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [ alsa-lib ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      apple-sdk_15
-      (darwinMinVersionHook "10.15") # from https://www.dosbox-staging.org/releases/macos/
-    ];
+  buildInputs = [
+    SDL2
+    SDL2_image
+    SDL2_net
+    fluidsynth
+    glib
+    iir1
+    libGL
+    libGLU
+    libjack2
+    libmt32emu
+    libogg
+    libpng
+    libpulseaudio
+    libslirp
+    libsndfile
+    opusfile
+    speexdsp
+    zlib-ng
+  ] ++ lib.optionals stdenv.hostPlatform.isLinux [ alsa-lib ];
 
-  outputs = [ "out" "man" ];
+  outputs = [
+    "out"
+    "man"
+  ];
 
   postInstall = ''
     install -Dm644 $src/contrib/linux/dosbox-staging.desktop $out/share/applications/
@@ -130,7 +125,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.gpl2Plus;
     maintainers = with lib.maintainers; [
       joshuafern
-      AndersonTorres
     ];
     platforms = lib.platforms.unix;
     priority = 101;

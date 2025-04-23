@@ -11,22 +11,30 @@
 
 buildDotnetModule rec {
   pname = "jackett";
-  version = "0.22.998";
+  version = "0.22.1705";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "v${version}";
-    hash = "sha512-EBFu+ga5shxACG7jt5js8yLf7wR9fK84nan9ZBx8B4rp73A0JL5A4gg8s3NxC/NIUHf3kUBPiApyAdz8ECuhZQ==";
+    hash = "sha512-AnyCT52wZR+2rhUXg3BOaWo7ESZUQNMLtaiVld2c2vYw7atq78N+uDFUIYfsvxemDAStB5tjw1mdwdLevzCkTA==";
   };
 
   projectFile = "src/Jackett.Server/Jackett.Server.csproj";
-  nugetDeps = ./deps.nix;
+  nugetDeps = ./deps.json;
 
   dotnet-runtime = dotnetCorePackages.aspnetcore_8_0;
   dotnet-sdk = dotnetCorePackages.sdk_8_0;
 
-  dotnetInstallFlags = [ "-p:TargetFramework=net8.0" ];
+  dotnetInstallFlags = [
+    "--framework"
+    "net8.0"
+  ];
+
+  postPatch = ''
+    substituteInPlace ${projectFile} ${testProjectFile} \
+      --replace-fail '<TargetFrameworks>net8.0;net462</' '<TargetFrameworks>net8.0</'
+  '';
 
   runtimeDeps = [ openssl ];
 

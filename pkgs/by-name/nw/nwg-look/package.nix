@@ -1,30 +1,34 @@
-{ lib
-, fetchFromGitHub
-, wrapGAppsHook3
-, buildGoModule
-, glib
-, pkg-config
-, cairo
-, gtk3
-, xcur2png
-, libX11
-, zlib
+{
+  lib,
+  fetchFromGitHub,
+  wrapGAppsHook3,
+  buildGoModule,
+  glib,
+  pkg-config,
+  cairo,
+  gtk3,
+  xcur2png,
+  libX11,
+  zlib,
 }:
 
 buildGoModule rec {
   pname = "nwg-look";
-  version = "0.2.7";
+  version = "1.0.4";
 
   src = fetchFromGitHub {
     owner = "nwg-piotr";
     repo = "nwg-look";
     rev = "v${version}";
-    hash = "sha256-qUNTJkNHWoJisLH0SU23UQuamEL27MMRnxw0kBxzWLk=";
+    hash = "sha256-oP+qcOu03ZKQRdvPKCRVL187QP3gAg2dyvRO94N7+GE=";
   };
 
-  vendorHash = "sha256-qHWy9OCxENrrWk00YoRveSjqYWIy/fe4Fyc8tc4n34E=";
+  vendorHash = "sha256-KzAozP9pfqoFOgK+/xmwsI0m2QWAVW/b+hoWHlQoVX0=";
 
-  ldflags = [ "-s" "-w" ];
+  ldflags = [
+    "-s"
+    "-w"
+  ];
 
   nativeBuildInputs = [
     pkg-config
@@ -40,7 +44,7 @@ buildGoModule rec {
     gtk3
   ];
 
-  CGO_ENABLED = 1;
+  env.CGO_ENABLED = 1;
 
   postInstall = ''
     mkdir -p $out/share
@@ -64,7 +68,7 @@ buildGoModule rec {
 
   meta = with lib; {
     homepage = "https://github.com/nwg-piotr/nwg-look";
-    description = "Nwg-look is a GTK3 settings editor, designed to work properly in wlroots-based Wayland environment";
+    description = "GTK settings editor, designed to work properly in wlroots-based Wayland environment";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = with maintainers; [ max-amb ];

@@ -15,7 +15,7 @@
 }:
 stdenv.mkDerivation rec {
   pname = "sane-airscan";
-  version = "0.99.30";
+  version = "0.99.34";
 
   nativeBuildInputs = [
     meson
@@ -36,7 +36,7 @@ stdenv.mkDerivation rec {
     owner = "alexpevzner";
     repo = pname;
     rev = version;
-    sha256 = "sha256-JNgKZZuNRB02c+nOjtFj8L5wDY8ErZcv00nYweYULaM=";
+    sha256 = "sha256-4srMsZhco9YOukmguLQ5HvNeIz7wShmhWt7m5kP4iW8=";
   };
 
   meta = with lib; {

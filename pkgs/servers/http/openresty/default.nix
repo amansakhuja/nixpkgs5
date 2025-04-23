@@ -4,7 +4,7 @@
   lib,
   fetchurl,
   perl,
-  postgresql,
+  libpq,
   nixosTests,
   withPostgres ? true,
   ...
@@ -34,11 +34,18 @@ callPackage ../nginx/generic.nix args rec {
         --replace "b/" "b/bundle/nginx-${nginxVersion}/"
     '';
 
-  nativeBuildInputs = [ perl ];
+  nativeBuildInputs = [
+    libpq.pg_config
+    perl
+  ];
 
-  buildInputs = [ postgresql ];
+  buildInputs = [ libpq ];
 
   postPatch = ''
+    substituteInPlace bundle/nginx-${nginxVersion}/src/http/ngx_http_core_module.c \
+      --replace-fail '@nixStoreDir@' "$NIX_STORE" \
+      --replace-fail '@nixStoreDirLen@' "''${#NIX_STORE}"
+
     patchShebangs configure bundle/
   '';
 

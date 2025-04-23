@@ -1,38 +1,35 @@
 {
   lib,
+  stdenv,
   rustPlatform,
   fetchFromGitHub,
+  installShellFiles,
   pkg-config,
-  libgit2,
-  openssl,
-  zlib,
+  buildPackages,
   versionCheckHook,
   nix-update-script,
   vscode-extensions,
 }:
 
-rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "tinymist";
   # Please update the corresponding vscode extension when updating
   # this derivation.
-  version = "0.12.10";
+  version = "0.13.10";
 
   src = fetchFromGitHub {
     owner = "Myriad-Dreamin";
     repo = "tinymist";
-    tag = "v${version}";
-    hash = "sha256-y+H1Q8TJa7XinVcsgZ9XCyeIUqQzvIAjlkgjia9rNso=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-/mlocw9AYoaR3meGYbSJ/qCrusxIIC3Gtmz+doXTDXI=";
   };
 
   useFetchCargoVendor = true;
-  cargoHash = "sha256-Fvd8PqT64HseoIIhsWittN6Trp2i4ravIc+ETwiY+xQ=";
+  cargoHash = "sha256-L1Krw6dbH3M1SU1ei4GYEJVMkuv2OOk2QrAJpoSHeP4=";
 
-  nativeBuildInputs = [ pkg-config ];
-
-  buildInputs = [
-    libgit2
-    openssl
-    zlib
+  nativeBuildInputs = [
+    installShellFiles
+    pkg-config
   ];
 
   checkFlags = [
@@ -59,10 +56,22 @@ rustPlatform.buildRustPackage rec {
     "--skip=semantic_tokens_full::tests::test"
   ];
 
+  postInstall = lib.optionalString (stdenv.hostPlatform.emulatorAvailable buildPackages) (
+    let
+      emulator = stdenv.hostPlatform.emulator buildPackages;
+    in
+    ''
+      installShellCompletion --cmd tinymist \
+        --bash <(${emulator} $out/bin/tinymist completion bash) \
+        --fish <(${emulator} $out/bin/tinymist completion fish) \
+        --zsh <(${emulator} $out/bin/tinymist completion zsh)
+    ''
+  );
+
   nativeInstallCheckInputs = [
     versionCheckHook
   ];
-  versionCheckProgramArg = [ "-V" ];
+  versionCheckProgramArg = "-V";
   doInstallCheck = true;
 
   passthru = {
@@ -73,9 +82,9 @@ rustPlatform.buildRustPackage rec {
   };
 
   meta = {
-    changelog = "https://github.com/Myriad-Dreamin/tinymist/blob/v${version}/CHANGELOG.md";
     description = "Tinymist is an integrated language service for Typst";
     homepage = "https://github.com/Myriad-Dreamin/tinymist";
+    changelog = "https://github.com/Myriad-Dreamin/tinymist/blob/v${finalAttrs.version}/editors/vscode/CHANGELOG.md";
     license = lib.licenses.asl20;
     mainProgram = "tinymist";
     maintainers = with lib.maintainers; [
@@ -83,4 +92,4 @@ rustPlatform.buildRustPackage rec {
       lampros
     ];
   };
-}
+})

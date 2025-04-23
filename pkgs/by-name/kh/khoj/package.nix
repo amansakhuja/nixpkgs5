@@ -1,8 +1,9 @@
-{ lib
-, fetchFromGitHub
-, python3
-, postgresql
-, postgresqlTestHook
+{
+  lib,
+  fetchFromGitHub,
+  python3,
+  postgresql,
+  postgresqlTestHook,
 }:
 
 python3.pkgs.buildPythonApplication rec {
@@ -13,7 +14,7 @@ python3.pkgs.buildPythonApplication rec {
   src = fetchFromGitHub {
     owner = "debanjum";
     repo = "khoj";
-    rev = "refs/tags/${version}";
+    tag = version;
     hash = "sha256-lvOeYTrvW5MfhuJ3lj9n9TRlvpRwVP2vFeaEeJdqIec=";
   };
 
@@ -67,18 +68,21 @@ python3.pkgs.buildPythonApplication rec {
     uvicorn
   ];
 
-  nativeCheckInputs = with python3.pkgs; [
-    freezegun
-    factory-boy
-    pytest-xdist
-    trio
-    psutil
-    pytest-django
-    pytestCheckHook
-  ] ++ [
-    (postgresql.withPackages (p: with p; [ pgvector ]))
-    postgresqlTestHook
-  ];
+  nativeCheckInputs =
+    with python3.pkgs;
+    [
+      freezegun
+      factory-boy
+      pytest-xdist
+      trio
+      psutil
+      pytest-django
+      pytestCheckHook
+    ]
+    ++ [
+      (postgresql.withPackages (p: with p; [ pgvector ]))
+      postgresqlTestHook
+    ];
 
   preCheck = ''
     export HOME=$(mktemp -d)

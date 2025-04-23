@@ -9,11 +9,11 @@
 
 stdenv.mkDerivation rec {
   pname = "fastnetmon-advanced";
-  version = "2.0.367";
+  version = "2.0.371";
 
   src = fetchurl {
     url = "https://repo.fastnetmon.com/fastnetmon_ubuntu_jammy/pool/fastnetmon/f/fastnetmon/fastnetmon_${version}_amd64.deb";
-    hash = "sha256-D/4kkT6ehEmlfRUeP1uLuO/hd9ZrMBJSKF5DKYXOPxs=";
+    hash = "sha256-/qCUeo/2AYIT9Yl6QjoTBPfmg8Lk2efDU5Axv4JU+t8=";
   };
 
   nativeBuildInputs = [
@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
     tar xf data.tar.xz
 
     # unused libraries, which have additional dependencies
-    rm opt/fastnetmon/libraries/gcc1210/lib/libgccjit.so.0.0.1
+    rm opt/fastnetmon/libraries/gcc1210/lib/libgccjit.so*
   '';
 
   installPhase = ''

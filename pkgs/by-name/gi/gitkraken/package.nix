@@ -1,99 +1,98 @@
 {
   lib,
   stdenv,
-  libXcomposite,
-  libgnome-keyring,
-  makeWrapper,
-  udev,
-  curlWithGnuTls,
-  alsa-lib,
-  libXfixes,
-  atk,
-  gtk3,
-  libXrender,
-  pango,
-  adwaita-icon-theme,
-  cairo,
-  freetype,
-  fontconfig,
-  libX11,
-  libXi,
-  libxcb,
-  libXext,
-  libXcursor,
-  glib,
-  libXScrnSaver,
-  libxkbfile,
-  libXtst,
-  nss,
-  nspr,
-  cups,
-  fetchzip,
-  expat,
-  gdk-pixbuf,
-  libXdamage,
-  libXrandr,
-  dbus,
-  makeDesktopItem,
-  openssl,
-  wrapGAppsHook3,
   buildPackages,
+  copyDesktopItems,
+  fetchzip,
+  makeDesktopItem,
+  makeWrapper,
+  adwaita-icon-theme,
+  alsa-lib,
   at-spi2-atk,
   at-spi2-core,
-  libuuid,
-  e2fsprogs,
-  krb5,
-  libdrm,
-  mesa,
-  unzip,
-  copyDesktopItems,
-  libxshmfence,
-  libxkbcommon,
-  git,
-  libGL,
-  zlib,
+  atk,
   cacert,
+  cairo,
+  cups,
+  curlWithGnuTls,
+  dbus,
+  e2fsprogs,
+  expat,
+  fontconfig,
+  freetype,
+  gdk-pixbuf,
+  git,
+  glib,
+  gtk3,
+  krb5,
+  libGL,
+  libX11,
+  libXScrnSaver,
+  libXcomposite,
+  libXcursor,
+  libXdamage,
+  libXext,
+  libXfixes,
+  libXi,
+  libXrandr,
+  libXrender,
+  libXtst,
+  libdrm,
+  libgbm,
+  libgnome-keyring,
+  libuuid,
+  libxcb,
+  libxkbcommon,
+  libxkbfile,
+  libxshmfence,
+  nspr,
+  nss,
+  openssl,
+  pango,
+  udev,
+  unzip,
+  zlib,
 }:
 
 let
   pname = "gitkraken";
-  version = "10.5.0";
+  version = "11.0.0";
 
   throwSystem = throw "Unsupported system: ${stdenv.hostPlatform.system}";
 
   srcs = {
     x86_64-linux = fetchzip {
       url = "https://release.axocdn.com/linux/GitKraken-v${version}.tar.gz";
-      hash = "sha256-zgzKwQCt1FoBgzVn1WrllANuBvYxKjPJNhVq0JqiXCM=";
+      hash = "sha256-rUOBCxquTw5wh5cK0AEGmIMq808tZQe5E90V7lGRuNY=";
     };
 
     x86_64-darwin = fetchzip {
       url = "https://release.axocdn.com/darwin/GitKraken-v${version}.zip";
-      hash = "sha256-H1rxvCGo0m8g5XSUcuREMfe+Im/QsL6nsDbPQDo09j4=";
+      hash = "sha256-L2OLlHY8iix7HcI5TowZapqtrsvB/KWigdndQWIIIFU=";
     };
 
     aarch64-darwin = fetchzip {
       url = "https://release.axocdn.com/darwin-arm64/GitKraken-v${version}.zip";
-      hash = "sha256-OsCbTtGNo+heQQL6OEeUq64Dlbs86FUpfqEJ80PnV2o=";
+      hash = "sha256-Rk6hSQ12CQl+vDYl17p0fQ74RpfOYhjMqrKZJ0/d1dw=";
     };
   };
 
   src = srcs.${stdenv.hostPlatform.system} or throwSystem;
 
-  meta = with lib; {
+  meta = {
     homepage = "https://www.gitkraken.com/git-client";
     description = "Simplifying Git for any OS";
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    license = licenses.unfree;
+    license = lib.licenses.unfree;
     platforms = builtins.attrNames srcs;
-    maintainers = with maintainers; [
-      xnwdd
-      evanjs
-      arkivm
+    maintainers = with lib.maintainers; [
       nicolas-goudry
+      Rishik-Y
     ];
     mainProgram = "gitkraken";
   };
+
+  passthru.updateScript = ./update.sh;
 
   linux = stdenv.mkDerivation rec {
     inherit
@@ -101,6 +100,7 @@ let
       version
       src
       meta
+      passthru
       ;
 
     dontBuild = true;
@@ -145,7 +145,7 @@ let
       e2fsprogs
       krb5
       libdrm
-      mesa
+      libgbm
       libxshmfence
       libxkbcommon
       libGL
@@ -230,6 +230,7 @@ let
       version
       src
       meta
+      passthru
       ;
 
     nativeBuildInputs = [

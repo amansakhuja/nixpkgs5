@@ -6,9 +6,7 @@
   cppunit,
   curl,
   fetchFromGitHub,
-  fetchpatch,
   installShellFiles,
-  libsigcxx,
   libtool,
   libtorrent,
   ncurses,
@@ -16,18 +14,18 @@
   pkg-config,
   zlib,
   nixosTests,
-  unstableGitUpdater,
+  gitUpdater,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "rakshasa-rtorrent";
-  version = "0.10.0-unstable-2024-12-06";
+  version = "0.15.1";
 
   src = fetchFromGitHub {
     owner = "rakshasa";
     repo = "rtorrent";
-    rev = "5a200f5d8f8bc8ed28dfc948321451585f724b15";
-    hash = "sha256-RLFOHJLpt7xkrEvYwEBWs5wQRThrK1N2olI64p2TPeA=";
+    rev = "68fdb86c723a0ae67ebaffec416af99fec41dcbc";
+    hash = "sha256-/GWC28LsY7GcUH+SBzi01sOWVfA1lyM0r9OdUDTYbT8=";
   };
 
   outputs = [
@@ -49,7 +47,6 @@ stdenv.mkDerivation rec {
   buildInputs = [
     cppunit
     curl
-    libsigcxx
     libtool
     libtorrent
     ncurses
@@ -63,7 +60,7 @@ stdenv.mkDerivation rec {
   ];
 
   passthru = {
-    updateScript = unstableGitUpdater { rev-prefix = "v"; };
+    updateScript = gitUpdater { rev-prefix = "v"; };
     tests = {
       inherit (nixosTests) rtorrent;
     };

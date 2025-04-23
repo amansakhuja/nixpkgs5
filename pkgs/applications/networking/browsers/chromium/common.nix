@@ -15,6 +15,7 @@
 
   # Native build inputs:
   ninja,
+  bashInteractive,
   pkg-config,
   python3,
   perl,
@@ -64,7 +65,8 @@
   libxshmfence,
   libGLU,
   libGL,
-  mesa,
+  dri-pkgconfig-stub,
+  libgbm,
   pciutils,
   protobuf,
   speechd-minimal,
@@ -213,6 +215,8 @@ let
   };
 
   isElectron = packageName == "electron";
+  needsCompgen = chromiumVersionAtLeast "133";
+  rustcVersion = buildPackages.rustc.version;
 
   chromiumDeps = lib.mapAttrs (
     path: args:
@@ -222,9 +226,10 @@ let
         name = "source.tar.zstd";
         downloadToTemp = false;
         passthru.unpack = true;
+        nativeBuildInputs = [ zstd ];
         postFetch = ''
           tar \
-            --use-compress-program="${lib.getExe zstd} -T$NIX_BUILD_CORES" \
+            --use-compress-program="zstd -T$NIX_BUILD_CORES" \
             --sort=name \
             --mtime="1970-01-01" \
             --owner=root --group=root \
@@ -289,6 +294,12 @@ let
     nativeBuildInputs =
       [
         ninja
+        gnChromium
+      ]
+      ++ lib.optionals needsCompgen [
+        bashInteractive # needed for compgen in buildPhase -> process_template
+      ]
+      ++ [
         pkg-config
         python3WithPackages
         perl
@@ -349,7 +360,7 @@ let
         libxshmfence
         libGLU
         libGL
-        mesa # required for libgbm
+        libgbm
         pciutils
         protobuf
         speechd-minimal
@@ -406,7 +417,8 @@ let
         libxshmfence
         libGLU
         libGL
-        mesa # required for libgbm
+        dri-pkgconfig-stub
+        libgbm
         pciutils
         protobuf
         speechd-minimal
@@ -434,6 +446,9 @@ let
         ./patches/cross-compile.patch
         # Optional patch to use SOURCE_DATE_EPOCH in compute_build_timestamp.py (should be upstreamed):
         ./patches/no-build-timestamps.patch
+        # Fix build with Pipewire 1.4
+        # Submitted upstream: https://webrtc-review.googlesource.com/c/src/+/380500
+        ./patches/webrtc-pipewire-1.4.patch
       ]
       ++ lib.optionals (packageName == "chromium") [
         # This patch is limited to chromium and ungoogled-chromium because electron-source sets
@@ -455,32 +470,6 @@ let
         # flag (declare_args) so we simply hardcode it to false.
         ./patches/widevine-disable-auto-download-allow-bundle.patch
       ]
-      ++ lib.optionals (versionRange "127" "128") [
-        # Fix missing chrome/browser/ui/webui_name_variants.h dependency
-        # and ninja 1.12 compat in M127.
-        # https://issues.chromium.org/issues/345645751
-        # https://issues.chromium.org/issues/40253918
-        # https://chromium-review.googlesource.com/c/chromium/src/+/5641516
-        (githubPatch {
-          commit = "2c101186b60ed50f2ba4feaa2e963bd841bcca47";
-          hash = "sha256-luu3ggo6XoeeECld1cKZ6Eh8x/qQYmmKI/ThEhuutuY=";
-        })
-        # https://chromium-review.googlesource.com/c/chromium/src/+/5644627
-        (githubPatch {
-          commit = "f2b43c18b8ecfc3ddc49c42c062d796c8b563984";
-          hash = "sha256-uxXxSsiS8R0827Oi3xsG2gtT0X+jJXziwZ1y8+7K+Qg=";
-        })
-        # https://chromium-review.googlesource.com/c/chromium/src/+/5646245
-        (githubPatch {
-          commit = "4ca70656fde83d2db6ed5a8ac9ec9e7443846924";
-          hash = "sha256-iQuRRZjDDtJfr+B7MV+TvUDDX3bvpCnv8OpSLJ1WqCE=";
-        })
-        # https://chromium-review.googlesource.com/c/chromium/src/+/5647662
-        (githubPatch {
-          commit = "50d63ffee3f7f1b1b9303363742ad8ebbfec31fa";
-          hash = "sha256-H+dv+lgXSdry3NkygpbCdTAWWdTVdKdVD3Aa62w091E=";
-        })
-      ]
       ++ [
         # Required to fix the build with a more recent wayland-protocols version
         # (we currently package 1.26 in Nixpkgs while Chromium bundles 1.21):
@@ -494,18 +483,11 @@ let
         # Rebased variant of patch to build M126+ with LLVM 17.
         # staging-next will bump LLVM to 18, so we will be able to drop this soon.
         ./patches/chromium-126-llvm-17.patch
-      ]
-      ++ lib.optionals (versionRange "126" "129") [
         # Partial revert of https://github.com/chromium/chromium/commit/3687976b0c6d36cf4157419a24a39f6770098d61
         # allowing us to use our rustc and our clang.
-        # Rebased variant of patch right above to build M126+ with our rust and our clang.
-        ./patches/chromium-126-rust.patch
-      ]
-      ++ lib.optionals (chromiumVersionAtLeast "129") [
-        # Rebased variant of patch right above to build M129+ with our rust and our clang.
         ./patches/chromium-129-rust.patch
       ]
-      ++ lib.optionals (chromiumVersionAtLeast "130" && !ungoogled) [
+      ++ lib.optionals (!ungoogled) [
         # Our rustc.llvmPackages is too old for std::hardware_destructive_interference_size
         # and std::hardware_constructive_interference_size.
         # So let's revert the change for now and hope that our rustc.llvmPackages and
@@ -521,6 +503,36 @@ let
           hash = "sha256-NNKzIp6NYdeZaqBLWDW/qNxiDB1VFRz7msjMXuMOrZ8=";
           excludes = [ "base/allocator/partition_allocator/src/partition_alloc/*" ];
           revert = true;
+        })
+      ]
+      ++ lib.optionals (chromiumVersionAtLeast "131" && stdenv.hostPlatform.isAarch64) [
+        # Reverts decommit pooled pages which causes random crashes of tabs on systems
+        # with page sizes different than 4k. It 'supports' runtime page sizes, but has
+        # a hardcode for aarch64 systems.
+        # https://issues.chromium.org/issues/378017037
+        (fetchpatch {
+          name = "reverted-v8-decommit-pooled-paged-by-default.patch";
+          # https://chromium-review.googlesource.com/c/v8/v8/+/5864909
+          url = "https://chromium.googlesource.com/v8/v8/+/1ab1a14ad97394d384d8dc6de51bb229625e66d6^!?format=TEXT";
+          decode = "base64 -d";
+          stripLen = 1;
+          extraPrefix = "v8/";
+          revert = true;
+          hash = "sha256-PuinMLhJ2W4KPXI5K0ujw85ENTB1wG7Hv785SZ55xnY=";
+        })
+      ]
+      ++ lib.optionals (!isElectron && !chromiumVersionAtLeast "137") [
+        # Backport "Add more CFI suppressions for inline PipeWire functions" from M137
+        # to fix SIGKILL (ud1) when screensharing with PipeWire 1.4+ and is_cfi = true.
+        # Our chromium builds set is_official_build = true, which in turn enables is_cfi.
+        # We don't apply this patch to electron, because we build electron with
+        # is_cfi = false and as such is not affected by this.
+        # https://chromium-review.googlesource.com/c/chromium/src/+/6421030
+        (fetchpatch {
+          name = "add-more-CFI-suppressions-for-inline-PipeWire-functions.patch";
+          url = "https://chromium.googlesource.com/chromium/src/+/0eebf40b9914bca8fe69bef8eea89522c1a5d4ce^!?format=TEXT";
+          decode = "base64 -d";
+          hash = "sha256-xMqGdu5Q8BGF/OIRdmMzPrrrMGDOSY2xElFfhRsJlDU=";
         })
       ];
 
@@ -626,8 +638,8 @@ let
       ''
       + ''
         # Link to our own Node.js and Java (required during the build):
-        mkdir -p third_party/node/linux/node-linux-x64/bin
-        ln -s${lib.optionalString (chromiumVersionAtLeast "127") "f"} "${pkgsBuildHost.nodejs}/bin/node" third_party/node/linux/node-linux-x64/bin/node
+        mkdir -p third_party/node/linux/node-linux-x64/bin${lib.optionalString ungoogled " third_party/jdk/current/bin/"}
+        ln -sf "${pkgsBuildHost.nodejs}/bin/node" third_party/node/linux/node-linux-x64/bin/node
         ln -s "${pkgsBuildHost.jdk17_headless}/bin/java" third_party/jdk/current/bin/
 
         # Allow building against system libraries in official builds
@@ -673,14 +685,14 @@ let
 
         # Build Chromium using the system toolchain (for Linux distributions):
         #
-        # What you would expect to be caled "target_toolchain" is
+        # What you would expect to be called "target_toolchain" is
         # actually called either "default_toolchain" or "custom_toolchain",
         # depending on which part of the codebase you are in; see:
         # https://github.com/chromium/chromium/blob/d36462cc9279464395aea5e65d0893d76444a296/build/config/BUILDCONFIG.gn#L17-L44
         custom_toolchain = "//build/toolchain/linux/unbundle:default";
         host_toolchain = "//build/toolchain/linux/unbundle:default";
         # We only build those specific toolchains when we cross-compile, as native non-cross-compilations would otherwise
-        # end up building much more things than they need to (roughtly double the build steps and time/compute):
+        # end up building much more things than they need to (roughly double the build steps and time/compute):
       }
       // lib.optionalAttrs (stdenv.buildPlatform != stdenv.hostPlatform) {
         host_toolchain = "//build/toolchain/linux/unbundle:host";
@@ -726,21 +738,32 @@ let
         # Disable PGO because the profile data requires a newer compiler version (LLVM 14 isn't sufficient):
         chrome_pgo_phase = 0;
         clang_base_path = "${llvmCcAndBintools}";
-        use_qt = false;
+      }
+      // (
+        # M134 changed use_qt to use_qt5 (and use_qt6)
+        if chromiumVersionAtLeast "134" then
+          {
+            use_qt5 = false;
+            use_qt6 = false;
+          }
+        else
+          {
+            use_qt = false;
+          }
+      )
+      // {
         # To fix the build as we don't provide libffi_pic.a
         # (ld.lld: error: unable to find library -l:libffi_pic.a):
         use_system_libffi = true;
         # Use nixpkgs Rust compiler instead of the one shipped by Chromium.
         rust_sysroot_absolute = "${buildPackages.rustc}";
-      }
-      // lib.optionalAttrs (chromiumVersionAtLeast "127") {
         rust_bindgen_root = "${buildPackages.rust-bindgen}";
       }
       // {
         enable_rust = true;
         # While we technically don't need the cache-invalidation rustc_version provides, rustc_version
         # is still used in some scripts (e.g. build/rust/std/find_std_rlibs.py).
-        rustc_version = buildPackages.rustc.version;
+        rustc_version = rustcVersion;
       }
       // lib.optionalAttrs (!(stdenv.buildPlatform.canExecute stdenv.hostPlatform)) {
         # https://www.mail-archive.com/v8-users@googlegroups.com/msg14528.html
@@ -782,7 +805,7 @@ let
       # This is to ensure expansion of $out.
       libExecPath="${libExecPath}"
       ${python3.pythonOnBuildForHost}/bin/python3 build/linux/unbundle/replace_gn_files.py --system-libraries ${toString gnSystemLibraries}
-      ${gnChromium}/bin/gn gen --args=${lib.escapeShellArg gnFlags} out/Release | tee gn-gen-outputs.txt
+      gn gen --args=${lib.escapeShellArg gnFlags} out/Release | tee gn-gen-outputs.txt
 
       # Fail if `gn gen` contains a WARNING.
       grep -o WARNING gn-gen-outputs.txt && echo "Found gn WARNING, exiting nix build" && exit 1
@@ -790,10 +813,12 @@ let
       runHook postConfigure
     '';
 
-    # Don't spam warnings about unknown warning options. This is useful because
+    # Mute some warnings that are enabled by default. This is useful because
     # our Clang is always older than Chromium's and the build logs have a size
     # of approx. 25 MB without this option (and this saves e.g. 66 %).
-    env.NIX_CFLAGS_COMPILE = "-Wno-unknown-warning-option";
+    env.NIX_CFLAGS_COMPILE =
+      "-Wno-unknown-warning-option"
+      + lib.optionalString (chromiumVersionAtLeast "135") " -Wno-unused-command-line-argument -Wno-shadow";
     env.BUILD_CC = "$CC_FOR_BUILD";
     env.BUILD_CXX = "$CXX_FOR_BUILD";
     env.BUILD_AR = "$AR_FOR_BUILD";
@@ -804,12 +829,12 @@ let
       let
         buildCommand = target: ''
           TERM=dumb ninja -C "${buildPath}" -j$NIX_BUILD_CORES "${target}"
-          (
+          ${lib.optionalString needsCompgen "bash -s << EOL\n"}(
             source chrome/installer/linux/common/installer.include
             PACKAGE=$packageName
             MENUNAME="Chromium"
             process_template chrome/app/resources/manpage.1.in "${buildPath}/chrome.1"
-          )
+          )${lib.optionalString needsCompgen "\nEOL"}
         '';
         targets = extraAttrs.buildTargets or [ ];
         commands = map buildCommand targets;

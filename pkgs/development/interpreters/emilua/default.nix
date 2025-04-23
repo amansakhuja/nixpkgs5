@@ -9,7 +9,7 @@
   gperf,
   gawk,
   pkg-config,
-  boost182,
+  boost,
   fmt,
   luajit_openresty,
   ncurses,
@@ -22,7 +22,10 @@
   cmake,
   asciidoctor,
   makeWrapper,
+  versionCheckHook,
   gitUpdater,
+  enableIoUring ? false,
+  emilua, # this package
 }:
 
 let
@@ -47,19 +50,17 @@ let
       EOF
     '';
   };
-
-  boost = boost182;
 in
 
-stdenv.mkDerivation (self: {
+stdenv.mkDerivation (finalAttrs: {
   pname = "emilua";
-  version = "0.10.1";
+  version = "0.11.4";
 
   src = fetchFromGitLab {
     owner = "emilua";
     repo = "emilua";
-    rev = "v${self.version}";
-    hash = "sha256-D6XKXik9nWQ6t6EF6dLbRGB60iFbPUM8/H8iFAz1QlE=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-CVEBFySsGT0f16Dim1Pw1GdDM0fWUKieRZyxHaDH3O4=";
   };
 
   propagatedBuildInputs = [
@@ -91,8 +92,8 @@ stdenv.mkDerivation (self: {
   dontUseCmakeConfigure = true;
 
   mesonFlags = [
-    (lib.mesonBool "enable_file_io" true)
-    (lib.mesonBool "enable_io_uring" true)
+    (lib.mesonBool "enable_io_uring" enableIoUring)
+    (lib.mesonBool "enable_file_io" enableIoUring)
     (lib.mesonBool "enable_tests" true)
     (lib.mesonBool "enable_manpages" true)
     (lib.mesonOption "version_suffix" "-nixpkgs1")
@@ -102,7 +103,8 @@ stdenv.mkDerivation (self: {
     patchShebangs src/emilua_gperf.awk --interpreter '${lib.getExe gawk} -f'
   '';
 
-  doCheck = true;
+  # io_uring is not allowed in Nix sandbox, that breaks the tests
+  doCheck = !enableIoUring;
 
   mesonCheckFlags = [
     # Skipped test: libpsx
@@ -115,24 +117,31 @@ stdenv.mkDerivation (self: {
     mkdir -p $out/nix-support
     cp ${./setup-hook.sh} $out/nix-support/setup-hook
     substituteInPlace $out/nix-support/setup-hook \
-      --replace @sitePackages@ "${self.passthru.sitePackages}"
+      --replace-fail @sitePackages@ "${finalAttrs.passthru.sitePackages}"
   '';
+
+  nativeInstallCheckInputs = [
+    versionCheckHook
+  ];
+  versionCheckProgramArg = "--version";
+  doInstallCheck = true;
 
   passthru = {
     updateScript = gitUpdater { rev-prefix = "v"; };
     inherit boost;
-    sitePackages = "lib/emilua-${(lib.concatStringsSep "." (lib.take 2 (lib.splitVersion self.version)))}";
+    sitePackages = "lib/emilua-${(lib.concatStringsSep "." (lib.take 2 (lib.splitVersion finalAttrs.version)))}";
+    tests.with-io-uring = emilua.override { enableIoUring = true; };
   };
 
-  meta = with lib; {
+  meta = {
     description = "Lua execution engine";
     mainProgram = "emilua";
     homepage = "https://emilua.org/";
-    license = licenses.boost;
-    maintainers = with maintainers; [
+    license = lib.licenses.boost;
+    maintainers = with lib.maintainers; [
       manipuladordedados
       lucasew
     ];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
 })

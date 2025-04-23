@@ -7,16 +7,16 @@
 
 buildGoModule rec {
   pname = "gobgpd";
-  version = "3.32.0";
+  version = "3.36.0";
 
   src = fetchFromGitHub {
     owner = "osrg";
     repo = "gobgp";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-DIOii1jFVK3jwDLaLFWBbbQPC9eQnTwLYwI8uC8G8ig=";
+    tag = "v${version}";
+    hash = "sha256-vyMC3FcfMHVsRosLkTYgCawiTIcJs0R5GgSZERRPHnE=";
   };
 
-  vendorHash = "sha256-FYLH1Ej8Bm0+tS5Ikj1CPF+1t5opmzee8iHRZSW94Yk=";
+  vendorHash = "sha256-bR6msi2IyNmYgmpLrbn/hnX4EzLOBa2UHTzwDJFasos=";
 
   postConfigure = ''
     export CGO_ENABLED=0

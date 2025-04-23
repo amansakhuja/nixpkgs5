@@ -30,6 +30,7 @@
   metalSupport ? stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64 && !openclSupport,
   vulkanSupport ? false,
   rpcSupport ? false,
+  curl,
   shaderc,
   vulkan-headers,
   vulkan-loader,
@@ -81,13 +82,13 @@ let
 in
 effectiveStdenv.mkDerivation (finalAttrs: {
   pname = "llama-cpp";
-  version = "4293";
+  version = "5141";
 
   src = fetchFromGitHub {
-    owner = "ggerganov";
+    owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "refs/tags/b${finalAttrs.version}";
-    hash = "sha256-ab45VNNJvzp6t8Bk2GSuTBsP4bWcyOT4d+TvaIHs5qo=";
+    tag = "b${finalAttrs.version}";
+    hash = "sha256-qHjHsc2v4LB+GVYni97d3KVo5uJqpF7RQqG2rWXwpHY=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -130,18 +131,20 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     ++ optionals openclSupport [ clblast ]
     ++ optionals rocmSupport rocmBuildInputs
     ++ optionals blasSupport [ blas ]
-    ++ optionals vulkanSupport vulkanBuildInputs;
+    ++ optionals vulkanSupport vulkanBuildInputs
+    ++ [ curl ];
 
   cmakeFlags =
     [
       # -march=native is non-deterministic; override with platform-specific flags if needed
       (cmakeBool "GGML_NATIVE" false)
       (cmakeBool "LLAMA_BUILD_SERVER" true)
+      (cmakeBool "LLAMA_CURL" true)
       (cmakeBool "BUILD_SHARED_LIBS" true)
       (cmakeBool "GGML_BLAS" blasSupport)
       (cmakeBool "GGML_CLBLAST" openclSupport)
       (cmakeBool "GGML_CUDA" cudaSupport)
-      (cmakeBool "GGML_HIPBLAS" rocmSupport)
+      (cmakeBool "GGML_HIP" rocmSupport)
       (cmakeBool "GGML_METAL" metalSupport)
       (cmakeBool "GGML_RPC" rpcSupport)
       (cmakeBool "GGML_VULKAN" vulkanSupport)
@@ -149,16 +152,11 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     ++ optionals cudaSupport [
       (cmakeFeature "CMAKE_CUDA_ARCHITECTURES" cudaPackages.flags.cmakeCudaArchitecturesString)
     ]
-    ++ optionals rocmSupport [
-      (cmakeFeature "CMAKE_C_COMPILER" "hipcc")
-      (cmakeFeature "CMAKE_CXX_COMPILER" "hipcc")
-
-      # Build all targets supported by rocBLAS. When updating search for TARGET_LIST_ROCM
-      # in https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/CMakeLists.txt
-      # and select the line that matches the current nixpkgs version of rocBLAS.
-      # Should likely use `rocmPackages.clr.gpuTargets`.
-      "-DAMDGPU_TARGETS=gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
-    ]
+    ++ optionals rocmSupport ([
+      (cmakeFeature "CMAKE_HIP_COMPILER" "${rocmPackages.clr.hipClangPath}/clang++")
+      # TODO: this should become `clr.gpuTargets` in the future.
+      (cmakeFeature "CMAKE_HIP_ARCHITECTURES" rocmPackages.rocblas.amdgpu_targets)
+    ])
     ++ optionals metalSupport [
       (cmakeFeature "CMAKE_C_FLAGS" "-D__ARM_FEATURE_DOTPROD=1")
       (cmakeBool "LLAMA_METAL_EMBED_LIBRARY" true)
@@ -191,7 +189,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
 
   meta = with lib; {
     description = "Inference of Meta's LLaMA model (and others) in pure C/C++";
-    homepage = "https://github.com/ggerganov/llama.cpp/";
+    homepage = "https://github.com/ggml-org/llama.cpp";
     license = licenses.mit;
     mainProgram = "llama";
     maintainers = with maintainers; [

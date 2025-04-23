@@ -21,11 +21,11 @@
 
 stdenv.mkDerivation rec {
   pname = "vintagestory";
-  version = "1.19.8";
+  version = "1.20.7";
 
   src = fetchurl {
     url = "https://cdn.vintagestory.at/gamefiles/stable/vs_client_linux-x64_${version}.tar.gz";
-    hash = "sha256-R6J+ACYDQpOzJZFBizsQGOexR7lMyeoZqz9TnWxfwyM=";
+    hash = "sha256-1SBJ4E3rQBFPSCgb2Z3knEO5Y+xyJE4kyJW4we75CWA=";
   };
 
   nativeBuildInputs = [
@@ -100,6 +100,7 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [
       artturin
       gigglesquid
+      niraethm
     ];
   };
 }

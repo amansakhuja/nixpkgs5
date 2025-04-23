@@ -22,15 +22,15 @@ let
   };
 
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "dxx-rebirth";
-  version = "0.60.0-beta2-unstable-2024-11-16";
+  version = "0.60.0-beta2-unstable-2025-03-29";
 
   src = fetchFromGitHub {
     owner = "dxx-rebirth";
     repo = "dxx-rebirth";
-    rev = "ebe4aceb721894ff614481e97c50df0fd7e3e814";
-    hash = "sha256-b6N/qkydI56bkCPhTJ5SwB8OdLqEFJhK9WPA4ELB1BI=";
+    rev = "ddc84fa623ed508073cf99244db731bd73f36b6b";
+    hash = "sha256-VZ3PQ4YECM+z+V1zPSNdgIIBFjRIAunEmhENJAUj+P8=";
   };
 
   nativeBuildInputs = [

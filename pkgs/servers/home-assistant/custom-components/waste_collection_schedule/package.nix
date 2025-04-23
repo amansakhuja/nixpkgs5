@@ -7,19 +7,19 @@
   icalevents,
   lxml,
   pycryptodome,
-  recurring-ical-events,
+  pypdf,
 }:
 
 buildHomeAssistantComponent rec {
   owner = "mampfes";
   domain = "waste_collection_schedule";
-  version = "2.4.0";
+  version = "2.7.0";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "hacs_waste_collection_schedule";
-    rev = "refs/tags/${version}";
-    hash = "sha256-2WUwUifRCIhz+QmhpY8VGx/USEImpPX0K511xDJWP1I=";
+    tag = version;
+    hash = "sha256-llrECprqzjioEAF+eGbDJ8pkyG3ejTrQd5L60JpPp/Y=";
   };
 
   dependencies = [
@@ -28,7 +28,7 @@ buildHomeAssistantComponent rec {
     icalevents
     lxml
     pycryptodome
-    recurring-ical-events
+    pypdf
   ];
 
   meta = with lib; {

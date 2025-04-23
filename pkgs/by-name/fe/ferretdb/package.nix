@@ -1,7 +1,8 @@
-{ lib
-, buildGoModule
-, fetchFromGitHub
-, nixosTests
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+  nixosTests,
 }:
 
 buildGoModule rec {
@@ -22,7 +23,7 @@ buildGoModule rec {
 
   vendorHash = "sha256-GT6e9yd6LF6GFlGBWVAmcM6ysB/6cIGLbnM0hxfX5TE=";
 
-  CGO_ENABLED = 0;
+  env.CGO_ENABLED = 0;
 
   subPackages = [ "cmd/ferretdb" ];
 
@@ -43,6 +44,10 @@ buildGoModule rec {
     changelog = "https://github.com/FerretDB/FerretDB/releases/tag/v${version}";
     homepage = "https://www.ferretdb.com/";
     license = licenses.asl20;
-    maintainers = with maintainers; [ dit7ya noisersup julienmalka ];
+    maintainers = with maintainers; [
+      dit7ya
+      noisersup
+      julienmalka
+    ];
   };
 }

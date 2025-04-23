@@ -1,7 +1,5 @@
 {
   lib,
-  SDL,
-  SDL_image,
   a52dec,
   alsa-lib,
   autoreconfHook,
@@ -77,7 +75,7 @@
   srt,
   stdenv,
   systemd,
-  taglib,
+  taglib_1,
   unzip,
   wayland,
   wayland-protocols,
@@ -132,8 +130,6 @@ stdenv.mkDerivation (finalAttrs: {
   # needing them
   buildInputs =
     [
-      SDL
-      SDL_image
       a52dec
       alsa-lib
       avahi
@@ -190,8 +186,9 @@ stdenv.mkDerivation (finalAttrs: {
       speex
       srt
       systemd
-      taglib
+      taglib_1
       xcbutilkeysyms
+      wayland-scanner # only required for configure script
       zlib
     ]
     ++ optionals (!stdenv.hostPlatform.isAarch && !onlyLibVLC) [ live555 ]
@@ -219,6 +216,7 @@ stdenv.mkDerivation (finalAttrs: {
       ]
     )
     ++ optionals (waylandSupport && withQt5) [ libsForQt5.qtwayland ];
+  strictDeps = true;
 
   env =
     {
@@ -241,6 +239,15 @@ stdenv.mkDerivation (finalAttrs: {
       url = "https://code.videolan.org/videolan/vlc/uploads/eb1c313d2d499b8a777314f789794f9d/0001-Add-lssl-and-lcrypto-to-liblive555_plugin_la_LIBADD.patch";
       hash = "sha256-qs3gY1ksCZlf931TSZyMuT2JD0sqrmcRCZwL+wVG0U8=";
     })
+    # support VAAPI hardware video decoding with newer ffmpeg
+    # upstream merge request: https://code.videolan.org/videolan/vlc/-/merge_requests/6606 (will be included in the next release)
+    (fetchpatch {
+      url = "https://code.videolan.org/videolan/vlc/-/commit/ba5dc03aecc1d96f81b76838f845ebde7348cf62.diff";
+      hash = "sha256-s6AI9O0V3AKOyw9LbQ9CgjaCi5m5+nLacKNLl5ZLC6Q=";
+    })
+    # make the plugins.dat file generation reproducible
+    # upstream merge request: https://code.videolan.org/videolan/vlc/-/merge_requests/7149
+    ./deterministic-plugin-cache.diff
   ];
 
   postPatch =
@@ -251,7 +258,7 @@ stdenv.mkDerivation (finalAttrs: {
           ${freefont_ttf}/share/fonts/truetype
     ''
     # Upstream luac can't cross compile, so we have to install the lua sources
-    # instead of bytecode:
+    # instead of bytecode, which was built for buildPlatform:
     # https://www.lua.org/wshop13/Jericke.pdf#page=39
     + lib.optionalString (!stdenv.hostPlatform.canExecute stdenv.buildPlatform) ''
       substituteInPlace share/Makefile.am \

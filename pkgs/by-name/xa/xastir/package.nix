@@ -9,7 +9,7 @@
   libgeotiff,
   xorg,
   motif,
-  pcre,
+  pcre2,
   perl,
   proj,
   graphicsmagick,
@@ -22,8 +22,8 @@ stdenv.mkDerivation rec {
   version = "2.2.0";
 
   src = fetchFromGitHub {
-    owner = pname;
-    repo = pname;
+    owner = "xastir";
+    repo = "xastir";
     rev = "Release-${version}";
     hash = "sha256-EQXSfH4b5vMiprFcMXCUDNl+R1cHSj9CyhZnUPAMoCw=";
   };
@@ -40,7 +40,7 @@ stdenv.mkDerivation rec {
     xorg.libXpm
     xorg.libXt
     motif
-    pcre
+    pcre2
     perl
     proj
     graphicsmagick

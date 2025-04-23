@@ -34,10 +34,10 @@
 
 let
   # Keep these separate so the update script can regex them
-  rpcs3GitVersion = "17070-8b8396b94";
-  rpcs3Version = "0.0.33-17070-8b8396b94";
-  rpcs3Revision = "8b8396b9455394486656660c960d420c5b6c446c";
-  rpcs3Hash = "sha256-LUgKUzoBNY4ZemRBsLOjtXxLXHyRkPivtdSSgUGw5h4=";
+  rpcs3GitVersion = "17323-92d070729";
+  rpcs3Version = "0.0.34-17323-92d070729";
+  rpcs3Revision = "92d07072915b99917892dd7833c06eb44a09e234";
+  rpcs3Hash = "sha256-GH2sXw1AYdqwzxucXFhVS0nM0eRhC+XDHS6RTZY8pYY=";
 
   inherit (qt6Packages)
     qtbase

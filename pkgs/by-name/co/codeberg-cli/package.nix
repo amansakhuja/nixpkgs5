@@ -10,17 +10,18 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "codeberg-cli";
-  version = "0.4.6";
+  version = "0.4.9";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "Aviac";
     repo = "codeberg-cli";
     rev = "v${version}";
-    hash = "sha256-BkWI4FbacgFrbSLNSqe7vdzdLvrrgX1528qFaKCd5tY=";
+    hash = "sha256-uifLgXwKcdZ8Q2GjVIa/EA5iq+T9pm821aKsXPbPL34=";
   };
 
-  cargoHash = "sha256-eFS16QzPMLhoVb+hqt/p3ka58rwP5WTgHas2PZT5c/U=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-nKI0bIKocTjodZ6O1VTTTrlzeeueaH6crF9jdTnx5lI=";
   nativeBuildInputs = [
     pkg-config
     installShellFiles

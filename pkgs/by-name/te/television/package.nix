@@ -6,18 +6,19 @@
   television,
   nix-update-script,
 }:
-rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "television";
-  version = "0.5.3";
+  version = "0.11.7";
 
   src = fetchFromGitHub {
     owner = "alexpasmantier";
     repo = "television";
-    rev = "refs/tags/" + version;
-    hash = "sha256-xYfaFs0a37maeLdnlEGVsocWWym41EOZ9dsuFXc1hMY=";
+    tag = finalAttrs.version;
+    hash = "sha256-cxbg7ic/LzQPfq5VFr9iSaEfL3SF1Aca1/SfXWCOTQo=";
   };
 
-  cargoHash = "sha256-z12FeXQ2IpDZQYqnt6MPkLeW4Ul3XphSI38ikM/YizY=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-T8m/B95PoKeIR7A8Kh6j1sicYlaUk6pb4os+XxC356U=";
 
   passthru = {
     tests.version = testers.testVersion {
@@ -28,17 +29,15 @@ rustPlatform.buildRustPackage rec {
   };
 
   meta = {
-    description = "Television is a blazingly fast general purpose fuzzy finder";
-
+    description = "Blazingly fast general purpose fuzzy finder TUI";
     longDescription = ''
-      Television is a blazingly fast general purpose fuzzy finder TUI written
-      in Rust. It is inspired by the neovim telescope plugin and is designed
-      to be fast, efficient, simple to use and easily extensible. It is built
-      on top of tokio, ratatui and the nucleo matcher used by the helix editor.
+      Television is a fast and versatile fuzzy finder TUI.
+      It lets you quickly search through any kind of data source (files, git
+      repositories, environment variables, docker images, you name it) using a
+      fuzzy matching algorithm and is designed to be easily extensible.
     '';
-
     homepage = "https://github.com/alexpasmantier/television";
-    changelog = "https://github.com/alexpasmantier/television/releases/tag/${version}";
+    changelog = "https://github.com/alexpasmantier/television/releases/tag/${finalAttrs.version}";
     license = lib.licenses.mit;
     mainProgram = "tv";
     maintainers = with lib.maintainers; [
@@ -46,4 +45,4 @@ rustPlatform.buildRustPackage rec {
       getchoo
     ];
   };
-}
+})

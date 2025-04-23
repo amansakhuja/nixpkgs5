@@ -8,16 +8,16 @@
 let
   argset = {
     pname = "chezmoi";
-    version = "2.55.0";
+    version = "2.62.1";
 
     src = fetchFromGitHub {
       owner = "twpayne";
       repo = "chezmoi";
       rev = "v${argset.version}";
-      hash = "sha256-S9g0v/p3Hv6yMKz3OPtaZrtkyvIXbtFW4GlGxeGqx+M=";
+      hash = "sha256-2n8ePR5WzV6RtfI9ySIy5Zqg8jKXltUNq572kVUyLWY=";
     };
 
-    vendorHash = "sha256-hmNb712gnQsJSjfhVKlNTkFx/Nmx0rkJMFRdcwJj3ZA=";
+    vendorHash = "sha256-7OD/yRI0TD8PM1IoMazN2W5b8AwKs64068ZectGXFtU=";
 
     nativeBuildInputs = [
       installShellFiles
@@ -46,7 +46,7 @@ let
       changelog = "https://github.com/twpayne/chezmoi/releases/tag/${argset.src.rev}";
       license = lib.licenses.mit;
       mainProgram = "chezmoi";
-      maintainers = with lib.maintainers; [ AndersonTorres ];
+      maintainers = with lib.maintainers; [ ];
     };
   };
 in

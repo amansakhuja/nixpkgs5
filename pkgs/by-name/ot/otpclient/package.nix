@@ -25,8 +25,8 @@ stdenv.mkDerivation rec {
 
   src = fetchFromGitHub {
     owner = "paolostivanin";
-    repo = pname;
-    rev = "refs/tags/v${version}";
+    repo = "otpclient";
+    tag = "v${version}";
     hash = "sha256-lSGXxwtys3V8dDTAW7l7+9VlF9tZQnWqNaV8neBvMRg=";
   };
 

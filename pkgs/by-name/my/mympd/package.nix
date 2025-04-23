@@ -18,13 +18,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "mympd";
-  version = "18.2.2";
+  version = "20.1.3";
 
   src = fetchFromGitHub {
     owner = "jcorporation";
     repo = "myMPD";
     rev = "v${finalAttrs.version}";
-    sha256 = "sha256-ztZ4AdVRQ5KCmxAIT6SSexIle6IfREGqNZLhAplPtrQ=";
+    sha256 = "sha256-CLhlGwr7W3GW8V+wqMXHfKbU2dmMWlgEmo4QohcPAwo=";
   };
 
   nativeBuildInputs = [
@@ -33,6 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
     gzip
     perl
     jq
+    lua5_3 # luac is needed for cross builds
   ];
   preConfigure = ''
     env MYMPD_BUILDDIR=$PWD/build ./build.sh createassets
@@ -58,6 +59,8 @@ stdenv.mkDerivation (finalAttrs: {
   ];
   # 5 tests out of 23 fail, probably due to the sandbox...
   doCheck = false;
+
+  strictDeps = true;
 
   passthru.tests = { inherit (nixosTests) mympd; };
 

@@ -15,7 +15,7 @@
   libxml2,
   cmake,
   exiftool,
-  openexr_3,
+  openexr,
   glib,
   python3Packages,
   perlPackages,
@@ -78,13 +78,13 @@ let
 in
 stdenv.mkDerivation {
   pname = "ansel";
-  version = "0-unstable-2024-10-28";
+  version = "0-unstable-2025-03-27";
 
   src = fetchFromGitHub {
     owner = "aurelienpierreeng";
     repo = "ansel";
-    rev = "7f23d9d38630629e559e76073ec4dbe71733c225";
-    hash = "sha256-2AEQlt75nnVD8ZFpVUEvgxRV94NtWDK0R+zVd/ytXuU=";
+    rev = "62f9a4c56b02deca9fda4aff4392e4f44dea379c";
+    hash = "sha256-T9go14/wMJbOzKjOnRzzmeklFPQMbrTUnXyPlVahpkQ=";
     fetchSubmodules = true;
   };
 
@@ -147,7 +147,7 @@ stdenv.mkDerivation {
     libxkbcommon
     libxslt
     libXtst
-    openexr_3
+    openexr
     openjpeg
     osm-gps-map
     pcre

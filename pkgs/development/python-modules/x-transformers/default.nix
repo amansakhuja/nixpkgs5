@@ -1,32 +1,41 @@
 {
   lib,
   buildPythonPackage,
-  fetchPypi,
-  setuptools,
+  fetchFromGitHub,
+
+  # build-system
+  hatchling,
+
+  # dependencies
+  einx,
   einops,
+  loguru,
+  packaging,
   torch,
+
+  # tests
   pytestCheckHook,
 }:
 
 buildPythonPackage rec {
   pname = "x-transformers";
-  version = "1.32.2";
+  version = "2.2.11";
   pyproject = true;
 
-  src = fetchPypi {
-    pname = "x_transformers";
-    inherit version;
-    hash = "sha256-NUIlJ+N2/6kz3rI0oc7bfYVWnMkZhvfljQ6zSwBPkWo=";
+  src = fetchFromGitHub {
+    owner = "lucidrains";
+    repo = "x-transformers";
+    tag = version;
+    hash = "sha256-8+uSxB91vaPMDYPUByqWfCy2G4l9KEdQhp2SxQXY6Tk=";
   };
 
-  postPatch = ''
-    sed -i '/setup_requires=\[/,/\],/d' setup.py
-  '';
-
-  build-system = [ setuptools ];
+  build-system = [ hatchling ];
 
   dependencies = [
+    einx
     einops
+    loguru
+    packaging
     torch
   ];
 

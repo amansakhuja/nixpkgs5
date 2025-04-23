@@ -9,22 +9,22 @@
   nix-update-script,
   nvd,
   nix-output-monitor,
+  buildPackages,
 }:
 let
-  version = "3.6.0";
   runtimeDeps = [
     nvd
     nix-output-monitor
   ];
 in
-rustPlatform.buildRustPackage {
-  inherit version;
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "nh";
+  version = "3.6.0";
 
   src = fetchFromGitHub {
-    owner = "viperML";
+    owner = "nix-community";
     repo = "nh";
-    rev = "refs/tags/v${version}";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-k8rz5RF1qi7RXzQYWGbw5pJRNRFIdX85SIYN+IHiVL4=";
   };
 
@@ -39,27 +39,33 @@ rustPlatform.buildRustPackage {
     darwin.apple_sdk.frameworks.SystemConfiguration
   ];
 
-  preFixup = ''
-    mkdir completions
-    $out/bin/nh completions --shell bash > completions/nh.bash
-    $out/bin/nh completions --shell zsh > completions/nh.zsh
-    $out/bin/nh completions --shell fish > completions/nh.fish
+  preFixup = lib.optionalString (stdenv.hostPlatform.emulatorAvailable buildPackages) (
+    let
+      emulator = stdenv.hostPlatform.emulator buildPackages;
+    in
+    ''
+      mkdir completions
+      ${emulator} $out/bin/nh completions --shell bash > completions/nh.bash
+      ${emulator} $out/bin/nh completions --shell zsh > completions/nh.zsh
+      ${emulator} $out/bin/nh completions --shell fish > completions/nh.fish
 
-    installShellCompletion completions/*
-  '';
+      installShellCompletion completions/*
+    ''
+  );
 
   postFixup = ''
     wrapProgram $out/bin/nh \
       --prefix PATH : ${lib.makeBinPath runtimeDeps}
   '';
 
-  cargoHash = "sha256-HfPzoAai6wK5IqNQY7yFVXatMcia9z0I84QNmNzHRoc=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-Csh8M5BquAD2vUYIu0nNWSvznTZxno1WxvkEhBVN+9c=";
 
   passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "Yet another nix cli helper";
-    homepage = "https://github.com/viperML/nh";
+    homepage = "https://github.com/nix-community/nh";
     license = lib.licenses.eupl12;
     mainProgram = "nh";
     maintainers = with lib.maintainers; [
@@ -67,4 +73,4 @@ rustPlatform.buildRustPackage {
       viperML
     ];
   };
-}
+})

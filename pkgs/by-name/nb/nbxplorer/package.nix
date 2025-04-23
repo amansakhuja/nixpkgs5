@@ -7,17 +7,17 @@
 
 buildDotnetModule rec {
   pname = "nbxplorer";
-  version = "2.5.7";
+  version = "2.5.25";
 
   src = fetchFromGitHub {
     owner = "dgarage";
     repo = "NBXplorer";
     rev = "v${version}";
-    sha256 = "sha256-Di/m8L6QggDZHgrQXDD69MBT4xGuilIAV4y/8raxLu4=";
+    sha256 = "sha256-RTkKyckdAv6+wJSlDlR+Q8fw0aZEbi4AwB+OPHI7TR4=";
   };
 
   projectFile = "NBXplorer/NBXplorer.csproj";
-  nugetDeps = ./deps.nix;
+  nugetDeps = ./deps.json;
 
   dotnet-sdk = dotnetCorePackages.sdk_8_0;
   dotnet-runtime = dotnetCorePackages.aspnetcore_8_0;

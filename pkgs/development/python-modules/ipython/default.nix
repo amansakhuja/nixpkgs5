@@ -3,6 +3,7 @@
   stdenv,
   buildPythonPackage,
   fetchPypi,
+  pythonAtLeast,
   pythonOlder,
 
   # Build dependencies
@@ -11,6 +12,7 @@
   # Runtime dependencies
   decorator,
   exceptiongroup,
+  ipython-pygments-lexers,
   jedi,
   matplotlib-inline,
   pexpect,
@@ -42,13 +44,13 @@
 
 buildPythonPackage rec {
   pname = "ipython";
-  version = "8.29.0";
+  version = "9.0.2";
   pyproject = true;
   disabled = pythonOlder "3.10";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-QLYOFbIlkUUO73PkCgJ893vWUudXUj7rxb18fEmCkOs=";
+    hash = "sha256-7HtHnj5WVr9PWMZSwSBJTfGCD08o9SL7fKCeITwqq1I=";
   };
 
   build-system = [ setuptools ];
@@ -56,6 +58,7 @@ buildPythonPackage rec {
   dependencies =
     [
       decorator
+      ipython-pygments-lexers
       jedi
       matplotlib-inline
       pexpect
@@ -101,6 +104,11 @@ buildPythonPackage rec {
     [
       # UnboundLocalError: local variable 'child' referenced before assignment
       "test_system_interrupt"
+    ]
+    ++ lib.optionals (pythonAtLeast "3.13") [
+      # AttributeError: 'Pdb' object has no attribute 'curframe'. Did you mean: 'botframe'?
+      "test_run_debug_twice"
+      "test_run_debug_twice_with_breakpoint"
     ]
     ++ lib.optionals (stdenv.hostPlatform.isDarwin) [
       # FileNotFoundError: [Errno 2] No such file or directory: 'pbpaste'

@@ -13,7 +13,7 @@
   pango,
   cairo,
   libxkbcommon,
-  mesa,
+  libgbm,
   expat,
   alsa-lib,
   buildFHSEnv,
@@ -22,10 +22,10 @@
 
 let
   pname = "typora";
-  version = "1.9.3";
+  version = "1.10.8";
   src = fetchurl {
     url = "https://download.typora.io/linux/typora_${version}_amd64.deb";
-    hash = "sha256-3rR/CvFFjRPkz27mm1Wt5hwgRUnLL7lpLFKA2moILx8=";
+    hash = "sha256-7auxTtdVafvM2fIpQVvEey1Q6eLVG3mLdjdZXcqSE/Q=";
   };
 
   typoraBase = stdenv.mkDerivation {
@@ -38,9 +38,11 @@ let
 
     installPhase = ''
       runHook preInstall
+
       mkdir -p $out/bin $out/share
       mv usr/share $out
       ln -s $out/share/typora/Typora $out/bin/Typora
+
       runHook postInstall
     '';
   };
@@ -64,7 +66,7 @@ let
         libdrm
         pango
         cairo
-        mesa
+        libgbm
         libGL
         expat
         libxkbcommon
@@ -119,17 +121,19 @@ stdenv.mkDerivation {
 
   installPhase = ''
     runHook preInstall
+
     mkdir -p $out/bin
     ln -s ${launchScript} $out/bin/typora
     ln -s ${typoraBase}/share/ $out
+
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Markdown editor, a markdown reader";
     homepage = "https://typora.io/";
-    license = licenses.unfree;
-    maintainers = with maintainers; [ npulidomateo ];
+    license = lib.licenses.unfree;
+    maintainers = with lib.maintainers; [ npulidomateo ];
     platforms = [ "x86_64-linux" ];
     mainProgram = "typora";
   };

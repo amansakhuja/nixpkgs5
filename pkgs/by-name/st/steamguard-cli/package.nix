@@ -8,16 +8,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "steamguard-cli";
-  version = "0.14.2";
+  version = "0.17.0";
 
   src = fetchFromGitHub {
     owner = "dyc3";
-    repo = pname;
+    repo = "steamguard-cli";
     rev = "v${version}";
-    hash = "sha256-SrMg/4bTAvk+2fLck8SJBMQ3bELu1OBB7pDZmk+rCbA=";
+    hash = "sha256-o4hJ8+FsFLKJwifLP3pGbn35SOsTTnQosO4IejitUeI=";
   };
 
-  cargoHash = "sha256-MSN0xQj6IfOjI0qQqVBaGhh0BQJa4z24El2rGLlFBSM=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-OBftq8bPqmc77oeOStAeXZN5DHfASdOJCrmgDTgHFWc=";
 
   nativeBuildInputs = [ installShellFiles ];
   postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''

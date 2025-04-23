@@ -21,7 +21,7 @@ stdenv.mkDerivation (finalAttrs: rec {
   src = fetchFromGitHub {
     owner = "strukturag";
     repo = "libde265";
-    rev = "refs/tags/v${version}";
+    tag = "v${version}";
     hash = "sha256-guiLM4RNe5O0qpeCoQUbs1Z7j0wp8iK9za2+6NIB8yY=";
   };
 
@@ -47,6 +47,6 @@ stdenv.mkDerivation (finalAttrs: rec {
     mainProgram = "dec265";
     license = lib.licenses.lgpl3;
     platforms = lib.platforms.unix;
-    maintainers = with lib.maintainers; [ gebner ];
+    maintainers = with lib.maintainers; [ ];
   };
 })

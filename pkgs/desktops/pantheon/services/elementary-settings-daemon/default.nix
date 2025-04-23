@@ -2,7 +2,6 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  fetchpatch,
   nix-update-script,
   meson,
   ninja,
@@ -27,23 +26,14 @@
 
 stdenv.mkDerivation rec {
   pname = "elementary-settings-daemon";
-  version = "8.1.0";
+  version = "8.3.0";
 
   src = fetchFromGitHub {
     owner = "elementary";
     repo = "settings-daemon";
     rev = version;
-    sha256 = "sha256-w5dRQPRsM52wqusTLLPmKmVwoBFS+pHOokfDmCDxVWM=";
+    sha256 = "sha256-0/G5h1eZi3qnjesrvWF6MiMX+FmpW4ys2tRUMBiUCS0=";
   };
-
-  patches = [
-    # Fix build with fwupd 2.0.0
-    # https://github.com/elementary/settings-daemon/pull/169
-    (fetchpatch {
-      url = "https://github.com/elementary/settings-daemon/commit/f9f9e6c49ef89451ad45aa8314769a0358a5e481.patch";
-      hash = "sha256-zLONUqRwODK3JXaoymztEfOIJONJpwcTp5AWv0Vl+EI=";
-    })
-  ];
 
   nativeBuildInputs = [
     desktop-file-utils

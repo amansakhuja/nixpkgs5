@@ -7,17 +7,17 @@
 
 buildGoModule rec {
   pname = "codeberg-pages";
-  version = "6.1";
+  version = "6.2.1";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "Codeberg";
     repo = "pages-server";
     rev = "v${version}";
-    hash = "sha256-zG+OicdwtiHm/Ji+xfB61leCq9Ni0ysXkh4pQRju7IA=";
+    hash = "sha256-kWEwKdm/GAUtsc4ZyCn7VJm9vVWDBOHJRer2FP1L/g0=";
   };
 
-  vendorHash = "sha256-OmrkO++2vnIY7ay4q3oplDYDPWH1d5VSpDCBM6nD4rk=";
+  vendorHash = "sha256-qGjcMZhwflYdwOrGS9EApkwVLLSolQBBIeU8AU/fT/I=";
 
   postPatch = ''
     # disable httptest
@@ -27,6 +27,8 @@ buildGoModule rec {
   ldflags = [
     "-s"
     "-w"
+    "-X"
+    "codeberg.org/codeberg/pages/server/version.Version=${version}"
   ];
 
   tags = [

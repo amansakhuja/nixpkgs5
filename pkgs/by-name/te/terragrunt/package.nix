@@ -2,27 +2,31 @@
   lib,
   buildGoModule,
   fetchFromGitHub,
+  versionCheckHook,
   go-mockery,
 }:
 
 buildGoModule rec {
   pname = "terragrunt";
-  version = "0.69.1";
+  version = "0.77.14";
 
   src = fetchFromGitHub {
     owner = "gruntwork-io";
     repo = pname;
-    rev = "refs/tags/v${version}";
-    hash = "sha256-/fQOrxfxZOuECp093M90KQRrCUSAqtQ5icTDTw8SM6k=";
+    tag = "v${version}";
+    hash = "sha256-bhIDYW6QWVQZSV8YaDUnThr3cSY1biSjezRLj+duZwg=";
   };
 
-  nativeBuildInputs = [ go-mockery ];
+  nativeBuildInputs = [
+    versionCheckHook
+    go-mockery
+  ];
 
   preBuild = ''
     make generate-mocks
   '';
 
-  vendorHash = "sha256-HcN5TRPpKpMpy7OwM9MfRVrvw5zCbPny7X2HgY8Iu1U=";
+  vendorHash = "sha256-V0HFTZlgsA7PeXjjLDDLJkmuATo9ln7+N0sBjAvTb3k=";
 
   doCheck = false;
 
@@ -34,13 +38,6 @@ buildGoModule rec {
   ];
 
   doInstallCheck = true;
-
-  installCheckPhase = ''
-    runHook preInstallCheck
-    $out/bin/terragrunt --help
-    $out/bin/terragrunt --version | grep "v${version}"
-    runHook postInstallCheck
-  '';
 
   meta = with lib; {
     homepage = "https://terragrunt.gruntwork.io";

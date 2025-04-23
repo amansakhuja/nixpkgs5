@@ -9,22 +9,22 @@
 
 buildGoModule rec {
   pname = "docker-credential-gcr";
-  version = "2.1.26";
+  version = "2.1.28";
 
   src = fetchFromGitHub {
     owner = "GoogleCloudPlatform";
     repo = "docker-credential-gcr";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-4sgUeEXBfP0qaR92ZulqAf1ObQBDbSjEHqhAqa0EV2Q=";
+    tag = "v${version}";
+    hash = "sha256-8aFkafSsn8BZz6tB3wh2OqQA6E10NyY3J1XqNgelk+A=";
   };
 
   postPatch = ''
     rm -rf ./test
   '';
 
-  vendorHash = "sha256-YcBDurQjGhjds3CB63gTjsPbsvlHJnGxWbsFrx3vCy4=";
+  vendorHash = "sha256-n6QnVPBCGJpaHxywYjk+qCN0FXmQAvkQPu6vHPv5QJA=";
 
-  CGO_ENABLED = 0;
+  env.CGO_ENABLED = 0;
 
   ldflags = [
     "-s"
@@ -52,7 +52,10 @@ buildGoModule rec {
     homepage = "https://github.com/GoogleCloudPlatform/docker-credential-gcr";
     changelog = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/tag/v${version}";
     license = licenses.asl20;
-    maintainers = with maintainers; [ suvash anthonyroussel ];
+    maintainers = with maintainers; [
+      suvash
+      anthonyroussel
+    ];
     mainProgram = "docker-credential-gcr";
   };
 }

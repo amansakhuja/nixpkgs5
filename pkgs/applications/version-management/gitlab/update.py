@@ -174,9 +174,9 @@ def update_rubyenv():
         with open(rubyenv_dir / fn, "w") as f:
             f.write(repo.get_file(fn, rev))
 
-    # patch for openssl 3.x support
+    # update to 1.2.9 to include https://gitlab.com/gitlab-org/ruby/gems/prometheus-client-mmap/-/commit/5d77f3f3e048834250589b416c6b3d4bba65a570
     subprocess.check_output(
-        ["sed", "-i", "s:'openssl', '2.*':'openssl', '3.0.2':g", "Gemfile"],
+        ["sed", "-i", "s:'prometheus-client-mmap', '~> 1.2.8':'prometheus-client-mmap', '~> 1.2.9':g", "Gemfile"],
         cwd=rubyenv_dir,
     )
 
@@ -216,7 +216,10 @@ def update_rubyenv():
 
     # Undo our gemset.nix patches so that bundix runs through
     subprocess.check_output(
-        ["sed", "-i", "-e", "1d", "-e", "s:\\${src}/::g", "gemset.nix"], cwd=rubyenv_dir
+        ["sed", "-i", "-e", "s|\\${src}/||g", "gemset.nix"], cwd=rubyenv_dir
+    )
+    subprocess.check_output(
+        ["sed", "-i", "-e", "s|^src:[[:space:]]||g", "gemset.nix"], cwd=rubyenv_dir
     )
 
     subprocess.check_output(["bundle", "lock"], cwd=rubyenv_dir)
@@ -227,7 +230,7 @@ def update_rubyenv():
             "sed",
             "-i",
             "-e",
-            "1i\\src:",
+            "1c\\src: {",
             "-e",
             's:path = \\(vendor/[^;]*\\);:path = "${src}/\\1";:g',
             "-e",

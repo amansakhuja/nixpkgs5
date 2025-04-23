@@ -8,11 +8,11 @@
 
 stdenv.mkDerivation rec {
   pname = "google-java-format";
-  version = "1.25.0";
+  version = "1.26.0";
 
   src = fetchurl {
     url = "https://github.com/google/google-java-format/releases/download/v${version}/google-java-format-${version}-all-deps.jar";
-    sha256 = "sha256-i9lJ6EpkNQRs8Y3fp2lmHqrJ2iGy08pGxLoS+WY3vLs=";
+    sha256 = "sha256-AqNhNXKX+pYpGMHQiDDVCxfWKYTSqGSRWblbmm2fgrI=";
   };
 
   dontUnpack = true;

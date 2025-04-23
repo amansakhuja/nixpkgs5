@@ -2,7 +2,6 @@
   stdenv,
   lib,
   fetchzip,
-  fetchpatch,
   rustPlatform,
 
   # native build inputs
@@ -12,6 +11,7 @@
   mandoc,
   rustfmt,
   file,
+  writableTmpDirAsHomeHook,
 
   # build inputs
   openssl,
@@ -25,7 +25,7 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "meli";
-  version = "0.8.10";
+  version = "0.8.11";
 
   src = fetchzip {
     urls = [
@@ -33,10 +33,11 @@ rustPlatform.buildRustPackage rec {
       "https://codeberg.org/meli/meli/archive/v${version}.tar.gz"
       "https://github.com/meli/meli/archive/refs/tags/v${version}.tar.gz"
     ];
-    hash = "sha256-MGnCX/6pnKNxDEqCcVWTl/fteMypk+N2PrJYRMP0sL0=";
+    hash = "sha256-q3vnvH0GWnrfYnk2WBRLTDInJ/wazI4JtkEMwiWanfI=";
   };
 
-  cargoHash = "sha256-w0fxh3c54Hcczc9NW8heewrRFx7UZnQqAHiQWZ43wKw=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-OAytdJgIiaS0xsHWOgNW2dkRQEyU9xcyaJtxClWzfjQ=";
 
   # Needed to get openssl-sys to use pkg-config
   OPENSSL_NO_VENDOR = 1;
@@ -58,6 +59,7 @@ rustPlatform.buildRustPackage rec {
   nativeCheckInputs = [
     file
     gnum4
+    writableTmpDirAsHomeHook
   ];
 
   postInstall = ''
@@ -66,10 +68,6 @@ rustPlatform.buildRustPackage rec {
     wrapProgram $out/bin/meli \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ gpgme ]} \
       --prefix PATH : ${lib.makeBinPath [ gnum4 ]}
-  '';
-
-  preCheck = ''
-    export HOME=$(mktemp -d)
   '';
 
   checkFlags = [

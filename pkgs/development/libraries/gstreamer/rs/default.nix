@@ -2,7 +2,6 @@
   lib,
   stdenv,
   fetchFromGitLab,
-  fetchFromGitHub,
   fetchpatch,
   rustPlatform,
   meson,
@@ -35,6 +34,7 @@
   # Checks meson.is_cross_build(), so even canExecute isn't enough.
   enableDocumentation ? stdenv.hostPlatform == stdenv.buildPlatform && plugins == null,
   hotdoc,
+  mopidy,
 }:
 
 let
@@ -100,19 +100,7 @@ let
     # video
     cdg = [ ];
     closedcaption = [ pango ];
-    dav1d = [
-      # Only dav1d < 1.3 is supported for now.
-      # https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/merge_requests/1393
-      (dav1d.overrideAttrs rec {
-        version = "1.2.1";
-        src = fetchFromGitHub {
-          owner = "videolan";
-          repo = "dav1d";
-          rev = version;
-          hash = "sha256-RrEim3HXXjx2RUU7K3wPH3QbhNTRN9ZX/oAcyE9aV8I=";
-        };
-      })
-    ];
+    dav1d = [ dav1d ];
     ffv1 = [ ];
     gif = [ ];
     gtk4 = [ gtk4 ];
@@ -170,7 +158,7 @@ assert lib.assertMsg (invalidPlugins == [ ])
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "gst-plugins-rs";
-  version = "0.12.8";
+  version = "0.13.5";
 
   outputs = [
     "out"
@@ -182,7 +170,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "gstreamer";
     repo = "gst-plugins-rs";
     rev = finalAttrs.version;
-    hash = "sha256-AGXKI/0Y2BdaSnpQAt3T/rkYlM8UpQpKm4kMAGd6Dyk=";
+    hash = "sha256-5jR/YLCBeFnB0+O2OOCLBEKwikiQ5e+SbOeQCijnd8Q=";
     # TODO: temporary workaround for case-insensitivity problems with color-name crate - https://github.com/annymosse/color-name/pull/2
     postFetch = ''
       sedSearch="$(cat <<\EOF | sed -ze 's/\n/\\n/g'
@@ -204,17 +192,25 @@ stdenv.mkDerivation (finalAttrs: {
     '';
   };
 
-  cargoDeps = rustPlatform.importCargoLock {
-    lockFile = ./Cargo.lock;
-    outputHashes = {
-      "cairo-rs-0.19.8" = "sha256-AdIUcxxuZVAWQ+KOBTrtsvTu4KtFiXkQPYWT9Avt7Z0=";
-      "color-name-1.1.0" = "sha256-RfMStbe2wX5qjPARHIFHlSDKjzx8DwJ+RjzyltM5K7A=";
-      "ffv1-0.0.0" = "sha256-af2VD00tMf/hkfvrtGrHTjVJqbl+VVpLaR0Ry+2niJE=";
-      "flavors-0.2.0" = "sha256-zBa0X75lXnASDBam9Kk6w7K7xuH9fP6rmjWZBUB5hxk=";
-      "gdk4-0.8.2" = "sha256-DZjHlhzrELZ8M5YUM5kSeOphjF7863DmywFgGbZL4Jo=";
-      "gstreamer-0.22.7" = "sha256-vTEDqmyqhj9e7r7N0QfG4uTNBizrU0gTUfLOJ8kU1JE=";
-    };
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs) src patches;
+    name = "gst-plugins-rs-${finalAttrs.version}";
+    hash = "sha256-ErQ5Um0e7bWhzDErEN9vmSsKTpTAm4MA5PZ7lworVKU=";
   };
+
+  patches = [
+    # Disable uriplaylistbin test that requires network access.
+    # https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/issues/676
+    # TODO: Remove in 0.14, it has been replaced by a different fix:
+    # https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/merge_requests/2140
+    ./ignore-network-tests.patch
+
+    # Fix reqwest tests failing due to broken TLS lookup in native-tls dependency.
+    # https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/issues/675
+    # Cannot be upstreamed due to MSRV bump in native-tls:
+    # https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/merge_requests/2142
+    ./reqwest-init-tls.patch
+  ];
 
   strictDeps = true;
 
@@ -272,12 +268,12 @@ stdenv.mkDerivation (finalAttrs: {
       export CSOUND_LIB_DIR=${lib.getLib csound}/lib
     '';
 
-  # give meson longer before timing out for tests
-  mesonCheckFlags = [
-    "--verbose"
-    "--timeout-multiplier"
-    "12"
-  ];
+  mesonCheckFlags = [ "--verbose" ];
+
+  preCheck = ''
+    # Fontconfig error: No writable cache directories
+    export XDG_CACHE_HOME=$(mktemp -d)
+  '';
 
   doInstallCheck =
     (lib.elem "webp" selectedPlugins) && !stdenv.hostPlatform.isStatic && stdenv.hostPlatform.isElf;
@@ -287,13 +283,21 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstallCheck
   '';
 
-  passthru.updateScript = nix-update-script {
-    # use numbered releases rather than gstreamer-* releases
-    # this matches upstream's recommendation: https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/issues/470#note_2202772
-    extraArgs = [
-      "--version-regex"
-      "([0-9.]+)"
-    ];
+  passthru = {
+    tests = {
+      # Applies patches.
+      # TODO: remove with 0.14
+      inherit mopidy;
+    };
+
+    updateScript = nix-update-script {
+      # use numbered releases rather than gstreamer-* releases
+      # this matches upstream's recommendation: https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/issues/470#note_2202772
+      extraArgs = [
+        "--version-regex"
+        "([0-9.]+)"
+      ];
+    };
   };
 
   meta = with lib; {

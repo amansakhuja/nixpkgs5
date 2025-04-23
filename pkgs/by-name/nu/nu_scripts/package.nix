@@ -1,18 +1,19 @@
-{ lib
-, stdenvNoCC
-, fetchFromGitHub
-, unstableGitUpdater
+{
+  lib,
+  stdenvNoCC,
+  fetchFromGitHub,
+  unstableGitUpdater,
 }:
 
 stdenvNoCC.mkDerivation rec {
   pname = "nu_scripts";
-  version = "0-unstable-2024-11-10";
+  version = "0-unstable-2025-04-14";
 
   src = fetchFromGitHub {
     owner = "nushell";
     repo = pname;
-    rev = "1ed7ef9401f3793fb946ef3add82f05f091299ff";
-    hash = "sha256-ee06x4Txa58vHEheyYoLx/KOX3Y6Np3HDgK/BZI5Dfw=";
+    rev = "c639113adebdf05f25e0e33b833798a6b0c624d4";
+    hash = "sha256-aeYe642070aAvhIES9apQAC/vyj7pnXiQbn7QTYVVlQ=";
   };
 
   installPhase = ''

@@ -1,6 +1,5 @@
 {
   lib,
-  stdenv,
   buildPythonPackage,
   fetchFromGitHub,
 
@@ -59,24 +58,15 @@
 
 buildPythonPackage rec {
   pname = "transformers";
-  version = "4.47.0";
+  version = "4.51.3";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "huggingface";
     repo = "transformers";
     tag = "v${version}";
-    hash = "sha256-TQQ+w+EH/KWLE7iaaAHGxfE74hCiLXcqlIr1TIBFGvo=";
+    hash = "sha256-VYEkBt0fpG27MVdnABcMAMmk2Pzsc+2Fetx/GmeFBac=";
   };
-
-  # torch.distributed is not available on darwin
-  # Fix submitted upstream in https://github.com/huggingface/transformers/pull/35133
-  postPatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
-    substituteInPlace src/transformers/pytorch_utils.py \
-      --replace-fail \
-        'if is_torch_greater_or_equal("2.5"):' \
-        'if False:'
-  '';
 
   build-system = [ setuptools ];
 
@@ -143,6 +133,9 @@ buildPythonPackage rec {
         jaxlib
         flax
         optax
+      ];
+      hf_xet = [
+        # hf-xet (unpackaged)
       ];
       tokenizers = [ tokenizers ];
       ftfy = [ ftfy ];

@@ -5,26 +5,27 @@
   fetchFromGitHub,
   alsa-utils,
   copyDesktopItems,
-  electron_32,
+  electron_35,
   makeDesktopItem,
   makeWrapper,
   nix-update-script,
   versionCheckHook,
+  vulkan-loader,
   which,
 }:
 
 buildNpmPackage rec {
   pname = "teams-for-linux";
-  version = "1.12.3";
+  version = "2.0.8";
 
   src = fetchFromGitHub {
     owner = "IsmaelMartinez";
     repo = "teams-for-linux";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-uEyRozJR9KOVfiSiIUAZfNrExNn3rO21VRG5y4FumV4=";
+    tag = "v${version}";
+    hash = "sha256-w5Mnn1L1qr8IrLx9IpZoiMd74qD8Gf7ODvtgApp71cQ=";
   };
 
-  npmDepsHash = "sha256-APHPnKyGqYKgve+34csa2RUmPvNZkMtzVE6nW/MjyyE=";
+  npmDepsHash = "sha256-sUdWzVe9FbC9ayj4UrdAAGC3QbmDSSnFaVrROG6Jxjo=";
 
   nativeBuildInputs = [
     makeWrapper
@@ -39,21 +40,31 @@ buildNpmPackage rec {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
   };
 
-  buildPhase = ''
-    runHook preBuild
+  makeCacheWritable = true;
 
-    cp -r ${electron_32.dist} electron-dist
-    chmod -R u+w electron-dist
+  buildPhase =
+    ''
+      runHook preBuild
 
-    npm exec electron-builder -- \
-        --dir \
-        -c.npmRebuild=true \
-        -c.asarUnpack="**/*.node" \
-        -c.electronDist=electron-dist \
-        -c.electronVersion=${electron_32.version}
+      cp -r ${electron_35.dist} electron-dist
+      chmod -R u+w electron-dist
+    ''
+    # Electron builder complains about symlink in electron-dist
+    + lib.optionalString stdenv.hostPlatform.isLinux ''
+      rm electron-dist/libvulkan.so.1
+      cp ${lib.getLib vulkan-loader}/lib/libvulkan.so.1 electron-dist
+    ''
+    + ''
 
-    runHook postBuild
-  '';
+      npm exec electron-builder -- \
+          --dir \
+          -c.npmRebuild=true \
+          -c.asarUnpack="**/*.node" \
+          -c.electronDist=electron-dist \
+          -c.electronVersion=${electron_35.version}
+
+      runHook postBuild
+    '';
 
   installPhase =
     ''
@@ -72,7 +83,7 @@ buildNpmPackage rec {
       popd
 
       # Linux needs 'aplay' for notification sounds
-      makeWrapper '${lib.getExe electron_32}' "$out/bin/teams-for-linux" \
+      makeWrapper '${lib.getExe electron_35}' "$out/bin/teams-for-linux" \
         --prefix PATH : ${
           lib.makeBinPath [
             alsa-utils
@@ -109,7 +120,7 @@ buildNpmPackage rec {
 
   passthru.updateScript = nix-update-script { };
 
-  versionCheckProgramArg = [ "--version" ];
+  versionCheckProgramArg = "--version";
 
   meta = {
     description = "Unofficial Microsoft Teams client for Linux";

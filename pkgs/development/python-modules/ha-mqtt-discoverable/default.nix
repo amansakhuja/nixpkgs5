@@ -8,12 +8,11 @@
   pyaml,
   pydantic,
   pythonOlder,
-  thelogrus,
 }:
 
 buildPythonPackage rec {
   pname = "ha-mqtt-discoverable";
-  version = "0.16.0";
+  version = "0.19.1";
   pyproject = true;
 
   disabled = pythonOlder "3.10";
@@ -21,11 +20,15 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "unixorn";
     repo = "ha-mqtt-discoverable";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-IdyrcqRX5YXS6tx5qP7vOnAJpvy5sOsCwFpWMdyYaeI=";
+    tag = "v${version}";
+    hash = "sha256-zQ3ABrKhuWBZhRPM5tH8VmYErM+mP26rNweFOpoSeEg=";
   };
 
-  pythonRelaxDeps = [ "pyaml" ];
+  pythonRelaxDeps = [
+    "paho-mqtt"
+    "pyaml"
+    "pydantic"
+  ];
 
   build-system = [ poetry-core ];
 
@@ -34,7 +37,6 @@ buildPythonPackage rec {
     paho-mqtt
     pyaml
     pydantic
-    thelogrus
   ];
 
   # Test require a running Mosquitto instance

@@ -17,7 +17,7 @@
 
 buildPythonPackage rec {
   pname = "tldextract";
-  version = "5.1.3";
+  version = "5.2.0";
   pyproject = true;
 
   disabled = pythonOlder "3.8";
@@ -25,8 +25,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "john-kurkowski";
     repo = "tldextract";
-    rev = "refs/tags/${version}";
-    hash = "sha256-gcgQGZS/dsTTC4Szpjreb2fAsVZxxOCE1erVvU1q4xM=";
+    tag = version;
+    hash = "sha256-5/o/9XRIe1BpLJCiTln0C80aT9V9sg308SDtCae6HAE=";
   };
 
   nativeBuildInputs = [
@@ -57,7 +57,7 @@ buildPythonPackage rec {
       from the registered domain and subdomains of a URL.
     '';
     homepage = "https://github.com/john-kurkowski/tldextract";
-    changelog = "https://github.com/john-kurkowski/tldextract/blob/${version}/CHANGELOG.md";
+    changelog = "https://github.com/john-kurkowski/tldextract/blob/${src.tag}/CHANGELOG.md";
     license = with licenses; [ bsd3 ];
     maintainers = with maintainers; [ fab ];
     mainProgram = "tldextract";

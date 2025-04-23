@@ -1,17 +1,18 @@
 {
   lib,
-  buildGo122Module,
+  buildGoModule,
   fetchFromGitHub,
+  stdenv,
 }:
 
-buildGo122Module rec {
+buildGoModule rec {
   pname = "ali";
   version = "0.7.5";
 
   src = fetchFromGitHub {
     owner = "nakabonne";
     repo = "ali";
-    rev = "refs/tags/v${version}";
+    tag = "v${version}";
     hash = "sha256-/pdHlI20IzSTX2pnsbxPiJiWmOCbp13eJWLi0Tcsueg=";
   };
 
@@ -25,5 +26,8 @@ buildGo122Module rec {
     platforms = platforms.linux ++ platforms.darwin;
     maintainers = with maintainers; [ farcaller ];
     mainProgram = "ali";
+    # Broken on darwin for Go toolchain > 1.22, with error:
+    # 'link: golang.org/x/net/internal/socket: invalid reference to syscall.recvmsg'
+    broken = stdenv.hostPlatform.isDarwin;
   };
 }

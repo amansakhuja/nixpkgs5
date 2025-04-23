@@ -1,16 +1,17 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, coreutils
-, curl
-, dnsutils
-, gnugrep
-, gnused
-, iproute2
-, makeWrapper
-, openssl
-, socat
-, unixtools
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  coreutils,
+  curl,
+  dnsutils,
+  gnugrep,
+  gnused,
+  iproute2,
+  makeWrapper,
+  openssl,
+  socat,
+  unixtools,
 }:
 
 stdenv.mkDerivation rec {
@@ -20,7 +21,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "acmesh-official";
     repo = "acme.sh";
-    rev = "refs/tags/${version}";
+    tag = version;
     hash = "sha256-BPZ+5xvKqEaz+tkccVL0hEDAxLkICW5O+qPf73bOqRU=";
   };
 
@@ -28,28 +29,29 @@ stdenv.mkDerivation rec {
     makeWrapper
   ];
 
-  installPhase = let
-    binPath = lib.makeBinPath [
-      coreutils
-      curl
-      dnsutils
-      gnugrep
-      gnused
-      openssl
-      socat
-      (if stdenv.hostPlatform.isLinux then iproute2 else unixtools.netstat)
-    ];
-  in
+  installPhase =
+    let
+      binPath = lib.makeBinPath [
+        coreutils
+        curl
+        dnsutils
+        gnugrep
+        gnused
+        openssl
+        socat
+        (if stdenv.hostPlatform.isLinux then iproute2 else unixtools.netstat)
+      ];
+    in
     ''
-    runHook preInstall
+      runHook preInstall
 
-    mkdir -p $out $out/bin $out/libexec
-    cp -R $src/* $_
-    makeWrapper $out/libexec/acme.sh $out/bin/acme.sh \
-      --prefix PATH : "${binPath}"
+      mkdir -p $out $out/bin $out/libexec
+      cp -R $src/* $_
+      makeWrapper $out/libexec/acme.sh $out/bin/acme.sh \
+        --prefix PATH : "${binPath}"
 
-    runHook postInstall
-  '';
+      runHook postInstall
+    '';
 
   meta = with lib; {
     homepage = "https://acme.sh/";

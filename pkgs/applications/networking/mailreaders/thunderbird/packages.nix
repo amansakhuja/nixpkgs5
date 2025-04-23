@@ -28,12 +28,12 @@ let
       version,
       sha512,
       updateScript,
+      applicationName ? "Thunderbird",
     }:
     (buildMozillaMach rec {
       pname = "thunderbird";
-      inherit version updateScript;
+      inherit version updateScript applicationName;
       application = "comm/mail";
-      applicationName = "Mozilla Thunderbird";
       binaryName = pname;
       src = fetchurl {
         url = "mirror://mozilla/thunderbird/releases/${version}/source/thunderbird-${version}.source.tar.xz";
@@ -42,6 +42,12 @@ let
       extraPatches = [
         # The file to be patched is different from firefox's `no-buildconfig-ffx90.patch`.
         ./no-buildconfig.patch
+        # clang-19 fixes for char_traits build issue
+        # https://github.com/rnpgp/rnp/pull/2242/commits/e0790a2c4ff8e09d52522785cec1c9db23d304ac
+        # https://github.com/rnpgp/sexpp/pull/54/commits/46744a14ffc235330bb99cebfaf294829c31bba4
+        # Remove when upstream bumps bundled rnp version: https://bugzilla.mozilla.org/show_bug.cgi?id=1893950
+        ./0001-Removed-lookup-against-basic_string-uint8_t.patch
+        ./0001-Implemented-char_traits-for-SEXP-octet_t.patch
       ];
 
       extraPassthru = {
@@ -76,12 +82,11 @@ let
 
 in
 rec {
-  # Upstream claims -latest is "for testing purposes only". Stick to -esr until this changes.
-  thunderbird = thunderbird-esr;
+  thunderbird = thunderbird-latest;
 
   thunderbird-latest = common {
-    version = "133.0";
-    sha512 = "8cf8973964cabdc7fafe83d1dfd4f9fbfd340638b1f3d396a98059c00650549b0f4a7bfc486a294b2966136266d4524d6c825a6ee344cd753ac2f7ab412cbc96";
+    version = "137.0.1";
+    sha512 = "387f04aff9380c7261c574e7ef2e4972d63ebfb2768e25aa41a5ee2f3a755780a84099532cf4c1b5635db3412ab543e9b17b0a0476ec06c547b2dc678f19795f";
 
     updateScript = callPackage ./update.nix {
       attrPath = "thunderbirdPackages.thunderbird-latest";
@@ -92,8 +97,10 @@ rec {
   thunderbird-esr = thunderbird-128;
 
   thunderbird-128 = common {
-    version = "128.5.1esr";
-    sha512 = "1dfa0752a1dbfc4d7516beab13e188aa40c145f2eb0554441ecc4dff739cc862c15fdfdd8c0cc026d010ba3caa57d6168da35e484c04989fb6c81f5c09215831";
+    applicationName = "Thunderbird ESR";
+
+    version = "128.9.2esr";
+    sha512 = "3c8df53304611c1a7f8c02d50cfa1017f4d64c50a93fd6603ce0766cbb5d63c7bc5e0276f155c35817c3efa49f683c05583ddf24257bf8c25f585b67fd732cb5";
 
     updateScript = callPackage ./update.nix {
       attrPath = "thunderbirdPackages.thunderbird-128";

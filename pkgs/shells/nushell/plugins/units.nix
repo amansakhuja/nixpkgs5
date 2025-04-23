@@ -11,15 +11,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "nushell_plugin_units";
-  version = "0.1.3";
+  version = "0.1.5";
 
   src = fetchFromGitHub {
     repo = "nu_plugin_units";
     owner = "JosephTLyons";
     rev = "v${version}";
-    hash = "sha256-zPN18ECzh2/l0kxp+Vyp3d9kCq3at/7SqMYbV3WDV3I=";
+    hash = "sha256-Uw8OcfSETRceaoEnJP1B++v0SqGjzaYz1wCMVMe774s=";
   };
-  cargoHash = "sha256-6NWyuErdxj7//wW4L7ijW4RiWqdwbeTrelIjpisAGkg=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-3v9jP8nL0JqtC76igsCytkQAVTgWqzHH0KQX3o6bi0c=";
 
   nativeBuildInputs = [ pkg-config ] ++ lib.optionals stdenv.cc.isClang [ rustPlatform.bindgenHook ];
   buildInputs = lib.optionals stdenv.hostPlatform.isDarwin [

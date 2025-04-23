@@ -3,13 +3,13 @@
   buildPythonPackage,
   fetchPypi,
   dash,
-  setuptools,
+  hatchling,
   pythonOlder,
 }:
 
 buildPythonPackage rec {
   pname = "dash-bootstrap-components";
-  version = "1.6.0";
+  version = "2.0.0";
   pyproject = true;
 
   disabled = pythonOlder "3.8";
@@ -17,10 +17,10 @@ buildPythonPackage rec {
   src = fetchPypi {
     inherit version;
     pname = "dash_bootstrap_components";
-    hash = "sha256-lgoeyTl1dHkvSagkECT6POzeD1kwyXGj/IHwFsvrEJU=";
+    hash = "sha256-cRIwo164ZmS1wFUqkdFZ9LRz2EEs9bSPNF+7ARjq35E=";
   };
 
-  build-system = [ setuptools ];
+  build-system = [ hatchling ];
 
   dependencies = [ dash ];
 

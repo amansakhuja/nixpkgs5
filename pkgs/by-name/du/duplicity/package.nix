@@ -22,13 +22,13 @@
 let
   self = python3.pkgs.buildPythonApplication rec {
     pname = "duplicity";
-    version = "3.0.3.1";
+    version = "3.0.4";
 
     src = fetchFromGitLab {
       owner = "duplicity";
       repo = "duplicity";
       rev = "rel.${version}";
-      hash = "sha256-s8yPmuGivvmqAKsdaGouP/UoK6Ea27HjvSm39eQuKF0=";
+      hash = "sha256-FoaKuB0mo2RFksMHnIUx984+h/U0tdvk+bvsuYt3r5g=";
     };
 
     patches = [
@@ -49,14 +49,14 @@ let
           --replace-fail /var/log /test/log
         substituteInPlace testing/unit/test_selection.py \
           --replace-fail /usr/bin /dev
-        # don't use /tmp/ in tests
-        substituteInPlace duplicity/backends/_testbackend.py \
-          --replace-fail '"/tmp/' 'os.environ.get("TMPDIR")+"/'
       '';
 
-    disabledTests = lib.optionals stdenv.hostPlatform.isDarwin [
-      # uses /tmp/
-      "testing/unit/test_cli_main.py::CommandlineTest::test_intermixed_args"
+    disabledTests = [
+      # fails on some unsupported backends, e.g.
+      # ************* Module duplicity.backends.swiftbackend
+      # duplicity/backends/swiftbackend.py:176: [E0401(import-error), SwiftBackend._put] Unable to import 'swiftclient.service'
+      "test_pylint"
+      "test_black"
     ];
 
     nativeBuildInputs = [
@@ -65,6 +65,8 @@ let
       python3.pkgs.wrapPython
       wrapGAppsNoGuiHook
       python3.pkgs.setuptools-scm
+      python3.pkgs.pycodestyle
+      python3.pkgs.pylint
     ];
 
     buildInputs = [
@@ -88,7 +90,8 @@ let
         paramiko
         pyasn1
         pycrypto
-        pydrive2
+        # Currently marked as broken.
+        # pydrive2
         future
       ]
       ++ paramiko.optional-dependencies.invoke;
@@ -156,7 +159,7 @@ let
       updateScript = nix-update-script {
         extraArgs = [
           "--version-regex"
-          "rel\.(.*)"
+          "rel\\.(.*)"
         ];
       };
 

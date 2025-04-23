@@ -16,6 +16,7 @@
   freetype,
   libjpeg,
   libpng,
+  libX11,
   harfbuzz,
   mcpp,
   wiiuse,
@@ -106,6 +107,7 @@ stdenv.mkDerivation rec {
       curl
       libjpeg
       libpng
+      libX11
       harfbuzz
       mcpp
       wiiuse
@@ -164,7 +166,6 @@ stdenv.mkDerivation rec {
     homepage = "https://supertuxkart.net/";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [
-      pyrolagus
       peterhoeg
     ];
     platforms = with platforms; unix;

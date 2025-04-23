@@ -12,7 +12,7 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "wallarm";
     repo = "gotestwaf";
-    rev = "refs/tags/v${version}";
+    tag = "v${version}";
     hash = "sha256-bZ8cNREPUgIO7lJg0WBtc9qvkDUnfqtFNi612Ctcxo8=";
   };
 
@@ -31,7 +31,7 @@ buildGoModule rec {
 
   doInstallCheck = true;
 
-  versionCheckProgramArg = [ "--version" ];
+  versionCheckProgramArg = "--version";
 
   meta = with lib; {
     description = "Tool for API and OWASP attack simulation";

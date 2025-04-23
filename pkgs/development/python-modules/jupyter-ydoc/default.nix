@@ -1,7 +1,7 @@
 {
   lib,
   buildPythonPackage,
-  fetchPypi,
+  fetchFromGitHub,
 
   # build-system
   hatch-nodejs-version,
@@ -18,13 +18,14 @@
 
 buildPythonPackage rec {
   pname = "jupyter-ydoc";
-  version = "3.0.1";
+  version = "3.0.4";
   pyproject = true;
 
-  src = fetchPypi {
-    pname = "jupyter_ydoc";
-    inherit version;
-    hash = "sha256-ztrp8+4KdyiDF/IbuBhI7WFnTRukaLDDlsFgomSiEGs=";
+  src = fetchFromGitHub {
+    owner = "jupyter-server";
+    repo = "jupyter_ydoc";
+    tag = "v${version}";
+    hash = "sha256-dD4ZLT5yKGdvWnsPd3nAKmi6Ca+MK5f/ufyNfbGMmoM=";
   };
 
   build-system = [

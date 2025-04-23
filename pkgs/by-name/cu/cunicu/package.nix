@@ -4,20 +4,24 @@
   buildGoModule,
   fetchFromGitHub,
   installShellFiles,
+  versionCheckHook,
   protobuf,
   protoc-gen-go,
   protoc-gen-go-grpc,
+  nix-update-script,
 }:
 buildGoModule rec {
   pname = "cunicu";
-  version = "0.5.65";
+  version = "0.12.0";
 
   src = fetchFromGitHub {
     owner = "cunicu";
     repo = "cunicu";
     rev = "v${version}";
-    hash = "sha256-U+aFGh6OykjBUQvpm4TGE1AMfK0CAgjXjszC634x+/g=";
+    hash = "sha256-1y9olRSPu2akvE728oXBr70Pt03xj65R2GaOlZ/7RTg=";
   };
+
+  vendorHash = "sha256-yFpkYI6ue5LXwRCj4EqWDBaO3TYzZ3Ov/39PRQWMWzk=";
 
   nativeBuildInputs = [
     installShellFiles
@@ -26,9 +30,11 @@ buildGoModule rec {
     protoc-gen-go-grpc
   ];
 
-  CGO_ENABLED = 0;
+  nativeInstallCheckInputs = [
+    versionCheckHook
+  ];
 
-  vendorHash = "sha256-g6qjtdxqwABjxm6kdqwtVgYHFqEvcU6PI4bCmebXt/U=";
+  env.CGO_ENABLED = 0;
 
   # These packages contain networking dependent tests which fail in the sandbox
   excludedPackages = [
@@ -42,6 +48,11 @@ buildGoModule rec {
     "-X cunicu.li/cunicu/pkg/buildinfo.Version=${version}"
     "-X cunicu.li/cunicu/pkg/buildinfo.BuiltBy=Nix"
   ];
+
+  doInstallCheck = true;
+  versionCheckProgramArg = "version";
+
+  passthru.updateScript = nix-update-script { };
 
   preBuild = ''
     go generate ./...

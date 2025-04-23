@@ -5,28 +5,35 @@
   fetchFromGitHub,
   installShellFiles,
   buildPackages,
-  testers,
+  versionCheckHook,
   nix-update-script,
-  hugo,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "hugo";
-  version = "0.139.3";
+  version = "0.146.4";
 
   src = fetchFromGitHub {
     owner = "gohugoio";
     repo = "hugo";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-bUqLVM1jQ6LVsnDIP2NanmmEFe3mDUt446kH9I0aZQI=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-acOHFKNtzGV6CAhdBBBWAyS9Iuf3rq4XaIUnf2m6UWE=";
   };
 
-  vendorHash = "sha256-LwXrCYGlWe6dOdPTh3YKhJDUID6e+OUOfDYtYxYnx/Y=";
+  vendorHash = "sha256-LSNy65sIuq/zK3swdUvxGwbo/3ulq+JP5ur7M7aTdAs=";
 
-  checkFlags = [
-    # Workaround for "failed to load modules"
-    "-skip=TestCommands/mod"
-  ];
+  checkFlags =
+    let
+      skippedTestPrefixes = [
+        # Workaround for "failed to load modules"
+        "TestCommands/mod"
+        # Server tests are flaky, at least in x86_64-darwin. See #368072
+        # We can try testing again after updating the `httpget` helper
+        # ref: https://github.com/gohugoio/hugo/blob/v0.140.1/main_test.go#L220-L233
+        "TestCommands/server"
+      ];
+    in
+    [ "-skip=^${builtins.concatStringsSep "|^" skippedTestPrefixes}" ];
 
   proxyVendor = true;
 
@@ -58,16 +65,17 @@ buildGoModule rec {
         --zsh  <(${emulator} $out/bin/hugo completion zsh)
     '';
 
-  passthru.tests.version = testers.testVersion {
-    package = hugo;
-    command = "hugo version";
-    version = "v${version}";
-  };
+  nativeInstallCheckInputs = [
+    versionCheckHook
+  ];
+  doInstallCheck = true;
+  versionCheckProgram = "${placeholder "out"}/bin/hugo";
+  versionCheckProgramArg = "version";
 
   passthru.updateScript = nix-update-script { };
 
   meta = {
-    changelog = "https://github.com/gohugoio/hugo/releases/tag/v${version}";
+    changelog = "https://github.com/gohugoio/hugo/releases/tag/v${finalAttrs.version}";
     description = "Fast and modern static website engine";
     homepage = "https://gohugo.io";
     license = lib.licenses.asl20;
@@ -76,6 +84,8 @@ buildGoModule rec {
       schneefux
       Br1ght0ne
       Frostman
+      kachick
+      federicoschonborn
     ];
   };
-}
+})

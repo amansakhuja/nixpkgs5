@@ -3,10 +3,11 @@
   callPackage,
   mkCoqDerivation,
   coq,
+  stdlib,
   version ? null,
 }:
 
-(mkCoqDerivation rec {
+(mkCoqDerivation {
   pname = "itauto";
   owner = "fbesson";
   domain = "gitlab.inria.fr";
@@ -63,6 +64,8 @@
 
   passthru.tests.suite = callPackage ./test.nix { };
 
+  propagatedBuildInputs = [ stdlib ];
+
   meta = with lib; {
     description = "Reflexive SAT solver parameterised by a leaf tactic and Nelson-Oppen support";
     maintainers = with maintainers; [ siraben ];
@@ -72,7 +75,7 @@
   (
     o:
     lib.optionalAttrs (o.version == "dev" || lib.versionAtLeast o.version "8.16") {
-      propagatedBuildInputs = [ coq.ocamlPackages.findlib ];
+      propagatedBuildInputs = o.propagatedBuildInputs ++ [ coq.ocamlPackages.findlib ];
     }
     // lib.optionalAttrs (o.version == "dev" || lib.versionAtLeast o.version "8.18") {
       nativeBuildInputs = with coq.ocamlPackages; [

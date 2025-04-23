@@ -15,7 +15,7 @@ in
   zlib,
   python3,
   lldb,
-  dotnet-sdk_8,
+  dotnetCorePackages,
   maven,
   openssl,
   expat,
@@ -44,6 +44,8 @@ let
 
   products = versions.${system} or (throw "Unsupported system: ${system}");
 
+  dotnet-sdk = dotnetCorePackages.sdk_8_0-source;
+
   package = if stdenv.hostPlatform.isDarwin then ./bin/darwin.nix else ./bin/linux.nix;
   mkJetBrainsProductCore = callPackage package { inherit vmopts; };
   mkMeta = meta: fromSource: {
@@ -53,7 +55,7 @@ let
       + lib.optionalString meta.isOpenSource (
         if fromSource then " (built from source)" else " (patched binaries from jetbrains)"
       );
-    maintainers = map (x: lib.maintainers."${x}") meta.maintainers;
+    maintainers = lib.teams.jetbrains.members ++ map (x: lib.maintainers."${x}") meta.maintainers;
     license = if meta.isOpenSource then lib.licenses.asl20 else lib.licenses.unfree;
     sourceProvenance =
       if fromSource then
@@ -80,9 +82,9 @@ let
         pname
         jdk
         extraWrapperArgs
-        extraLdPath
         extraBuildInputs
         ;
+      extraLdPath = extraLdPath ++ lib.optionals (stdenv.hostPlatform.isLinux) [ libGL ];
       src =
         if fromSource then
           communitySources."${pname}"
@@ -91,8 +93,9 @@ let
             url = products."${pname}".url;
             sha256 = products."${pname}".sha256;
           };
-      inherit (products."${pname}") version;
-      buildNumber = products."${pname}".build_number;
+      version = if fromSource then communitySources."${pname}".version else products."${pname}".version;
+      buildNumber =
+        if fromSource then communitySources."${pname}".buildNumber else products."${pname}".build_number;
       inherit (ideInfo."${pname}") wmClass product;
       productShort = ideInfo."${pname}".productShort or ideInfo."${pname}".product;
       meta = mkMeta ideInfo."${pname}".meta fromSource;
@@ -187,7 +190,7 @@ rec {
 
               for dir in plugins/clion-radler/DotFiles/linux-*; do
                 rm -rf $dir/dotnet
-                ln -s ${dotnet-sdk_8.unwrapped}/share/dotnet $dir/dotnet
+                ln -s ${dotnet-sdk}/share/dotnet $dir/dotnet
               done
             )
           '';
@@ -333,7 +336,6 @@ rec {
         libICE
         libSM
         libX11
-        libGL
       ];
     }).overrideAttrs
       (attrs: {
@@ -351,7 +353,7 @@ rec {
 
               for dir in lib/ReSharperHost/linux-*; do
                 rm -rf $dir/dotnet
-                ln -s ${dotnet-sdk_8.unwrapped}/share/dotnet $dir/dotnet
+                ln -s ${dotnet-sdk}/share/dotnet $dir/dotnet
               done
             )
           '';
@@ -375,7 +377,6 @@ rec {
           libxcrypt-legacy
           fontconfig
           xorg.libX11
-          libGL
         ]
         ++ lib.optionals (stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isAarch64) [
           expat
@@ -400,8 +401,6 @@ rec {
               xargs patchelf \
                 --replace-needed libssl.so.10 libssl.so \
                 --replace-needed libcrypto.so.10 libcrypto.so
-
-              chmod +x $PWD/plugins/intellij-rust/bin/linux/*/intellij-rust-native-helper
             )
           '';
       });

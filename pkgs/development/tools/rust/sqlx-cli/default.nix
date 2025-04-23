@@ -17,16 +17,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "sqlx-cli";
-  version = "0.8.2";
+  version = "0.8.5";
 
   src = fetchFromGitHub {
     owner = "launchbadge";
     repo = "sqlx";
     rev = "v${version}";
-    hash = "sha256-hxqd0TrsKANCPgQf6JUP0p1BYhZdqfnWbtCQCBxF8Gs=";
+    hash = "sha256-R6T8sXuHlunXvqxQ95EKd+fdkPUZU8nTFkg9WBJWeRA=";
   };
 
-  cargoHash = "sha256-jDwfFHC19m20ECAo5VbFI6zht4gnZMYqTKsbyoVJJZU=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-ILv9sVBKhF+KDPfTsxYorRlx33tPolNE8KSNdNajzBc=";
 
   buildNoDefaultFeatures = true;
   buildFeatures = [

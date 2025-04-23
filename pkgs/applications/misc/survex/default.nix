@@ -2,7 +2,6 @@
   lib,
   stdenv,
   fetchurl,
-  fetchpatch,
   Carbon,
   Cocoa,
   ffmpeg,
@@ -10,7 +9,7 @@
   libGLU,
   libICE,
   libX11,
-  mesa,
+  libgbm,
   perl,
   pkg-config,
   proj,
@@ -22,11 +21,11 @@
 
 stdenv.mkDerivation rec {
   pname = "survex";
-  version = "1.4.13";
+  version = "1.4.16";
 
   src = fetchurl {
     url = "https://survex.com/software/${version}/${pname}-${version}.tar.gz";
-    hash = "sha256-4ejaOv0rwJRrV8f616D24IjIv5DXVJfY3fSTueiJG3M=";
+    hash = "sha256-kiRXld0FwXU2zPgMPSR/KQSdoZFLTvd9Y/n97/YJlcA=";
   };
 
   nativeBuildInputs = [
@@ -52,14 +51,20 @@ stdenv.mkDerivation rec {
       # TODO: libGLU doesn't build for macOS because of Mesa issues
       # (#233265); is it required for anything?
       libGLU
-      mesa
+      libgbm
       libICE
       libX11
     ];
 
+  strictDeps = true;
+
   postPatch = ''
     patchShebangs .
   '';
+
+  configureFlags = [
+    "WX_CONFIG=${lib.getExe' (lib.getDev wxGTK32) "wx-config"}"
+  ];
 
   enableParallelBuilding = true;
   doCheck = (!stdenv.hostPlatform.isDarwin); # times out

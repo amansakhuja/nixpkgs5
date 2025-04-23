@@ -3,20 +3,21 @@
   fetchFromGitHub,
   buildGoModule,
   versionCheckHook,
+  nix-update-script,
 }:
 
 buildGoModule rec {
   pname = "minio-warp";
-  version = "1.0.6";
+  version = "1.1.2";
 
   src = fetchFromGitHub {
     owner = "minio";
     repo = "warp";
     rev = "v${version}";
-    hash = "sha256-Zfjj/cYxucjuJRzER6MczQFqu8kdfUUXqC0mcQFbk0Q=";
+    hash = "sha256-loyEGnJ6ExWMUyArNNpQGzpagFgwlNzaNBO8EPXkMws=";
   };
 
-  vendorHash = "sha256-GD9Om5jymrRbeCVGNXtaam5Dmfg99CtEeiAFENhwyyY=";
+  vendorHash = "sha256-/+vKs5NzzyP9Ihz+zbxGf/OEHD0kaf0wZzE0Sg++3bE=";
 
   # See .goreleaser.yml
   ldflags = [
@@ -35,7 +36,9 @@ buildGoModule rec {
 
   doInstallCheck = true;
   nativeInstallCheckInputs = [ versionCheckHook ];
-  versionCheckProgramArg = [ "--version" ];
+  versionCheckProgramArg = "--version";
+
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "S3 benchmarking tool";

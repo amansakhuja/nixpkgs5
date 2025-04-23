@@ -2,7 +2,6 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  fetchpatch,
   nix-update-script,
   meson,
   ninja,
@@ -12,6 +11,9 @@
   libgee,
   libgtop,
   libgudev,
+  libsoup_3,
+  gettext,
+  glib,
   granite7,
   gtk4,
   packagekit,
@@ -25,25 +27,18 @@
 
 stdenv.mkDerivation rec {
   pname = "switchboard-plug-about";
-  version = "8.0.0";
+  version = "8.2.0";
 
   src = fetchFromGitHub {
     owner = "elementary";
     repo = pname;
     rev = version;
-    sha256 = "sha256-6b6nuOp4pEufHEmTraSfKpbtPuO3Z9hQJfvKuuyy7as=";
+    sha256 = "sha256-NMi+QyIunUIzg9IlzeUCz2eQrQlF28lufFc51XOQljU=";
   };
 
-  patches = [
-    # Fix build with fwupd 2.0.0
-    # https://github.com/elementary/switchboard-plug-about/pull/343
-    (fetchpatch {
-      url = "https://github.com/elementary/switchboard-plug-about/commit/6f8ba61cb3d82229e19358ede81b77f66dbb06a2.patch";
-      hash = "sha256-E9itq/KGzw36S1dAFoCowa/A2/f6Shx9F379nEIM2qI=";
-    })
-  ];
-
   nativeBuildInputs = [
+    gettext # msgfmt
+    glib # glib-compile-resources
     meson
     ninja
     pkg-config
@@ -60,6 +55,7 @@ stdenv.mkDerivation rec {
     libgee
     libgtop
     libgudev
+    libsoup_3
     packagekit
     polkit
     switchboard

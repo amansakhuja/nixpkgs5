@@ -1,23 +1,24 @@
-{ stdenv
-, lib
-, fetchurl
-, makeWrapper
-, autoPatchelfHook
-, jdk11
-, makeDesktopItem
-, copyDesktopItems
-, runtimeShell
-, unzip
-, wrapGAppsHook3
+{
+  stdenv,
+  lib,
+  fetchurl,
+  makeWrapper,
+  autoPatchelfHook,
+  jdk11,
+  makeDesktopItem,
+  copyDesktopItems,
+  runtimeShell,
+  unzip,
+  wrapGAppsHook3,
 }:
 
 stdenv.mkDerivation rec {
   pname = "fiji";
-  version = "20240614-2117";
+  version = "20241114-1317";
 
   src = fetchurl {
     url = "https://downloads.imagej.net/fiji/archive/${version}/fiji-nojre.zip";
-    sha256 = "sha256-OCNnN8CYniNEIfKRHRBoJ3Fo+u5AwXoPJAzUCc4P+f0=";
+    sha256 = "sha256-dNpscgZiiE2cuuo11YLs+mgoBRZ/MpUXDaAX3x+E/w8=";
   };
 
   dontBuild = true;
@@ -42,7 +43,11 @@ stdenv.mkDerivation rec {
       comment = "Scientific Image Analysis";
       desktopName = "Fiji Is Just ImageJ";
       genericName = "Fiji Is Just ImageJ";
-      categories = [ "Education" "Science" "ImageProcessing" ];
+      categories = [
+        "Education"
+        "Science"
+        "ImageProcessing"
+      ];
       startupNotify = true;
       startupWMClass = "fiji-Main";
     })
@@ -85,7 +90,12 @@ stdenv.mkDerivation rec {
       binaryBytecode
       binaryNativeCode
     ];
-    license = with lib.licenses; [ gpl2Plus gpl3Plus bsd2 publicDomain ];
+    license = with lib.licenses; [
+      gpl2Plus
+      gpl3Plus
+      bsd2
+      publicDomain
+    ];
     maintainers = with maintainers; [ davisrichard437 ];
   };
 }

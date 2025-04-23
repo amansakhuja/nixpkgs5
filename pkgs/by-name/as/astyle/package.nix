@@ -9,11 +9,11 @@
 
 stdenv.mkDerivation rec {
   pname = "astyle";
-  version = "3.6.5";
+  version = "3.6.8";
 
   src = fetchurl {
     url = "mirror://sourceforge/${pname}/${pname}-${version}.tar.bz2";
-    hash = "sha256-8jHNZBBHrbbAGtslEVczJqi7eik9F7VMdwVQmT3q3os=";
+    hash = "sha256-WviuegXF5hbdH4TXWLSQnC0uz8F5+IP9EE0iPzTMbf8=";
   };
 
   nativeBuildInputs = [ cmake ];

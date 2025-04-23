@@ -7,18 +7,18 @@
   okteto,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "okteto";
-  version = "3.2.0";
+  version = "3.6.0";
 
   src = fetchFromGitHub {
     owner = "okteto";
     repo = "okteto";
-    rev = version;
-    hash = "sha256-s6bA7kj6IQ1Lu/Na9d6g4KlNzRmhIpwmVChpABMuQc8=";
+    rev = finalAttrs.version;
+    hash = "sha256-EPo8pSGh6NHeVrVwHkLUfmpB/O4aqtlC7SrPKnMz05Q=";
   };
 
-  vendorHash = "sha256-/V95521PFvLACuXVjqsW3TEHHGQYKY8CSAOZ6FwuR0k=";
+  vendorHash = "sha256-1psVUpfRRg+86gniVg1i7RsgmEO12o0pCIQZ0roDDFc=";
 
   postPatch = ''
     # Disable some tests that need file system & network access.
@@ -36,7 +36,7 @@ buildGoModule rec {
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/okteto/okteto/pkg/config.VersionString=${version}"
+    "-X github.com/okteto/okteto/pkg/config.VersionString=${finalAttrs.version}"
   ];
 
   tags = [
@@ -61,6 +61,7 @@ buildGoModule rec {
         "Test_translateJobWithoutVolumes"
         "Test_translateJobWithVolumes"
         "Test_translateService"
+        "TestProtobufTranslator_Translate_Success"
       ];
     in
     [ "-skip=^${builtins.concatStringsSep "$|^" skippedTests}$" ];
@@ -77,11 +78,11 @@ buildGoModule rec {
     command = "HOME=\"$(mktemp -d)\" okteto version";
   };
 
-  meta = with lib; {
+  meta = {
     description = "Develop your applications directly in your Kubernetes Cluster";
     homepage = "https://okteto.com/";
-    license = licenses.asl20;
-    maintainers = with maintainers; [ aaronjheng ];
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ aaronjheng ];
     mainProgram = "okteto";
   };
-}
+})

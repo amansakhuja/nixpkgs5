@@ -13,18 +13,18 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "youtube-music";
-  version = "3.6.2";
+  version = "3.8.0";
 
   src = fetchFromGitHub {
     owner = "th-ch";
     repo = "youtube-music";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-S13f3vGMQJvpJbdfUstJlA8MfY5Q1efRA7QcPXYvhMI=";
+    hash = "sha256-2oXHSYKqftuvPhBogPgl2RxajQZM12ch9ZrEX26wcjs=";
   };
 
   pnpmDeps = pnpm.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-brHNp19BEYzgxhdNnn7n1GYhBdyi3S/2VqvKWXmKGX8=";
+    hash = "sha256-s3Ba7uxtJTDV5tRoLFD30VSL5M/nWHHQZkMc+2bM1wE=";
   };
 
   nativeBuildInputs = [
@@ -83,13 +83,18 @@ stdenv.mkDerivation (finalAttrs: {
       --inherit-argv0
   '';
 
+  patches = [
+    # MPRIS's DesktopEntry property needs to match the desktop entry basename
+    ./fix-mpris-desktop-entry.patch
+  ];
+
   desktopItems = [
     (makeDesktopItem {
-      name = "youtube-music";
+      name = "com.github.th_ch.youtube_music";
       exec = "youtube-music %u";
       icon = "youtube-music";
       desktopName = "YouTube Music";
-      startupWMClass = "YouTube Music";
+      startupWMClass = "com.github.th_ch.youtube_music";
       categories = [ "AudioVideo" ];
     })
   ];

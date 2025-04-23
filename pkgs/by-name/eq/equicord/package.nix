@@ -5,22 +5,27 @@
   nodejs,
   pnpm_9,
   stdenv,
+  nix-update-script,
   buildWebExtension ? false,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "equicord";
-  version = "1.10.8"; # from package.json
+  # Upstream discourages inferring the package version from the package.json found in
+  # the Equicord repository. Dates as tags (and automatic releases) were the compromise
+  # we came to with upstream. Please do not change the version schema (e.g., to semver)
+  # unless upstream changes the tag schema from dates.
+  version = "2025-04-17";
 
   src = fetchFromGitHub {
     owner = "Equicord";
     repo = "Equicord";
-    rev = "935a5eaf6e5894294ec45ec540e9ecb07e850de0";
-    hash = "sha256-dfOzASBP0dEArJXuddLfPLZ7IcsEfKll+ju1jcHarNk=";
+    tag = "${finalAttrs.version}";
+    hash = "sha256-pAuNqPrQBeL2qPIoIvyBl1PrUBz81TrBd5RT15Iuuus=";
   };
 
   pnpmDeps = pnpm_9.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-HAKNc8ZyIGEkrNbqQSycR1wePPOisF8nc4/E+KmKyYU=";
+    hash = "sha256-fjfzBy1Z7AUKA53yjjCQ6yasHc5QMaOBtXtXA5fNK5s=";
   };
 
   nativeBuildInputs = [
@@ -31,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   env = {
     EQUICORD_REMOTE = "${finalAttrs.src.owner}/${finalAttrs.src.repo}";
-    EQUICORD_HASH = "${finalAttrs.src.rev}";
+    EQUICORD_HASH = "${finalAttrs.src.tag}";
   };
 
   buildPhase = ''
@@ -50,6 +55,13 @@ stdenv.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--version-regex"
+      "^\d{4}-\d{2}-\d{2}$"
+    ];
+  };
 
   meta = {
     description = "The other cutest Discord client mod";

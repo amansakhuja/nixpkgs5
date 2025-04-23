@@ -31,11 +31,11 @@
 
 stdenv.mkDerivation rec {
   pname = "qtcreator";
-  version = "15.0.0";
+  version = "16.0.1";
 
   src = fetchurl {
     url = "mirror://qt/official_releases/${pname}/${lib.versions.majorMinor version}/${version}/qt-creator-opensource-src-${version}.tar.xz";
-    hash = "sha256-I7HGtHjKdgmX7N3Uxyjw2igLBpYAipvd2aEGjxbUj3I=";
+    hash = "sha256-Elz13fDOK9n7MTEE7Edy9iirpm1o6yOFCB+yJtiYMSw=";
   };
 
   nativeBuildInputs = [

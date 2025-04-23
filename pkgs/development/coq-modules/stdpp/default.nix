@@ -2,10 +2,11 @@
   lib,
   mkCoqDerivation,
   coq,
+  stdlib,
   version ? null,
 }:
 
-mkCoqDerivation rec {
+mkCoqDerivation {
   pname = "stdpp";
   inherit version;
   domain = "gitlab.mpi-sws.org";
@@ -14,7 +15,7 @@ mkCoqDerivation rec {
     with lib.versions;
     lib.switch coq.coq-version [
       {
-        case = range "8.19" "8.20";
+        case = range "8.19" "9.0";
         out = "1.11.0";
       }
       {
@@ -51,6 +52,8 @@ mkCoqDerivation rec {
   release."1.5.0".sha256 = "1ym0fy620imah89p8b6rii8clx2vmnwcrbwxl3630h24k42092nf";
   release."1.4.0".sha256 = "1m6c7ibwc99jd4cv14v3r327spnfvdf3x2mnq51f9rz99rffk68r";
   releaseRev = v: "coq-stdpp-${v}";
+
+  propagatedBuildInputs = [ stdlib ];
 
   preBuild = ''
     if [[ -f coq-lint.sh ]]

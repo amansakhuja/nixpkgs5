@@ -32,14 +32,15 @@
   libdecor,
   lcms,
   lib,
+  luajit,
   makeBinaryWrapper,
   nix-update-script,
   enableExecutable ? true,
   enableWsi ? true,
 }:
 let
-  joshShaders = fetchFromGitHub {
-    owner = "Joshua-Ashton";
+  frogShaders = fetchFromGitHub {
+    owner = "misyltoad";
     repo = "GamescopeShaders";
     rev = "v0.1";
     hash = "sha256-gR1AeAHV/Kn4ntiEDUSPxASLMFusV6hgSGrTbMCBUZA=";
@@ -47,18 +48,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "gamescope";
-  version = "3.15.15";
+  version = "3.16.4";
 
   src = fetchFromGitHub {
     owner = "ValveSoftware";
     repo = "gamescope";
-    rev = "refs/tags/${finalAttrs.version}";
+    tag = finalAttrs.version;
     fetchSubmodules = true;
-    hash = "sha256-FiPSGzfA3YH9TED8E5hpfpd+IQGthvwsxAFXZuqVZ4Q=";
+    hash = "sha256-2AxqvZA1eZaJFKMfRljCIcP0M2nMngw0FQiXsfBW7IA=";
   };
 
   patches = [
-    # Make it look for shaders in the right place
+    # Make it look for data in the right place
     ./shaders-path.patch
     # patch relative gamescopereaper path with absolute
     ./gamescopereaper.patch
@@ -67,11 +68,14 @@ stdenv.mkDerivation (finalAttrs: {
   # We can't substitute the patch itself because substituteAll is itself a derivation,
   # so `placeholder "out"` ends up pointing to the wrong place
   postPatch = ''
-    substituteInPlace src/reshade_effect_manager.cpp --replace "@out@" "$out"
+    substituteInPlace src/reshade_effect_manager.cpp --replace-fail "@out@" "$out"
+
     # Patching shebangs in the main `libdisplay-info` build
     patchShebangs subprojects/libdisplay-info/tool/gen-search-table.py
+
     # Replace gamescopereeaper with absolute path
     substituteInPlace src/Utils/Process.cpp --subst-var-by "gamescopereaper" "$out/bin/gamescopereaper"
+    patchShebangs default_scripts_install.sh
   '';
 
   mesonFlags = [
@@ -118,6 +122,7 @@ stdenv.mkDerivation (finalAttrs: {
       wayland-protocols
       vulkan-loader
       glm
+      luajit
     ]
     ++ lib.optionals enableWsi [
       vulkan-headers
@@ -168,23 +173,23 @@ stdenv.mkDerivation (finalAttrs: {
 
     # Install ReShade shaders
     mkdir -p $out/share/gamescope/reshade
-    cp -r ${joshShaders}/* $out/share/gamescope/reshade/
+    cp -r ${frogShaders}/* $out/share/gamescope/reshade/
   '';
 
   passthru.updateScript = nix-update-script { };
 
-  meta = with lib; {
+  meta = {
     description = "SteamOS session compositing window manager";
     homepage = "https://github.com/ValveSoftware/gamescope";
-    license = licenses.bsd2;
-    maintainers = with maintainers; [
-      nrdxp
+    license = lib.licenses.bsd2;
+    maintainers = with lib.maintainers; [
       pedrohlc
       Scrumplex
       zhaofengli
       k900
+      Gliczy
     ];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
     mainProgram = "gamescope";
   };
 })

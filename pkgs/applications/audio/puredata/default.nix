@@ -21,6 +21,11 @@ stdenv.mkDerivation rec {
     hash = "sha256-hcPUvTYgtAHntdWEeHoFIIKylMTE7us1g9dwnZP9BMI=";
   };
 
+  patches = [
+    # expose error function used by dependents
+    ./expose-error.patch
+  ];
+
   nativeBuildInputs = [
     autoreconfHook
     gettext
@@ -57,6 +62,7 @@ stdenv.mkDerivation rec {
 
   postInstall = ''
     wrapProgram $out/bin/pd --prefix PATH : ${lib.makeBinPath [ tk ]}
+    wrapProgram $out/bin/pd-gui --prefix PATH : ${lib.makeBinPath [ tk ]}
   '';
 
   meta = with lib; {

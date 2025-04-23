@@ -10,9 +10,13 @@
   libepoxy,
   libX11,
   libdrm,
-  mesa,
-  vaapiSupport ? true,
+  libgbm,
+  nativeContextSupport ? stdenv.hostPlatform.isLinux,
+  vaapiSupport ? !stdenv.hostPlatform.isDarwin,
   libva,
+  vulkanSupport ? stdenv.hostPlatform.isLinux,
+  vulkan-headers,
+  vulkan-loader,
   gitUpdater,
 }:
 
@@ -27,13 +31,21 @@ stdenv.mkDerivation rec {
 
   separateDebugInfo = true;
 
-  buildInputs = [
-    libGLU
-    libepoxy
-    libX11
-    libdrm
-    mesa
-  ] ++ lib.optionals vaapiSupport [ libva ];
+  buildInputs =
+    [
+      libepoxy
+    ]
+    ++ lib.optionals vaapiSupport [ libva ]
+    ++ lib.optionals vulkanSupport [
+      vulkan-headers
+      vulkan-loader
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      libGLU
+      libX11
+      libdrm
+      libgbm
+    ];
 
   nativeBuildInputs = [
     meson
@@ -42,9 +54,14 @@ stdenv.mkDerivation rec {
     python3
   ];
 
-  mesonFlags = [
-    (lib.mesonBool "video" vaapiSupport)
-  ];
+  mesonFlags =
+    [
+      (lib.mesonBool "video" vaapiSupport)
+      (lib.mesonBool "venus" vulkanSupport)
+    ]
+    ++ lib.optionals nativeContextSupport [
+      (lib.mesonOption "drm-renderers" "amdgpu-experimental,msm")
+    ];
 
   passthru = {
     updateScript = gitUpdater {
@@ -58,7 +75,7 @@ stdenv.mkDerivation rec {
     mainProgram = "virgl_test_server";
     homepage = "https://virgil3d.github.io/";
     license = licenses.mit;
-    platforms = platforms.linux;
+    platforms = platforms.unix;
     maintainers = [ maintainers.xeji ];
   };
 }

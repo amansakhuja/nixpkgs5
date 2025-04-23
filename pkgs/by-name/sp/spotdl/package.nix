@@ -1,44 +1,49 @@
-{ lib
-, python3
-, fetchFromGitHub
-, ffmpeg
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+  ffmpeg,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "spotdl";
-  version = "4.2.8";
+  version = "4.2.11";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "spotDL";
     repo = "spotify-downloader";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-1NPYMyiYWWpiGlr80IcILcC1nI8zkmf7+aA+mqwSAU0=";
+    tag = "v${version}";
+    hash = "sha256-9PlqnpUlV5b8g+lctGjVL1Xgf25SS5xqkDaa1bSlxpk=";
   };
 
   build-system = with python3.pkgs; [ poetry-core ];
 
   pythonRelaxDeps = true;
 
-  dependencies = with python3.pkgs; [
-    beautifulsoup4
-    fastapi
-    mutagen
-    platformdirs
-    pydantic
-    pykakasi
-    python-slugify
-    pytube
-    rapidfuzz
-    requests
-    rich
-    soundcloud-v2
-    spotipy
-    syncedlyrics
-    uvicorn
-    yt-dlp
-    ytmusicapi
-  ] ++ python-slugify.optional-dependencies.unidecode;
+  dependencies =
+    with python3.pkgs;
+    [
+      beautifulsoup4
+      fastapi
+      mutagen
+      platformdirs
+      pydantic
+      pykakasi
+      python-slugify
+      pytube
+      rapidfuzz
+      requests
+      rich
+      soundcloud-v2
+      spotipy
+      syncedlyrics
+      uvicorn
+      websockets
+      yt-dlp
+      ytmusicapi
+    ]
+    ++ python-slugify.optional-dependencies.unidecode;
 
   nativeCheckInputs = with python3.pkgs; [
     pyfakefs
@@ -77,7 +82,10 @@ python3.pkgs.buildPythonApplication rec {
   ];
 
   makeWrapperArgs = [
-    "--prefix" "PATH" ":" (lib.makeBinPath [ ffmpeg ])
+    "--prefix"
+    "PATH"
+    ":"
+    (lib.makeBinPath [ ffmpeg ])
   ];
 
   meta = with lib; {

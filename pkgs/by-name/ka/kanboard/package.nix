@@ -9,13 +9,13 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kanboard";
-  version = "1.2.42";
+  version = "1.2.44";
 
   src = fetchFromGitHub {
     owner = "kanboard";
     repo = "kanboard";
-    rev = "refs/tags/v${finalAttrs.version}";
-    hash = "sha256-/Unxl9Vh9pEWjO89sSviGGPFzUwxdb1mbOfpTFTyRL0=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-0vMHNB0wEyjp8oNWh1PZ2oT/Lpk/eiXrDNA5Dzv8xqI=";
   };
 
   dontBuild = true;

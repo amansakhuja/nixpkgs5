@@ -10,6 +10,7 @@
   libadwaita,
   meson,
   ninja,
+  nix-update-script,
   pkg-config,
   rustPlatform,
   rustc,
@@ -28,10 +29,10 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-8xINlVhWgg73DrRi8S5rhNc1sbG4DbWOsiEBjU8NSXo=";
   };
 
-  cargoDeps = rustPlatform.fetchCargoTarball {
+  cargoDeps = rustPlatform.fetchCargoVendor {
     src = finalAttrs.src;
     name = "${finalAttrs.pname}-${finalAttrs.version}";
-    hash = "sha256-LSL7VvRgA8MaFXn/vi5Zf1sY4cqv0a9PNnZ3JlDNIaE=";
+    hash = "sha256-wYDlJ5n878Apv+ywnHnDy1Rgn+WJtcuePsGYEWSNvs4=";
   };
 
   nativeBuildInputs = [
@@ -62,14 +63,18 @@ stdenv.mkDerivation (finalAttrs: {
     ]
   );
 
-  meta = with lib; {
+  passthru = {
+    updateScript = nix-update-script { };
+  };
+
+  meta = {
     changelog = "https://github.com/bragefuglseth/fretboard/releases/tag/v${finalAttrs.version}";
     description = "Look up guitar chords";
     homepage = "https://apps.gnome.org/Fretboard/";
-    license = licenses.gpl3Plus;
+    license = lib.licenses.gpl3Plus;
     mainProgram = "fretboard";
-    maintainers = with maintainers; [ michaelgrahamevans ];
-    platforms = platforms.unix;
+    maintainers = lib.teams.gnome-circle.members;
+    platforms = lib.platforms.unix;
     broken = stdenv.hostPlatform.isDarwin;
   };
 })

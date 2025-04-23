@@ -1,16 +1,31 @@
-{ lib, stdenv, fetchurl, autoreconfHook, pkg-config, libzen, zlib }:
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoreconfHook,
+  pkg-config,
+  libzen,
+  zlib,
+
+  # Whether to enable resolving URLs via libcurl
+  curlSupport ? true,
+  curl,
+}:
 
 stdenv.mkDerivation rec {
   pname = "libmediainfo";
-  version = "24.11";
+  version = "25.03";
 
   src = fetchurl {
     url = "https://mediaarea.net/download/source/libmediainfo/${version}/libmediainfo_${version}.tar.xz";
-    hash = "sha256-luRKYX+QyLY7toWtU75nFrffQiF5PDKXgPAq6m5weqE=";
+    hash = "sha256-NfH9q4EjnKNVxt41ioT73gR3/tjrNQ5d/valmBRcUgc=";
   };
 
-  nativeBuildInputs = [ autoreconfHook pkg-config ];
-  buildInputs = [ zlib ];
+  nativeBuildInputs = [
+    autoreconfHook
+    pkg-config
+  ];
+  buildInputs = [ zlib ] ++ lib.optionals curlSupport [ curl ];
   propagatedBuildInputs = [ libzen ];
 
   sourceRoot = "MediaInfoLib/Project/GNU/Library";
@@ -20,7 +35,13 @@ stdenv.mkDerivation rec {
       --replace "pkg-config " "${stdenv.cc.targetPrefix}pkg-config "
   '';
 
-  configureFlags = [ "--enable-shared" ];
+  configureFlags =
+    [
+      "--enable-shared"
+    ]
+    ++ lib.optionals curlSupport [
+      "--with-libcurl"
+    ];
 
   enableParallelBuilding = true;
 

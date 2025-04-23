@@ -1,16 +1,15 @@
 {
   lib,
-  stdenv,
   fetchFromGitHub,
-  makeWrapper,
+  makeBinaryWrapper,
+  installShellFiles,
   rustPlatform,
   testers,
   cachix,
-  darwin,
-  sqlx-cli,
   nixVersions,
   openssl,
   pkg-config,
+  glibcLocalesUtf8,
   devenv, # required to run version test
 }:
 
@@ -20,14 +19,14 @@ let
     src = fetchFromGitHub {
       owner = "domenkozar";
       repo = "nix";
-      rev = "f6c5ae4c1b2e411e6b1e6a8181cc84363d6a7546";
-      hash = "sha256-X8ES7I1cfNhR9oKp06F6ir4Np70WGZU5sfCOuNBEwMg=";
+      rev = "f3f44b2baaf6c4c6e179de8cbb1cc6db031083cd";
+      hash = "sha256-E3j+3MoY8Y96mG1dUIiLFm2tZmNbRvSiyN7CrSKuAVg=";
     };
     doCheck = false;
     doInstallCheck = false;
   });
 
-  version = "1.3.1";
+  version = "1.5.2";
 in
 rustPlatform.buildRustPackage {
   pname = "devenv";
@@ -37,38 +36,49 @@ rustPlatform.buildRustPackage {
     owner = "cachix";
     repo = "devenv";
     rev = "v${version}";
-    hash = "sha256-FhlknassIb3rKEucqnfFAzgny1ANmenJcTyRaXYwbA0=";
+    hash = "sha256-rXtUUxfQ34ukTy2OyHwuypnSgK95FRPGwJf69QnWMrc=";
   };
 
-  cargoHash = "sha256-dJ8A2kVXkpJcRvMLE/IawFUZNJqok/IRixTRGtLsE3w=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-oiOh8m7MypViLbzy/13NpSiOwkfRwybUpDs91f+HbGA=";
 
   buildAndTestSubdir = "devenv";
 
-  # Force sqlx to use the prepared queries
-  SQLX_OFFLINE = true;
-  # A local database to use for preparing queries
-  DATABASE_URL = "sqlite:nix-eval-cache.db";
-
-  preBuild = ''
-    cargo sqlx database setup --source devenv-eval-cache/migrations
-    cargo sqlx prepare --workspace
-  '';
-
   nativeBuildInputs = [
-    makeWrapper
+    installShellFiles
+    makeBinaryWrapper
     pkg-config
-    sqlx-cli
   ];
 
-  buildInputs =
-    [ openssl ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      darwin.apple_sdk.frameworks.SystemConfiguration
-    ];
+  buildInputs = [ openssl ];
 
-  postInstall = ''
-    wrapProgram $out/bin/devenv --set DEVENV_NIX ${devenv_nix} --prefix PATH ":" "$out/bin:${cachix}/bin"
-  '';
+  postInstall =
+    let
+      setDefaultLocaleArchive = lib.optionalString (glibcLocalesUtf8 != null) ''
+        --set-default LOCALE_ARCHIVE ${glibcLocalesUtf8}/lib/locale/locale-archive
+      '';
+    in
+    ''
+      wrapProgram $out/bin/devenv \
+        --prefix PATH ":" "$out/bin:${cachix}/bin" \
+        --set DEVENV_NIX ${devenv_nix} \
+        ${setDefaultLocaleArchive}
+
+      # Generate manpages
+      cargo xtask generate-manpages --out-dir man
+      installManPage man/*
+
+      # Generate shell completions
+      compdir=./completions
+      for shell in bash fish zsh; do
+        cargo xtask generate-shell-completion $shell --out-dir $compdir
+      done
+
+      installShellCompletion --cmd devenv \
+        --bash $compdir/devenv.bash \
+        --fish $compdir/devenv.fish \
+        --zsh $compdir/_devenv
+    '';
 
   passthru.tests = {
     version = testers.testVersion {

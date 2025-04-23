@@ -1,12 +1,13 @@
 {
   lib,
   stdenv,
-  buildGoModule,
+  buildGo124Module,
   fetchFromGitHub,
   fetchNpmDeps,
   cacert,
   git,
-  go,
+  go_1_24,
+  gokrazy,
   enumer,
   mockgen,
   nodejs,
@@ -15,22 +16,43 @@
   nixosTests,
 }:
 
-buildGoModule rec {
-  pname = "evcc";
-  version = "0.131.8";
+let
+  version = "0.203.2";
 
   src = fetchFromGitHub {
     owner = "evcc-io";
     repo = "evcc";
-    rev = version;
-    hash = "sha256-W04iXqABwp5fDesOZf633mS6caEsGv0lHEyCzqEv1WA=";
+    tag = version;
+    hash = "sha256-OMZUJ98oiKKFsgSKLxQtdnoId4yHBNO+wKjhsgZNo6w=";
   };
 
-  vendorHash = "sha256-x0EWFsR/O2Ztg39DL+yZx2ZDzJHADo2aPAeg/i+5KqM=";
+  vendorHash = "sha256-oC6aX8hAQfLpEEkpsPYm6ALxFqReKgDiAFse2WJGt60=";
+
+  commonMeta = with lib; {
+    license = licenses.mit;
+    maintainers = with maintainers; [ hexa ];
+  };
+
+  decorate = buildGo124Module {
+    pname = "evcc-decorate";
+    inherit version src vendorHash;
+
+    subPackages = "cmd/decorate";
+
+    meta = commonMeta // {
+      description = "EVCC decorate helper";
+      homepage = "https://github.com/evcc-io/evcc/tree/master/cmd/decorate";
+    };
+  };
+in
+
+buildGo124Module rec {
+  pname = "evcc";
+  inherit version src vendorHash;
 
   npmDeps = fetchNpmDeps {
     inherit src;
-    hash = "sha256-MjmqVyIj/foI6FFMydpbZA3wL09qs02eAq7Tk872JKM=";
+    hash = "sha256-5d6GoFrNgMV6Teb9/cE8MYrO7FowlZfwcGxHjsymQWM=";
   };
 
   nativeBuildInputs = [
@@ -40,8 +62,10 @@ buildGoModule rec {
 
   overrideModAttrs = _: {
     nativeBuildInputs = [
+      decorate
       enumer
-      go
+      go_1_24
+      gokrazy
       git
       cacert
       mockgen
@@ -59,7 +83,7 @@ buildGoModule rec {
 
   ldflags = [
     "-X github.com/evcc-io/evcc/server.Version=${version}"
-    "-X github.com/evcc-io/evcc/server.Commit=${src.rev}"
+    "-X github.com/evcc-io/evcc/server.Commit=${src.tag}"
     "-s"
     "-w"
   ];
@@ -82,17 +106,17 @@ buildGoModule rec {
     [ "-skip=^${lib.concatStringsSep "$|^" skippedTests}$" ];
 
   passthru = {
+    inherit decorate;
     tests = {
       inherit (nixosTests) evcc;
     };
     updateScript = nix-update-script { };
   };
 
-  meta = with lib; {
+  meta = commonMeta // {
     description = "EV Charge Controller";
     homepage = "https://evcc.io";
     changelog = "https://github.com/evcc-io/evcc/releases/tag/${version}";
-    license = licenses.mit;
-    maintainers = with maintainers; [ hexa ];
+    mainProgram = "evcc";
   };
 }

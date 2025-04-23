@@ -205,9 +205,14 @@ in
     };
 
     extraConfig = mkOption {
-      description = "Kubernetes kubelet extra configuration file entries.";
+      description = ''
+        Kubernetes kubelet extra configuration file entries.
+
+        See also [Set Kubelet Parameters Via A Configuration File](https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/)
+        and [Kubelet Configuration](https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/).
+      '';
       default = { };
-      type = attrsOf attrs;
+      type = attrsOf ((pkgs.formats.json { }).type);
     };
 
     featureGates = mkOption {
@@ -345,9 +350,9 @@ in
             echo "Seeding container image: ${img}"
             ${
               if (lib.hasSuffix "gz" img) then
-                ''${pkgs.gzip}/bin/zcat "${img}" | ${pkgs.containerd}/bin/ctr -n k8s.io image import --all-platforms -''
+                ''${pkgs.gzip}/bin/zcat "${img}" | ${pkgs.containerd}/bin/ctr -n k8s.io image import -''
               else
-                ''${pkgs.coreutils}/bin/cat "${img}" | ${pkgs.containerd}/bin/ctr -n k8s.io image import --all-platforms -''
+                ''${pkgs.coreutils}/bin/cat "${img}" | ${pkgs.containerd}/bin/ctr -n k8s.io image import -''
             }
           '') cfg.seedDockerImages}
 

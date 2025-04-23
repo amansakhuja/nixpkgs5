@@ -2,9 +2,11 @@
   lib,
   fetchzip,
   stdenv,
+  python3Packages,
 }:
 let
-  version = "6886";
+  # also update rev of headers in python3Packages.pypdfium2
+  version = "7087";
   src =
     let
       inherit (stdenv.hostPlatform) system;
@@ -16,10 +18,10 @@ let
         aarch64-darwin = "mac-arm64";
       };
       hash = selectSystem {
-        x86_64-linux = "sha256-8o2PgbyHqU1ST2clx2NRB6/E1eBWjuyx2oIVvc1/ujI=";
-        aarch64-linux = "sha256-SUxtX7NMK+sMi5Fybc2P+bNrXET0TTBJTUhsMw0eBTc=";
-        x86_64-darwin = "sha256-p4lHxr1Do3pLKXn2bOt8gh2R5KHPr4HpAM9hphFUimU=";
-        aarch64-darwin = "sha256-Eb9I17GcuBaMAVKI9K0Rf/iD+nhBFDgYhWth46yU0xE=";
+        x86_64-linux = "sha256-zn7QlTvChQa2mQCe5K+zEGVUtuD+l/jEtlKticrrSKg=";
+        aarch64-linux = "sha256-080X72NNfKaanHeVtmxE/4uNV6Ue4f/1Mri/p3nOT8c=";
+        x86_64-darwin = "sha256-XMStU0MN9ieCrLQnQL4/jKrNWxgQl9OtZHg9EmemPhU=";
+        aarch64-darwin = "sha256-Q8R/p1hX6+JeVTFc6w7MC9GPNGqxlu6m+iawRIMndic=";
       };
     in
     fetchzip {
@@ -41,14 +43,19 @@ stdenv.mkDerivation {
     runHook postInstall
   '';
 
-  passthru.updateScript = ./update.sh;
+  passthru = {
+    updateScript = ./update.sh;
+    tests = {
+      inherit (python3Packages) pypdfium2;
+    };
+  };
 
   meta = {
     description = "Binary distribution of PDFium";
     homepage = "https://github.com/bblanchon/pdfium-binaries";
     license = with lib.licenses; [ asl20 ];
     sourceProvenance = with lib.sourceTypes; [ binaryBytecode ];
-    maintainers = with lib.maintainers; [ aucub ];
+    maintainers = with lib.maintainers; [ ];
     platforms = [
       "aarch64-linux"
       "aarch64-darwin"

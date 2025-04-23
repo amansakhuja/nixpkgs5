@@ -13,16 +13,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "nu_plugin_skim";
-  version = "0.9.1";
+  version = "0.13.0";
 
   src = fetchFromGitHub {
     owner = "idanarye";
     repo = pname;
-    rev = "v${version}";
-    hash = "sha256-cPM4Z1o2ED8Q5u9AcnwBv+SOvuE2C4NO9xC7PfX+ntk=";
+    tag = "v${version}";
+    hash = "sha256-cVD/al5KF4y7oV3OwtfhWEytCD+IVmWdSlGub1w6UYk=";
   };
 
-  cargoHash = "sha256-93GSnw/3Ms83bYEyRRc2sguUpR7BIWz8hgqzXdU5CF4=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-CvBBBDi8AkSfCIcUyUH4e5DX5tija1KqE9z05lndNE4=";
 
   nativeBuildInputs = lib.optionals stdenv.hostPlatform.isDarwin [ rustPlatform.bindgenHook ];
   buildInputs = lib.optionals stdenv.hostPlatform.isDarwin [

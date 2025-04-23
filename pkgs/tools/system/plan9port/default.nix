@@ -21,13 +21,13 @@
 
 stdenv.mkDerivation rec {
   pname = "plan9port";
-  version = "2023-03-31";
+  version = "2025-01-29";
 
   src = fetchFromGitHub {
     owner = "9fans";
     repo = pname;
-    rev = "cc4571fec67407652b03d6603ada6580de2194dc";
-    hash = "sha256-PZWjf0DJCNs5mjxtXgK4/BcstaOqG2WBKRo+Bh/9U7w=";
+    rev = "a5d6857a3b912b43c88ef298c28d13d4623f9ef0";
+    sha256 = "0c23z56zygrsyr96ml7907mpfgx80vnsy99nqr3nmfw1a045mjgv";
   };
 
   postPatch = ''
@@ -149,6 +149,7 @@ stdenv.mkDerivation rec {
       ehmry
       ftrvxmtrx
       kovirobi
+      matthewdargan
       ylh
     ];
     mainProgram = "9";

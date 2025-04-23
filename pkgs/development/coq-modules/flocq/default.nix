@@ -4,6 +4,7 @@
   autoconf,
   mkCoqDerivation,
   coq,
+  stdlib,
   version ? null,
 }:
 
@@ -15,6 +16,10 @@ mkCoqDerivation {
   defaultVersion =
     with lib.versions;
     lib.switch coq.coq-version [
+      {
+        case = range "8.15" "9.0";
+        out = "4.2.1";
+      }
       {
         case = range "8.14" "8.20";
         out = "4.2.0";
@@ -40,6 +45,7 @@ mkCoqDerivation {
         out = "2.6.1";
       }
     ] null;
+  release."4.2.1".sha256 = "sha256-W5hcAm0GGmNsvre79/iGNcoBwFzStC4G177hZ3ds/4E=";
   release."4.2.0".sha256 = "sha256-uTeo4GCs6wTLN3sLKsj0xLlt1fUDYfozXtq6iooLUgM=";
   release."4.1.4".sha256 = "sha256-Use6Mlx79yef1CkCPyGoOItsD69B9KR+mQArCtmre4s=";
   release."4.1.3".sha256 = "sha256-os3cI885xNpxI+1p5rb8fSNnxKr7SFxqh83+3AM3t4I=";
@@ -57,6 +63,8 @@ mkCoqDerivation {
   ];
   mlPlugin = true;
   useMelquiondRemake.logpath = "Flocq";
+
+  propagatedBuildInputs = [ stdlib ];
 
   meta = with lib; {
     description = "Floating-point formalization for the Coq system";

@@ -3,7 +3,7 @@
   stdenv,
   fetchFromGitHub,
   nix-update-script,
-  substituteAll,
+  replaceVars,
   pkg-config,
   meson,
   ninja,
@@ -16,7 +16,6 @@
   libgee,
   libhandy,
   libxml2,
-  libsoup_2_4,
   elementary-calendar,
 }:
 
@@ -32,8 +31,7 @@ stdenv.mkDerivation rec {
   };
 
   patches = [
-    (substituteAll {
-      src = ./fix-paths.patch;
+    (replaceVars ./fix-paths.patch {
       elementary_calendar = elementary-calendar;
     })
   ];
@@ -53,7 +51,6 @@ stdenv.mkDerivation rec {
     libgee
     libhandy
     libical
-    libsoup_2_4
     wingpanel
   ];
 

@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchFromGitLab,
-  substituteAll,
+  replaceVars,
   meson,
   ninja,
   pkg-config,
@@ -11,6 +11,7 @@
   itstool,
   desktop-file-utils,
   glib,
+  glib-networking,
   gtk4,
   coreutils,
   libsoup_3,
@@ -21,6 +22,7 @@
   json-glib,
   duplicity,
   rclone,
+  nix-update-script,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -36,8 +38,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   patches = [
-    (substituteAll {
-      src = ./fix-paths.patch;
+    (replaceVars ./fix-paths.patch {
       inherit coreutils;
     })
   ];
@@ -56,6 +57,7 @@ stdenv.mkDerivation (finalAttrs: {
   buildInputs = [
     libsoup_3
     glib
+    glib-networking
     gtk4
     libsecret
     libadwaita
@@ -75,6 +77,10 @@ stdenv.mkDerivation (finalAttrs: {
     )
   '';
 
+  passthru = {
+    updateScript = nix-update-script { };
+  };
+
   meta = with lib; {
     description = "Simple backup tool";
     longDescription = ''
@@ -84,7 +90,7 @@ stdenv.mkDerivation (finalAttrs: {
     '';
     homepage = "https://apps.gnome.org/DejaDup/";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ jtojnar ];
+    maintainers = with maintainers; [ jtojnar ] ++ lib.teams.gnome-circle.members;
     platforms = platforms.linux;
     mainProgram = "deja-dup";
   };

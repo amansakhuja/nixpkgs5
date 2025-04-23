@@ -1,12 +1,18 @@
-{ lib, stdenvNoCC, fetchurl, imagemagick, nixosTests }:
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+  imagemagick,
+  nixosTests,
+}:
 
 stdenvNoCC.mkDerivation rec {
   pname = "mediawiki";
-  version = "1.42.3";
+  version = "1.43.1";
 
   src = fetchurl {
     url = "https://releases.wikimedia.org/mediawiki/${lib.versions.majorMinor version}/mediawiki-${version}.tar.gz";
-    hash = "sha256-4FVjA/HYRnnNk5sykMyrP4nLxp02B/8dRJymxZU7ILw=";
+    hash = "sha256-PIWqnEzWw1PGeASjpY57eWFdQUHD1msQHl8660BlPWw=";
   };
 
   postPatch = ''

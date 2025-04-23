@@ -1,17 +1,18 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, makeWrapper
-, pkg-config
-, which
-, bison
-, gnuplot
-, libxls
-, libxlsxwriter
-, libxml2
-, libzip
-, ncurses
-, xlsSupport ? false
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  makeWrapper,
+  pkg-config,
+  which,
+  bison,
+  gnuplot,
+  libxls,
+  libxlsxwriter,
+  libxml2,
+  libzip,
+  ncurses,
+  xlsSupport ? false,
 }:
 
 stdenv.mkDerivation rec {
@@ -34,17 +35,22 @@ stdenv.mkDerivation rec {
     bison
   ];
 
-  buildInputs = [
-    gnuplot
-    libxml2
-    libzip
-    ncurses
-  ] ++ lib.optionals xlsSupport [
-    libxls
-    libxlsxwriter
-  ];
+  buildInputs =
+    [
+      gnuplot
+      libxml2
+      libzip
+      ncurses
+    ]
+    ++ lib.optionals xlsSupport [
+      libxls
+      libxlsxwriter
+    ];
 
   makeFlags = [ "prefix=${placeholder "out"}" ];
+
+  # https://github.com/andmarti1424/sc-im/issues/884
+  hardeningDisable = [ "fortify" ];
 
   env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang "-Wno-error=implicit-function-declaration";
 

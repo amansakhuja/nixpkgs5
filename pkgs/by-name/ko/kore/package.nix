@@ -4,17 +4,18 @@
   fetchFromGitHub,
   openssl,
   curl,
-  postgresql,
+  postgresql_16,
   yajl,
 }:
 
 stdenv.mkDerivation rec {
   pname = "kore";
+  # TODO: Check on next update whether postgresql 17 is supported.
   version = "4.2.3";
 
   src = fetchFromGitHub {
     owner = "jorisvink";
-    repo = pname;
+    repo = "kore";
     rev = version;
     sha256 = "sha256-p0M2P02xwww5EnT28VnEtj5b+/jkPW3YkJMuK79vp4k=";
   };
@@ -22,7 +23,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     openssl
     curl
-    postgresql
+    postgresql_16
     yajl
   ];
 

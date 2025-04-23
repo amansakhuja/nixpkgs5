@@ -35,7 +35,7 @@ let
       }
     ];
 in
-stdenv.mkDerivation (finalAttrs: rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "p4";
   version = "2024.1/2596294";
 
@@ -44,6 +44,12 @@ stdenv.mkDerivation (finalAttrs: rec {
     url = "https://web.archive.org/web/20240526153453id_/https://ftp.perforce.com/perforce/r24.1/bin.tools/p4source.tgz";
     sha256 = "sha256-6+DOJPeVzP4x0UsN9MlZRAyusapBTICX0BuyvVBQBC8=";
   };
+
+  postPatch = lib.optionals stdenv.hostPlatform.isDarwin ''
+    # same error as https://github.com/pocoproject/poco/issues/4586
+    substituteInPlace zlib/zutil.h \
+      --replace-fail '#if defined(MACOS) || defined(TARGET_OS_MAC)' '#if defined(MACOS)'
+  '';
 
   nativeBuildInputs = [ jam ];
 

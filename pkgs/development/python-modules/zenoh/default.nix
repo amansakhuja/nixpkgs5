@@ -11,19 +11,19 @@
 
 buildPythonPackage rec {
   pname = "zenoh";
-  version = "1.0.3";
+  version = "1.2.1"; # nixpkgs-update: no auto update
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "eclipse-zenoh";
     repo = "zenoh-python";
     rev = version;
-    hash = "sha256-LQ6zu0yD2heprN2p6zO/ZC6uIsMlc1FyDuZ/dvOnVqU=";
+    hash = "sha256-AIsIjMcT9g0mTAgxOL/shBEjpeuOm/7Wn4EOSyYbShE=";
   };
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     inherit src pname version;
-    hash = "sha256-6a2OSZLn1OYpe4tAv60uBhh/b+3QewPxVtQIDOnpk3A=";
+    hash = "sha256-Y8fg/vFL7kLoARpp0BmDpQva9zNEEOWOHQk3GjeAoLk=";
   };
 
   build-system = [
@@ -33,7 +33,7 @@ buildPythonPackage rec {
     rustc
   ];
 
-  buildInputs = lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.Security;
+  buildInputs = lib.optional stdenv.hostPlatform.isDarwin darwin.apple_sdk.frameworks.Security;
 
   pythonImportsCheck = [
     "zenoh"

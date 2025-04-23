@@ -10,7 +10,7 @@
   libcef,
   luajit,
   xorg,
-  mesa,
+  libgbm,
   glib,
   nss,
   nspr,
@@ -56,7 +56,7 @@ let
           xorg.libXext
           xorg.libXfixes
           xorg.libXrandr
-          mesa
+          libgbm
           gtk3
           pango
           cairo
@@ -87,14 +87,14 @@ in
 let
   bolt = stdenv.mkDerivation (finalAttrs: {
     pname = "bolt-launcher";
-    version = "0.9.0";
+    version = "0.15.0";
 
     src = fetchFromGitHub {
       owner = "AdamCake";
       repo = "bolt";
-      rev = finalAttrs.version;
+      tag = finalAttrs.version;
       fetchSubmodules = true;
-      hash = "sha256-LIlRDcUWbQwIhFjtqYF+oVpTOPZ7IT0vMgysEVyJ1k8=";
+      hash = "sha256-zEExwQRzDmV0xd3lcxFE2ZVfkyTFYZQe3/c0IWJ9C/c=";
     };
 
     nativeBuildInputs = [
@@ -106,7 +106,7 @@ let
     ];
 
     buildInputs = [
-      mesa
+      libgbm
       xorg.libX11
       xorg.libxcb
       libarchive
@@ -154,15 +154,15 @@ let
         desktopName = "Bolt Launcher";
         genericName = finalAttrs.pname;
         comment = "An alternative launcher for RuneScape";
-        exec = "${finalAttrs.pname}-${finalAttrs.version}";
-        icon = finalAttrs.pname;
+        exec = "bolt-launcher";
+        icon = "bolt-launcher";
         categories = [ "Game" ];
       })
     ];
   });
 in
 buildFHSEnv {
-  inherit (bolt) name version;
+  inherit (bolt) pname version;
 
   targetPkgs =
     pkgs:

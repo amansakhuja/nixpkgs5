@@ -5,23 +5,28 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "pay-respects";
-  version = "0.4.18";
+  version = "0.7.5";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "iff";
     repo = "pay-respects";
     rev = "v${version}";
-    hash = "sha256-8YQgNOqZAMhn93rk0fw1SV02XhI/Wt9D5Rzo64cCs7s=";
+    hash = "sha256-NmFuu6uS8maAoN9U2ZdEyeJeozR3ubhoMrhvWKDxbMI=";
   };
 
-  cargoHash = "sha256-xLAJLwzX923E7Pzfwdw38moLOlY0Q4xK8himbKHQ7O8=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-xqq4PXvon6edjJ4VhrhXD8QtDGWlMeJnl8mnH8rdIvU=";
 
   meta = {
     description = "Terminal command correction, alternative to `thefuck`, written in Rust";
     homepage = "https://codeberg.org/iff/pay-respects";
     license = lib.licenses.agpl3Plus;
-    maintainers = with lib.maintainers; [ sigmasquadron ];
+    maintainers = with lib.maintainers; [
+      sigmasquadron
+      bloxx12
+      ALameLlama
+    ];
     mainProgram = "pay-respects";
   };
 }

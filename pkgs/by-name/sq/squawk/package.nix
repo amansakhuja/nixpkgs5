@@ -9,19 +9,20 @@
   rustPlatform,
   stdenv,
 }:
-
 rustPlatform.buildRustPackage rec {
   pname = "squawk";
-  version = "1.0.0";
+  version = "1.5.0";
 
   src = fetchFromGitHub {
     owner = "sbdchd";
-    repo = pname;
-    rev = "v${version}";
-    hash = "sha256-Uc357UspC2O/IxRRTy04jubzhKDRnIAN2CoHvbrGbHg=";
+    repo = "squawk";
+    tag = "v${version}";
+    hash = "sha256-gKYoTdGaonnLEnaoFlniD9nA5+TM5ITjyL/elOM7gZI=";
   };
 
-  cargoHash = "sha256-G0t3wvcp1Dm0ZCDnzTVf1XJ2Dtr0LyrKM1Vvso0IoaA=";
+  useFetchCargoVendor = true;
+
+  cargoHash = "sha256-z0ZZnXUH834f6FPYhAcmjmtLEYMvbT97UPgn6ddlxdY=";
 
   nativeBuildInputs = [
     pkg-config
@@ -50,11 +51,11 @@ rustPlatform.buildRustPackage rec {
     "--skip=parse::tests::test_parse_sql_query_json"
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Linter for PostgreSQL, focused on migrations";
-    homepage = "https://squawkhq.com/";
+    homepage = "https://squawkhq.com";
     changelog = "https://github.com/sbdchd/squawk/blob/v${version}/CHANGELOG.md";
-    license = licenses.gpl3Only;
+    license = with lib.licenses; [ gpl3Only ];
     maintainers = with lib.maintainers; [ andrewsmith ];
   };
 }

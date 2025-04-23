@@ -66,32 +66,17 @@ makeScopeWithSplicing' {
       # Must use pkgs.callPackage to avoid infinite recursion.
       impure-cmds = pkgs.callPackage ../os-specific/darwin/impure-cmds { };
 
-      # macOS 10.12 SDK
-      apple_sdk_10_12 = pkgs.callPackage ../os-specific/darwin/apple-sdk { };
-
       # macOS 11.0 SDK
       apple_sdk_11_0 = pkgs.callPackage ../os-specific/darwin/apple-sdk-11.0 { };
 
       # macOS 12.3 SDK
       apple_sdk_12_3 = pkgs.callPackage ../os-specific/darwin/apple-sdk-12.3 { };
 
-      # Pick an SDK
-      apple_sdk =
-        {
-          "10.12" = apple_sdk_10_12;
-          "11.0" = apple_sdk_11_0;
-        }
-        .${stdenv.hostPlatform.darwinSdkVersion}
-          or (throw "Unsupported sdk: ${stdenv.hostPlatform.darwinSdkVersion}");
+      apple_sdk = apple_sdk_11_0;
 
       stubs =
         {
-          inherit
-            apple_sdk
-            apple_sdk_10_12
-            apple_sdk_11_0
-            apple_sdk_12_3
-            ;
+          inherit apple_sdk apple_sdk_11_0 apple_sdk_12_3;
           libobjc = self.objc4;
         }
         // lib.genAttrs [
@@ -113,7 +98,6 @@ makeScopeWithSplicing' {
           "configdHeaders"
           "darwin-stubs"
           "dtrace"
-          "dyld"
           "eap8021x"
           "hfs"
           "hfsHeaders"
@@ -188,9 +172,6 @@ makeScopeWithSplicing' {
 
       libSystem = callPackage ../os-specific/darwin/libSystem { };
 
-      # TODO(@connorbaker): See https://github.com/NixOS/nixpkgs/issues/229389.
-      cf-private = self.apple_sdk.frameworks.CoreFoundation;
-
       DarwinTools = callPackage ../os-specific/darwin/DarwinTools { };
 
       print-reexports = callPackage ../os-specific/darwin/print-reexports { };
@@ -207,8 +188,6 @@ makeScopeWithSplicing' {
       sigtool = callPackage ../os-specific/darwin/sigtool { };
 
       signingUtils = callPackage ../os-specific/darwin/signing-utils { };
-
-      postLinkSignHook = callPackage ../os-specific/darwin/signing-utils/post-link-sign-hook.nix { };
 
       autoSignDarwinBinariesHook = pkgs.makeSetupHook {
         name = "auto-sign-darwin-binaries-hook";
@@ -276,7 +255,9 @@ makeScopeWithSplicing' {
         xcode_15_4
         xcode_16
         xcode_16_1
+        xcode_16_2
         xcode
+        requireXcode
         ;
 
       xcodeProjectCheckHook = pkgs.makeSetupHook {

@@ -17,6 +17,7 @@
   ninja,
   glib,
   python3,
+  docutils,
   x11Support ? !stdenv.hostPlatform.isDarwin,
   libXft,
   withIntrospection ?
@@ -29,7 +30,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "pango";
-  version = "1.54.0";
+  version = "1.56.2";
 
   outputs = [
     "bin"
@@ -38,10 +39,8 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ lib.optional withIntrospection "devdoc";
 
   src = fetchurl {
-    url =
-      with finalAttrs;
-      "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    hash = "sha256-ip7tdQIe5zTX/A/fOmXDu6Ud/v5K5RqbQUpgxwstHtg=";
+    url = "mirror://gnome/sources/pango/${lib.versions.majorMinor finalAttrs.version}/pango-${finalAttrs.version}.tar.xz";
+    hash = "sha256-A7ev1+1zC+9lEVXL+1MgVWuO+SsNwEq7uXhNzUBXr+c=";
   };
 
   depsBuildBuild = [
@@ -55,6 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
       glib # for glib-mkenum
       pkg-config
       python3
+      docutils # for rst2man, rst2html5
     ]
     ++ lib.optionals withIntrospection [
       gi-docgen
@@ -89,6 +89,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   mesonFlags = [
     (lib.mesonBool "documentation" withIntrospection)
+    (lib.mesonBool "man-pages" true)
     (lib.mesonEnable "introspection" withIntrospection)
     (lib.mesonEnable "xft" x11Support)
   ];
@@ -115,7 +116,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     updateScript = gnome.updateScript {
-      packageName = finalAttrs.pname;
+      packageName = "pango";
       # 1.90 is alpha for API 2.
       freeze = "1.90.0";
     };

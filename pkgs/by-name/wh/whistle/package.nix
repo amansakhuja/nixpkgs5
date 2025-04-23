@@ -1,17 +1,21 @@
-{ lib, buildNpmPackage, fetchFromGitHub }:
+{
+  lib,
+  buildNpmPackage,
+  fetchFromGitHub,
+}:
 
 buildNpmPackage rec {
   pname = "whistle";
-  version = "2.9.86";
+  version = "2.9.96";
 
   src = fetchFromGitHub {
     owner = "avwo";
     repo = "whistle";
     rev = "v${version}";
-    hash = "sha256-k6JAOnHm5xFdI5rKSOj33YtpkHEGx/6Bs0PLQNerH+M=";
+    hash = "sha256-+v+wuH/30egnBDMv/IbSIXvuFHaXLle7jvWgIA9n4YM=";
   };
 
-  npmDepsHash = "sha256-kVjZ0E1iQtUOf9LWPHVMj0eQRDwDREiTAGrFaa/m4/I=";
+  npmDepsHash = "sha256-5mxQOdHFUn/7el67stVb4B2TYGA9uC2/FQa7C/MyiTo=";
 
   dontNpmBuild = true;
 

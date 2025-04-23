@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  substituteAll,
+  replaceVars,
   wrapQtAppsHook,
   qmake,
   qtsvg,
@@ -12,20 +12,20 @@
 
 stdenv.mkDerivation rec {
   pname = "qvge";
-  version = "0.6.3";
+  version = "0.6.3-unstable-2024-04-08";
 
   src = fetchFromGitHub {
     owner = "ArsMasiuk";
-    repo = pname;
-    rev = "v${version}";
-    sha256 = "sha256-rtbUAp3l0VZsu+D9HCHM3q0UkDLflw50rYRq/LP4Wu4=";
+    repo = "qvge";
+    #tag = "v${version}";
+    rev = "5751948358d407673cfda10f52892683be143d42";
+    hash = "sha256-Rh8ahS/9x2aWu4THjLKoog58+yJoCQ6GETaAQTW4Hq8=";
   };
 
   sourceRoot = "${src.name}/src";
 
   patches = (
-    substituteAll {
-      src = ./set-graphviz-path.patch;
+    replaceVars ./set-graphviz-path.patch {
       inherit graphviz;
     }
   );
