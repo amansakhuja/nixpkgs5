@@ -1,21 +1,17 @@
 {
+  callPackage,
   lib,
   haskell,
   haskellPackages,
 }:
 
 let
-  inherit (haskell.lib.compose) overrideCabal;
-
-  raw-pkg = (haskellPackages.callPackage ./generated-package.nix { }).overrideScope (
+  backend-pkg = (haskellPackages.callPackage ./generated-backend-package.nix { }).overrideScope (
     final: prev: {
       ansi-wl-pprint = final.ansi-wl-pprint_0_6_9;
     }
   );
 
-  overrides = {
-    maintainers = with lib.maintainers; [ tomasajt ];
-    passthru.updateScript = ./update.sh;
-  };
+  frontend-pkg = callPackage ./generated-frontend-package.nix { };
 in
-overrideCabal overrides raw-pkg
+frontend-pkg."gren-lang-0.5.4"
