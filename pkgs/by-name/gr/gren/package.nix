@@ -38,8 +38,10 @@ frontend-pkg.overrideAttrs (oldAttrs: {
     updateScript = "./update.sh";
   };
 
-  meta = {
-    inherit (oldAttrs) meta;
-    maintainers = with lib.maintainers; [ tomasajt robinheghan ];
+  meta = oldAttrs.meta // {
+    maintainers = with lib.maintainers; [
+      tomasajt
+      robinheghan
+    ];
   };
 })
