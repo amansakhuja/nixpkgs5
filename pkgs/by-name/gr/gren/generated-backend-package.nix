@@ -34,8 +34,8 @@ mkDerivation {
   version = "0.5.3";
   src = fetchgit {
     url = "https://github.com/gren-lang/compiler.git";
-    sha256 = "1kav6cw4m4ir5qghwv104f140qq25hj060yz1ijq72ia4yfx63cr";
-    rev = "94e8dcbaabeca498417414e6b3ae7b706917073f";
+    sha256 = "1h5fkms6sa04ii5i6xz0501cqlqm3p9c3ci7cr4j5s4hsl72y7kj";
+    rev = "f090f1eff9a12ae002cd2fb6704a0aff1250cdcc";
     fetchSubmodules = true;
   };
   isLibrary = false;

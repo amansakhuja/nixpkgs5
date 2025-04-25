@@ -23,6 +23,10 @@ nixfmt "${backend_derivation_file}"
 
 echo "Running node2nix and outputting to ${frontend_derivation_file}"
 
+cat > "frontend-package.json" << EOF
+[{"gren-lang": "${latest_version}"}]
+EOF
+
 node2nix -i frontend-package.json -c "${frontend_derivation_file}"
 nixfmt "${frontend_derivation_file}"
 nixfmt node-packages.nix
