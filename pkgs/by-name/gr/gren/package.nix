@@ -1,5 +1,6 @@
 {
   callPackage,
+  makeWrapper,
   lib,
   haskell,
   haskellPackages,
@@ -12,6 +13,14 @@ let
     }
   );
 
-  frontend-pkg = callPackage ./generated-frontend-package.nix { };
+  frontend-pkg = (callPackage ./generated-frontend-package.nix { })."gren-lang-0.5.4";
 in
-frontend-pkg."gren-lang-0.5.4"
+frontend-pkg.overrideAttrs (oldAttrs: {
+  buildInputs = oldAttrs.buildInputs or [ ] ++ [ makeWrapper ];
+  postInstall =
+    oldAttrs.postInstall or ""
+    + ''
+      wrapProgram $out/bin/gren \
+        --set GREN_BIN ${lib.makeBinPath [ backend-pkg ]}/gren
+    '';
+})
