@@ -2,8 +2,8 @@
 
 {
   pkgs,
-  system,
-  nodejs,
+  system ? builtins.currentSystem,
+  nodejs ? pkgs."nodejs_14",
 }:
 
 let
