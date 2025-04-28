@@ -27369,5 +27369,10 @@
     githubId = 59917878;
     name = "Mathias Zhang";
   };
+  cococolanosugar = {
+    name = "George Xu";
+    github = "cococolanosugar";
+    email = "cococolanosugar@gmail.com";
+  };
 }
 # Keep the list alphabetically sorted.
