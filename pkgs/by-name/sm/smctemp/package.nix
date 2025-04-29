@@ -5,14 +5,14 @@
   darwin,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "smctemp";
   version = "0.6.0";
 
   src = fetchFromGitHub {
     owner = "narugit";
     repo = "smctemp";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-opkE4XYe2x+4TwZ7AZ001NDJ0eC4JXcHwMKzkQA1E0w=";
   };
 
@@ -42,4 +42,4 @@ stdenv.mkDerivation rec {
     maintainers = with lib.maintainers; [ ivankovnatsky ];
     mainProgram = "smctemp";
   };
-}
+})
