@@ -34,12 +34,12 @@ stdenv.mkDerivation rec {
     "PREFIX=${placeholder "out"}"
   ];
 
-  meta = with lib; {
+  meta = {
     description = "CLI tool to print CPU and GPU temperature on macOS";
     homepage = "https://github.com/narugit/smctemp";
-    license = licenses.gpl2;
-    platforms = platforms.darwin;
-    maintainers = with maintainers; [ ivankovnatsky ];
+    license = lib.licenses.gpl2;
+    platforms = lib.platforms.darwin;
+    maintainers = with lib.maintainers; [ ivankovnatsky ];
     mainProgram = "smctemp";
   };
 }
