@@ -11,7 +11,7 @@ stdenv.mkDerivation rec {
 
   src = fetchFromGitHub {
     owner = "narugit";
-    repo = pname;
+    repo = "smctemp";
     rev = version;
     hash = "sha256-opkE4XYe2x+4TwZ7AZ001NDJ0eC4JXcHwMKzkQA1E0w=";
   };
