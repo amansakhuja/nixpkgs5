@@ -32,7 +32,7 @@ buildGoModule rec {
   ];
 
   meta = {
-    description = "gf is a powerful CLI tool for building GoFrame application with convenience.";
+    description = "gf is a powerful CLI tool for building GoFrame application with convenience";
     homepage = "https://goframe.org";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ cococolanosugar ];
