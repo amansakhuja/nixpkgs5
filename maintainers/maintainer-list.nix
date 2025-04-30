@@ -4740,6 +4740,7 @@
   cococolanosugar = {
     name = "George Xu";
     github = "cococolanosugar";
+    githubId = 1736138;
     email = "cococolanosugar@gmail.com";
   };
   coconnor = {
