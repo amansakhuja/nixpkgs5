@@ -17,6 +17,7 @@ jobs:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
           # Fetches the merge commit and its parents
           fetch-depth: 2
+          persist-credentials: false
 
       - name: Checking out target branch
         run: |
@@ -59,7 +60,7 @@ jobs:
 
           # Don't report errors to file overview
           # to avoid duplicates when editing title and description
-          if [[ "${{ github.event.action }}" == 'edited' ]] && [[ -z "${{ github.event.edited.changes.base }}" ]]; then
+          if [[ "$action" == 'edited' ]] && [[ -z "$base" ]]; then
             DONT_REPORT_ERROR=1
           else
             DONT_REPORT_ERROR=
@@ -88,7 +89,7 @@ jobs:
                 continue
             esac
 
-            if [[ -n "$source" ]] && [[ "$(nixf_wrapper ${{ env.target }}/"$source")" != '[]' ]] 2>/dev/null; then
+            if [[ -n "$source" ]] && [[ "$(nixf_wrapper "$target/$source")" != '[]' ]] 2>/dev/null; then
               echo "Ignoring file $file because it doesn't pass nixf-tidy in the target commit"
               echo # insert blank line
             else
@@ -116,7 +117,7 @@ jobs:
                 failedFiles+=("$dest")
               fi
             fi
-          done < <(git diff -z --name-status ${{ env.targetRev }} -- '*.nix')
+          done < <(git diff -z --name-status "$targetRev" -- '*.nix')
 
           if [[ -n "$DONT_REPORT_ERROR" ]]; then
             echo "Edited the PR but didn't change the base branch, only the description/title."
@@ -126,7 +127,11 @@ jobs:
 
           if (( "${#failedFiles[@]}" > 0 )); then
             echo "Some new/changed Nix files don't pass nixf-tidy."
-            echo "See ${{ github.event.pull_request.html_url }}/files for reported errors."
+            echo "See $pr_url/files for reported errors."
             echo "If you believe this is a false positive, ping @Aleksanaa and @inclyc in this PR."
             exit 1
           fi
+        env:
+          action: ${{ github.event.action }}
+          base: ${{ github.event.edited.changes.base }}
+          pr_url: ${{ github.event.pull_request.html_url }}

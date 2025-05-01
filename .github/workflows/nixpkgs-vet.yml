@@ -36,6 +36,7 @@ jobs:
           ref: ${{ needs.get-merge-commit.outputs.mergedSha }}
           # Fetches the merge commit and its parents
           fetch-depth: 2
+          persist-credentials: false
 
       - name: Checking out target branch
         run: |
