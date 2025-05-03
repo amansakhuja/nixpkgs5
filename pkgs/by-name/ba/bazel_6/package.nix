@@ -8,6 +8,7 @@
   runCommand,
   runCommandCC,
   makeWrapper,
+  recurseIntoAttrs,
   # this package (through the fixpoint glass)
   bazel_self,
   lr,
@@ -23,6 +24,8 @@
   gnugrep,
   gzip,
   findutils,
+  diffutils,
+  gnupatch,
   # updater
   python3,
   writeScript,
@@ -39,21 +42,23 @@
   file,
   replaceVars,
   writeTextFile,
+  writeShellApplication,
+  makeBinaryWrapper,
 }:
 
 let
-  version = "5.4.1";
+  version = "6.5.0";
   sourceRoot = ".";
 
   src = fetchurl {
     url = "https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-dist.zip";
-    hash = "sha256-3P9pNXVqp6yk/Fabsr0m4VN/Cx9tG9pfKyAPqDXMUH8=";
+    hash = "sha256-/InakZQVKJ8p5P8YpeAScOzppv6Dy2CWchi6xKO7PtI=";
   };
 
   # Update with
-  # 1. export BAZEL_SELF=$(nix-build -A bazel_5)
+  # 1. export BAZEL_SELF=$(nix-build -A bazel_6)
   # 2. update version and hash for sources above
-  # 3. `eval $(nix-build -A bazel_5.updater)`
+  # 3. `eval $(nix-build -A bazel_6.updater)`
   # 4. add new dependencies from the dict in ./src-deps.json if required by failing build
   srcDeps = lib.attrsets.attrValues srcDepsSet;
   srcDepsSet =
@@ -62,7 +67,7 @@ let
       toFetchurl =
         d:
         lib.attrsets.nameValuePair d.name (fetchurl {
-          urls = d.urls;
+          urls = d.urls or [ d.url ];
           sha256 = d.sha256;
         });
     in
@@ -74,10 +79,11 @@ let
         srcs.bazelci_rules
         srcs.io_bazel_rules_sass
         srcs.platforms
-        srcs."remote_java_tools_for_testing"
-        srcs."coverage_output_generator-v2.5.zip"
+        srcs.remote_java_tools_for_testing
+        srcs."coverage_output_generator-v2.6.zip"
         srcs.build_bazel_rules_nodejs
-        srcs."android_tools_pkg-0.23.0.tar.gz"
+        srcs.android_tools_for_testing
+        srcs.openjdk_linux_vanilla
         srcs.bazel_toolchains
         srcs.com_github_grpc_grpc
         srcs.upb
@@ -86,9 +92,14 @@ let
         srcs.rules_cc
         srcs.rules_java
         srcs.rules_proto
+        srcs.rules_nodejs
+        srcs.rules_license
         srcs.com_google_absl
         srcs.com_googlesource_code_re2
         srcs.com_github_cares_cares
+        srcs.com_envoyproxy_protoc_gen_validate
+        srcs.com_google_googleapis
+        srcs.bazel_gazelle
       ]
     );
 
@@ -127,10 +138,12 @@ let
     [
       bash
       coreutils
+      diffutils
       file
       findutils
       gawk
       gnugrep
+      gnupatch
       gnused
       gnutar
       gzip
@@ -141,6 +154,28 @@ let
     ];
 
   defaultShellPath = lib.makeBinPath defaultShellUtils;
+
+  bashWithDefaultShellUtilsSh = writeShellApplication {
+    name = "bash";
+    runtimeInputs = defaultShellUtils;
+    text = ''
+      if [[ "$PATH" == "/no-such-path" ]]; then
+        export PATH=${defaultShellPath}
+      fi
+      exec ${bash}/bin/bash "$@"
+    '';
+  };
+
+  # Script-based interpreters in shebangs aren't guaranteed to work,
+  # especially on MacOS. So let's produce a binary
+  bashWithDefaultShellUtils = stdenv.mkDerivation {
+    name = "bash";
+    src = bashWithDefaultShellUtilsSh;
+    nativeBuildInputs = [ makeBinaryWrapper ];
+    buildPhase = ''
+      makeWrapper ${bashWithDefaultShellUtilsSh}/bin/bash $out/bin/bash
+    '';
+  };
 
   platforms = lib.platforms.linux ++ lib.platforms.darwin;
 
@@ -171,7 +206,7 @@ let
 
 in
 stdenv.mkDerivation rec {
-  pname = "bazel";
+  pname = "bazel${lib.optionalString enableNixHacks "-hacks"}";
   inherit version;
 
   meta = with lib; {
@@ -190,12 +225,43 @@ stdenv.mkDerivation rec {
   inherit src;
   inherit sourceRoot;
   patches = [
+    # upb definition inside bazel sets its own copts that take precedence
+    # over flags we set externally, so need to patch them at the source
     ./upb-clang16.patch
+
+    # Force usage of the _non_ prebuilt java toolchain.
+    # the prebuilt one does not work in nix world.
+    ./java_toolchain.patch
+
+    # Bazel integrates with apple IOKit to inhibit and track system sleep.
+    # Inside the darwin sandbox, these API calls are blocked, and bazel
+    # crashes. It seems possible to allow these APIs inside the sandbox, but it
+    # feels simpler to patch bazel not to use it at all. So our bazel is
+    # incapable of preventing system sleep, which is a small price to pay to
+    # guarantee that it will always run in any nix context.
+    #
+    # See also ./bazel_darwin_sandbox.patch in bazel_5. That patch uses
+    # NIX_BUILD_TOP env var to conditionnally disable sleep features inside the
+    # sandbox.
+    #
+    # If you want to investigate the sandbox profile path,
+    # IORegisterForSystemPower can be allowed with
+    #
+    #     propagatedSandboxProfile = ''
+    #       (allow iokit-open (iokit-user-client-class "RootDomainUserClient"))
+    #     '';
+    #
+    # I do not know yet how to allow IOPMAssertion{CreateWithName,Release}
+    ./darwin_sleep.patch
 
     # On Darwin, the last argument to gcc is coming up as an empty string. i.e: ''
     # This is breaking the build of any C target. This patch removes the last
     # argument if it's found to be an empty string.
-    ../trim-last-argument-to-gcc-if-empty.patch
+    ./trim-last-argument-to-gcc-if-empty.patch
+
+    # `java_proto_library` ignores `strict_proto_deps`
+    # https://github.com/bazelbuild/bazel/pull/16146
+    ./strict_proto_deps.patch
 
     # On Darwin, using clang 6 to build fails because of a linker error (see #105573),
     # but using clang 7 fails because libarclite_macosx.a cannot be found when linking
@@ -213,7 +279,7 @@ stdenv.mkDerivation rec {
     # This is non hermetic on non-nixos systems. On NixOS, bazel cannot find the required binaries.
     # So we are replacing this bazel paths by defaultShellPath,
     # improving hermeticity and making it work in nixos.
-    (replaceVars ../strict_action_env.patch {
+    (replaceVars ./strict_action_env.patch {
       strictActionEnvPatch = defaultShellPath;
     })
 
@@ -223,18 +289,14 @@ stdenv.mkDerivation rec {
 
     # bazel reads its system bazelrc in /etc
     # override this path to a builtin one
-    (replaceVars ../bazel_rc.patch {
+    (replaceVars ./bazel_rc.patch {
       bazelSystemBazelRCPath = bazelRC;
     })
-
-    # disable suspend detection during a build inside Nix as this is
-    # not available inside the darwin sandbox
-    ./bazel_darwin_sandbox.patch
-  ] ++ lib.optional enableNixHacks ../nix-hacks.patch;
+  ] ++ lib.optional enableNixHacks ./nix-hacks.patch;
 
   # Additional tests that check bazel’s functionality. Execute
   #
-  #     nix-build . -A bazel_5.tests
+  #     nix-build . -A bazel_6.tests
   #
   # in the nixpkgs checkout root to exercise them locally.
   passthru.tests =
@@ -286,31 +348,37 @@ stdenv.mkDerivation rec {
         let
           be = extracted bazelPkg;
         in
-        runLocal name { inherit buildInputs; } (
-          # skip extraction caching on Darwin, because nobody knows how Darwin works
-          (lib.optionalString (!stdenv.hostPlatform.isDarwin) ''
-            # set up home with pre-unpacked bazel
-            export HOME=$(mktemp -d)
-            mkdir -p ${be.install_dir}
-            cp -R ${be}/install ${be.install_dir}
+        runLocal name
+          {
+            inherit buildInputs;
+            # Necessary for the tests to pass on Darwin with sandbox enabled.
+            __darwinAllowLocalNetworking = true;
+          }
+          (
+            # skip extraction caching on Darwin, because nobody knows how Darwin works
+            (lib.optionalString (!stdenv.hostPlatform.isDarwin) ''
+              # set up home with pre-unpacked bazel
+              export HOME=$(mktemp -d)
+              mkdir -p ${be.install_dir}
+              cp -R ${be}/install ${be.install_dir}
 
-            # https://stackoverflow.com/questions/47775668/bazel-how-to-skip-corrupt-installation-on-centos6
-            # Bazel checks whether the mtime of the install dir files
-            # is >9 years in the future, otherwise it extracts itself again.
-            # see PosixFileMTime::IsUntampered in src/main/cpp/util
-            # What the hell bazel.
-            ${lr}/bin/lr -0 -U ${be.install_dir} | ${xe}/bin/xe -N0 -0 touch --date="9 years 6 months" {}
-          '')
-          + ''
-            # Note https://github.com/bazelbuild/bazel/issues/5763#issuecomment-456374609
-            # about why to create a subdir for the workspace.
-            cp -r ${workspaceDir} wd && chmod u+w wd && cd wd
+              # https://stackoverflow.com/questions/47775668/bazel-how-to-skip-corrupt-installation-on-centos6
+              # Bazel checks whether the mtime of the install dir files
+              # is >9 years in the future, otherwise it extracts itself again.
+              # see PosixFileMTime::IsUntampered in src/main/cpp/util
+              # What the hell bazel.
+              ${lr}/bin/lr -0 -U ${be.install_dir} | ${xe}/bin/xe -N0 -0 touch --date="9 years 6 months" {}
+            '')
+            + ''
+              # Note https://github.com/bazelbuild/bazel/issues/5763#issuecomment-456374609
+              # about why to create a subdir for the workspace.
+              cp -r ${workspaceDir} wd && chmod u+w wd && cd wd
 
-            ${bazelScript}
+              ${bazelScript}
 
-            touch $out
-          ''
-        );
+              touch $out
+            ''
+          );
 
       bazelWithNixHacks = bazel_self.override { enableNixHacks = true; };
 
@@ -324,7 +392,7 @@ stdenv.mkDerivation rec {
     in
     (lib.optionalAttrs (!stdenv.hostPlatform.isDarwin) {
       # `extracted` doesn’t work on darwin
-      shebang = callPackage ../shebang-test.nix {
+      shebang = callPackage ./shebang-test.nix {
         inherit
           runLocal
           extracted
@@ -335,11 +403,11 @@ stdenv.mkDerivation rec {
       };
     })
     // {
-      bashTools = callPackage ../bash-tools-test.nix {
+      bashTools = callPackage ./bash-tools-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazel_self;
       };
-      cpp = callPackage ../cpp-test.nix {
+      cpp = callPackage ./cpp-test.nix {
         inherit
           runLocal
           bazelTest
@@ -348,7 +416,7 @@ stdenv.mkDerivation rec {
           ;
         bazel = bazel_self;
       };
-      java = callPackage ../java-test.nix {
+      java = callPackage ./java-test.nix {
         inherit
           runLocal
           bazelTest
@@ -357,21 +425,21 @@ stdenv.mkDerivation rec {
           ;
         bazel = bazel_self;
       };
-      protobuf = callPackage ../protobuf-test.nix {
+      protobuf = callPackage ./protobuf-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazel_self;
       };
-      pythonBinPath = callPackage ../python-bin-path-test.nix {
+      pythonBinPath = callPackage ./python-bin-path-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazel_self;
       };
 
-      bashToolsWithNixHacks = callPackage ../bash-tools-test.nix {
+      bashToolsWithNixHacks = callPackage ./bash-tools-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazelWithNixHacks;
       };
 
-      cppWithNixHacks = callPackage ../cpp-test.nix {
+      cppWithNixHacks = callPackage ./cpp-test.nix {
         inherit
           runLocal
           bazelTest
@@ -380,7 +448,7 @@ stdenv.mkDerivation rec {
           ;
         bazel = bazelWithNixHacks;
       };
-      javaWithNixHacks = callPackage ../java-test.nix {
+      javaWithNixHacks = callPackage ./java-test.nix {
         inherit
           runLocal
           bazelTest
@@ -389,11 +457,11 @@ stdenv.mkDerivation rec {
           ;
         bazel = bazelWithNixHacks;
       };
-      protobufWithNixHacks = callPackage ../protobuf-test.nix {
+      protobufWithNixHacks = callPackage ./protobuf-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazelWithNixHacks;
       };
-      pythonBinPathWithNixHacks = callPackage ../python-bin-path-test.nix {
+      pythonBinPathWithNixHacks = callPackage ./python-bin-path-test.nix {
         inherit runLocal bazelTest distDir;
         bazel = bazelWithNixHacks;
       };
@@ -407,6 +475,8 @@ stdenv.mkDerivation rec {
     installPhase = ''
       runHook preInstall
 
+      # prevent bazel version check failing in the updater
+      rm .bazelversion
       cp -r . "$out"
 
       runHook postInstall
@@ -451,11 +521,14 @@ stdenv.mkDerivation rec {
         # libcxx includes aren't added by libcxx hook
         # https://github.com/NixOS/nixpkgs/pull/41589
         export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -isystem ${lib.getInclude stdenv.cc.libcxx}/include/c++/v1"
-        # for CLang 16 compatibility in external/{absl,upb} dependencies and in execlog
-        export NIX_CFLAGS_COMPILE+=" -Wno-deprecated-builtins -Wno-gnu-offsetof-extensions -Wno-implicit-function-declaration"
+        # for CLang 16 compatibility in external/{absl,upb} dependencies
+        export NIX_CFLAGS_COMPILE+=" -Wno-deprecated-builtins -Wno-gnu-offsetof-extensions"
 
         # don't use system installed Xcode to run clang, use Nix clang instead
-        sed -i -E "s;/usr/bin/xcrun (--sdk macosx )?clang;${stdenv.cc}/bin/clang $NIX_CFLAGS_COMPILE $(bazelLinkFlags) -framework CoreFoundation;g" \
+        sed -i -E \
+          -e "s;/usr/bin/xcrun (--sdk macosx )?clang;${stdenv.cc}/bin/clang $NIX_CFLAGS_COMPILE $(bazelLinkFlags) -framework CoreFoundation;g" \
+          -e "s;/usr/bin/codesign;CODESIGN_ALLOCATE=${cctools}/bin/${cctools.targetPrefix}codesign_allocate ${sigtool}/bin/codesign;" \
+          -e "s;env -i codesign;env -i CODESIGN_ALLOCATE=${cctools}/bin/${cctools.targetPrefix}codesign_allocate ${sigtool}/bin/codesign;" \
           scripts/bootstrap/compile.sh \
           tools/osx/BUILD
 
@@ -467,21 +540,17 @@ stdenv.mkDerivation rec {
         # clang installed from Xcode has a compatibility wrapper that forwards
         # invocations of gcc to clang, but vanilla clang doesn't
         sed -i -e 's;_find_generic(repository_ctx, "gcc", "CC", overriden_tools);_find_generic(repository_ctx, "clang", "CC", overriden_tools);g' tools/cpp/unix_cc_configure.bzl
-        sed -i -e 's;env -i codesign --identifier $@ --force --sign;env -i CODESIGN_ALLOCATE=${cctools}/bin/${cctools.targetPrefix}codesign_allocate ${sigtool}/bin/codesign --identifier $@ --force -s;g' tools/osx/BUILD
+
         sed -i -e 's;"/usr/bin/libtool";_find_generic(repository_ctx, "libtool", "LIBTOOL", overriden_tools);g' tools/cpp/unix_cc_configure.bzl
-        wrappers=( tools/cpp/osx_cc_wrapper.sh tools/cpp/osx_cc_wrapper.sh.tpl )
+        wrappers=( tools/cpp/osx_cc_wrapper.sh.tpl )
         for wrapper in "''${wrappers[@]}"; do
           sed -i -e "s,/usr/bin/gcc,${stdenv.cc}/bin/clang,g" $wrapper
           sed -i -e "s,/usr/bin/install_name_tool,${cctools}/bin/install_name_tool,g" $wrapper
+          sed -i -e "s,/usr/bin/xcrun install_name_tool,${cctools}/bin/install_name_tool,g" $wrapper
         done
       '';
 
       genericPatches = ''
-        # Substitute j2objc and objc wrapper's python shebang to plain python path.
-        substituteInPlace tools/j2objc/j2objc_header_map.py --replace "$!/usr/bin/python2.7" "#!${python3.interpreter}"
-        substituteInPlace tools/j2objc/j2objc_wrapper.py --replace "$!/usr/bin/python2.7" "#!${python3.interpreter}"
-        substituteInPlace tools/objc/j2objc_dead_code_pruner.py --replace "$!/usr/bin/python2.7" "#!${python3.interpreter}"
-
         # md5sum is part of coreutils
         sed -i 's|/sbin/md5|md5sum|g' \
           src/BUILD third_party/ijar/test/testenv.sh tools/objc/libtool.sh
@@ -498,8 +567,8 @@ stdenv.mkDerivation rec {
           # If you add more replacements here, you must change the grep above!
           # Only files containing /bin are taken into account.
           substituteInPlace "$path" \
-            --replace /bin/bash ${bash}/bin/bash \
-            --replace "/usr/bin/env bash" ${bash}/bin/bash \
+            --replace /bin/bash ${bashWithDefaultShellUtils}/bin/bash \
+            --replace "/usr/bin/env bash" ${bashWithDefaultShellUtils}/bin/bash \
             --replace "/usr/bin/env python" ${python3}/bin/python \
             --replace /usr/bin/env ${coreutils}/bin/env \
             --replace /bin/true ${coreutils}/bin/true
@@ -514,23 +583,24 @@ stdenv.mkDerivation rec {
 
         # bazel test runner include references to /bin/bash
         substituteInPlace tools/build_rules/test_rules.bzl \
-          --replace /bin/bash ${bash}/bin/bash
+          --replace /bin/bash ${bashWithDefaultShellUtils}/bin/bash
 
         for i in $(find tools/cpp/ -type f)
         do
           substituteInPlace $i \
-            --replace /bin/bash ${bash}/bin/bash
+            --replace /bin/bash ${bashWithDefaultShellUtils}/bin/bash
         done
 
         # Fixup scripts that generate scripts. Not fixed up by patchShebangs below.
         substituteInPlace scripts/bootstrap/compile.sh \
-            --replace /bin/bash ${bash}/bin/bash
+            --replace /bin/bash ${bashWithDefaultShellUtils}/bin/bash
 
         # add nix environment vars to .bazelrc
         cat >> .bazelrc <<EOF
         # Limit the resources Bazel is allowed to use during the build to 1/2 the
         # available RAM and 3/4 the available CPU cores. This should help avoid
         # overwhelming the build machine.
+        build --toolchain_resolution_debug=".*"
         build --local_ram_resources=HOST_RAM*.5
         build --local_cpu_resources=HOST_CPUS*.75
 
@@ -546,15 +616,8 @@ stdenv.mkDerivation rec {
         build --verbose_failures
         build --curses=no
         build --features=-layering_check
-        EOF
-
-        cat >> tools/jdk/BUILD.tools <<EOF
-        load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain", "NONPREBUILT_TOOLCHAIN_CONFIGURATION")
-        default_java_toolchain(
-          name = "nonprebuilt_toolchain",
-          configuration = NONPREBUILT_TOOLCHAIN_CONFIGURATION,
-          java_runtime = "@local_jdk//:jdk",
-        )
+        build --experimental_strict_java_deps=off
+        build --strict_proto_deps=off
         EOF
 
         cat >> third_party/grpc/bazel_1.41.0.patch <<EOF
@@ -584,6 +647,8 @@ stdenv.mkDerivation rec {
             -e "/\$command \\\\$/a --verbose_failures \\\\" \
             -e "/\$command \\\\$/a --curses=no \\\\" \
             -e "/\$command \\\\$/a --features=-layering_check \\\\" \
+            -e "/\$command \\\\$/a --experimental_strict_java_deps=off \\\\" \
+            -e "/\$command \\\\$/a --strict_proto_deps=off \\\\" \
             -i scripts/bootstrap/compile.sh
 
         # This is necessary to avoid:
@@ -605,7 +670,10 @@ stdenv.mkDerivation rec {
     in
     lib.optionalString stdenv.hostPlatform.isDarwin darwinPatches + genericPatches;
 
-  buildInputs = [ buildJdk ] ++ defaultShellUtils;
+  buildInputs = [
+    buildJdk
+    bashWithDefaultShellUtils
+  ] ++ defaultShellUtils;
 
   # when a command can’t be found in a bazel build, you might also
   # need to add it to `defaultShellPath`.
@@ -621,6 +689,7 @@ stdenv.mkDerivation rec {
     ]
     ++ lib.optionals (stdenv.hostPlatform.isDarwin) [
       cctools
+      sigtool
     ];
 
   # Bazel makes extensive use of symlinks in the WORKSPACE.
@@ -634,72 +703,84 @@ stdenv.mkDerivation rec {
     shopt -s dotglob extglob
     mv !(bazel_src) bazel_src
   '';
-  buildPhase = ''
-    runHook preBuild
+  buildPhase =
+    ''
+      runHook preBuild
 
-    # Increasing memory during compilation might be necessary.
-    # export BAZEL_JAVAC_OPTS="-J-Xmx2g -J-Xms200m"
+      # Increasing memory during compilation might be necessary.
+      # export BAZEL_JAVAC_OPTS="-J-Xmx2g -J-Xms200m"
 
-    # If EMBED_LABEL isn't set, it'd be auto-detected from CHANGELOG.md
-    # and `git rev-parse --short HEAD` which would result in
-    # "3.7.0- (@non-git)" due to non-git build and incomplete changelog.
-    # Actual bazel releases use scripts/release/common.sh which is based
-    # on branch/tag information which we don't have with tarball releases.
-    # Note that .bazelversion is always correct and is based on bazel-*
-    # executable name, version checks should work fine
-    export EMBED_LABEL="${version}- (@non-git)"
-    ${bash}/bin/bash ./bazel_src/compile.sh
-    ./bazel_src/scripts/generate_bash_completion.sh \
-        --bazel=./bazel_src/output/bazel \
-        --output=./bazel_src/output/bazel-complete.bash \
-        --prepend=./bazel_src/scripts/bazel-complete-header.bash \
-        --prepend=./bazel_src/scripts/bazel-complete-template.bash
-    ${python3}/bin/python3 ./bazel_src/scripts/generate_fish_completion.py \
-        --bazel=./bazel_src/output/bazel \
-        --output=./bazel_src/output/bazel-complete.fish
+      # If EMBED_LABEL isn't set, it'd be auto-detected from CHANGELOG.md
+      # and `git rev-parse --short HEAD` which would result in
+      # "3.7.0- (@non-git)" due to non-git build and incomplete changelog.
+      # Actual bazel releases use scripts/release/common.sh which is based
+      # on branch/tag information which we don't have with tarball releases.
+      # Note that .bazelversion is always correct and is based on bazel-*
+      # executable name, version checks should work fine
+      export EMBED_LABEL="${version}- (@non-git)"
+      ${bash}/bin/bash ./bazel_src/compile.sh
+      ./bazel_src/scripts/generate_bash_completion.sh \
+          --bazel=./bazel_src/output/bazel \
+          --output=./bazel_src/output/bazel-complete.bash \
+          --prepend=./bazel_src/scripts/bazel-complete-header.bash \
+          --prepend=./bazel_src/scripts/bazel-complete-template.bash
+      ${python3}/bin/python3 ./bazel_src/scripts/generate_fish_completion.py \
+          --bazel=./bazel_src/output/bazel \
+          --output=./bazel_src/output/bazel-complete.fish
+    ''
+    +
+      # disable execlog parser on darwin, since it fails to build
+      # see https://github.com/NixOS/nixpkgs/pull/273774#issuecomment-1865322055
+      lib.optionalString (!stdenv.hostPlatform.isDarwin) ''
+        # need to change directory for bazel to find the workspace
+        cd ./bazel_src
+        # build execlog tooling
+        export HOME=$(mktemp -d)
+        ./output/bazel build src/tools/execlog:parser_deploy.jar
+        cd -
 
-    # need to change directory for bazel to find the workspace
-    cd ./bazel_src
-    # build execlog tooling
-    export HOME=$(mktemp -d)
-    ./output/bazel build  src/tools/execlog:parser_deploy.jar
-    cd -
+        runHook postBuild
+      '';
 
-    runHook postBuild
-  '';
+  installPhase =
+    ''
+      runHook preInstall
 
-  installPhase = ''
-    runHook preInstall
+      mkdir -p $out/bin
 
-    mkdir -p $out/bin
+      # official wrapper scripts that searches for $WORKSPACE_ROOT/tools/bazel
+      # if it can’t find something in tools, it calls $out/bin/bazel-{version}-{os_arch}
+      # The binary _must_ exist with this naming if your project contains a .bazelversion
+      # file.
+      cp ./bazel_src/scripts/packages/bazel.sh $out/bin/bazel
+      wrapProgram $out/bin/bazel $wrapperfile --suffix PATH : ${defaultShellPath}
+      mv ./bazel_src/output/bazel $out/bin/bazel-${version}-${system}-${arch}
 
-    # official wrapper scripts that searches for $WORKSPACE_ROOT/tools/bazel
-    # if it can’t find something in tools, it calls $out/bin/bazel-{version}-{os_arch}
-    # The binary _must_ exist with this naming if your project contains a .bazelversion
-    # file.
-    cp ./bazel_src/scripts/packages/bazel.sh $out/bin/bazel
-    wrapProgram $out/bin/bazel $wrapperfile --suffix PATH : ${defaultShellPath}
-    mv ./bazel_src/output/bazel $out/bin/bazel-${version}-${system}-${arch}
-
-    mkdir $out/share
-    cp ./bazel_src/bazel-bin/src/tools/execlog/parser_deploy.jar $out/share/parser_deploy.jar
-    cat <<EOF > $out/bin/bazel-execlog
-    #!${runtimeShell} -e
-    ${runJdk}/bin/java -jar $out/share/parser_deploy.jar \$@
-    EOF
-    chmod +x $out/bin/bazel-execlog
-
-    # shell completion files
-    installShellCompletion --bash \
-      --name bazel.bash \
-      ./bazel_src/output/bazel-complete.bash
-    installShellCompletion --zsh \
-      --name _bazel \
-      ./bazel_src/scripts/zsh_completion/_bazel
-    installShellCompletion --fish \
-      --name bazel.fish \
-      ./bazel_src/output/bazel-complete.fish
-  '';
+    ''
+    +
+      # disable execlog parser on darwin, since it fails to build
+      # see https://github.com/NixOS/nixpkgs/pull/273774#issuecomment-1865322055
+      (lib.optionalString (!stdenv.hostPlatform.isDarwin) ''
+        mkdir $out/share
+        cp ./bazel_src/bazel-bin/src/tools/execlog/parser_deploy.jar $out/share/parser_deploy.jar
+        cat <<EOF > $out/bin/bazel-execlog
+        #!${runtimeShell} -e
+        ${runJdk}/bin/java -jar $out/share/parser_deploy.jar \$@
+        EOF
+        chmod +x $out/bin/bazel-execlog
+      '')
+    + ''
+      # shell completion files
+      installShellCompletion --bash \
+        --name bazel.bash \
+        ./bazel_src/output/bazel-complete.bash
+      installShellCompletion --zsh \
+        --name _bazel \
+        ./bazel_src/scripts/zsh_completion/_bazel
+      installShellCompletion --fish \
+        --name bazel.fish \
+        ./bazel_src/output/bazel-complete.fish
+    '';
 
   # Install check fails on `aarch64-darwin`
   # https://github.com/NixOS/nixpkgs/issues/145587
@@ -715,7 +796,12 @@ stdenv.mkDerivation rec {
     }
 
     cd ./bazel_src
-    rm .bazelversion # this doesn't necessarily match the version we built
+
+    # If .bazelversion file is present in dist files and doesn't match `bazel` version
+    # running `bazel` command within bazel_src will fail.
+    # Let's remove .bazelversion within the test, if present it is meant to indicate bazel version
+    # to compile bazel with, not version of bazel to be built and tested.
+    rm -f .bazelversion
 
     # test whether $WORKSPACE_ROOT/tools/bazel works
 
@@ -736,6 +822,13 @@ stdenv.mkDerivation rec {
 
     # second call succeeds because it defers to $out/bin/bazel-{version}-{os_arch}
     hello_test
+
+    ## Test that the GSON serialisation files are present
+    gson_classes=$(unzip -l $($out/bin/bazel info install_base)/A-server.jar | grep -F -c _GsonTypeAdapter.class)
+    if [ "$gson_classes" -lt 10 ]; then
+      echo "Missing GsonTypeAdapter classes in A-server.jar. Lockfile generation will not work"
+      exit 1
+    fi
 
     runHook postInstall
   '';
