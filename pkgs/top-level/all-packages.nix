@@ -13668,6 +13668,8 @@ with pkgs;
 
   cbconvert-gui = cbconvert.gui;
 
+  ccoctl = callPackage ../applications/networking/cluster/ccoctl { };
+
   cddiscid = callPackage ../applications/audio/cd-discid {
     inherit (darwin) IOKit;
   };
