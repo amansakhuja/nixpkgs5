@@ -113,6 +113,7 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://vikunja.io/";
     license = licenses.gpl3Plus;
     maintainers = with lib.maintainers; [ kolaente ];
+    mainProgram = "vikunja-desktop";
     inherit (electron.meta) platforms;
   };
 })
