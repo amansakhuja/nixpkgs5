@@ -316,10 +316,16 @@ class ManualHTMLRenderer(RendererMixin, HTMLRenderer):
 
         scripts = self._html_params.scripts
         if self._redirects:
-            redirects_path = f'{self._base_path}/{toc.target.path.split('.html')[0]}-redirects.js'
-            with open(redirects_path, 'w') as file:
+            redirects_path = Path(f'{self._base_path}/{toc.target.path.split('.html')[0]}-redirects.js')
+
+            # TODO: Is this the best place to create the directeory ?
+            if not redirects_path.parent.exists():
+                redirects_path.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(redirects_path.as_posix(), 'w') as file:
                 file.write(self._redirects.get_redirect_script(toc.target.path))
-            scripts.append(redirects_path)
+
+            scripts.append(redirects_path.as_posix())
 
         return "\n".join([
             '<?xml version="1.0" encoding="utf-8" standalone="no"?>',
