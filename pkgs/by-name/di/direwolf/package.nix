@@ -18,14 +18,14 @@
   extraScripts ? false,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "direwolf";
   version = "1.7";
 
   src = fetchFromGitHub {
     owner = "wb2osz";
     repo = "direwolf";
-    tag = version;
+    tag = finalAttrs.version;
     hash = "sha256-Vbxc6a6CK+wrBfs15dtjfRa1LJDKKyHMrg8tqsF7EX4=";
   };
 
@@ -88,4 +88,4 @@ stdenv.mkDerivation rec {
       sarcasticadmin
     ];
   };
-}
+})
