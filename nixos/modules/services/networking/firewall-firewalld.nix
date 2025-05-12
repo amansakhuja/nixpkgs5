@@ -14,6 +14,15 @@ in
         '';
       }
     ];
+
+    boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" =
+      if cfg.checkReversePath == false then
+        0
+      else if cfg.checkReversePath == "loose" then
+        1
+      else
+        2;
+
     services.firewalld = {
       settings = {
         DefaultZone = lib.mkDefault "nixos-fw-default";
@@ -22,6 +31,15 @@ in
             (if cfg.logRefusedUnicastsOnly then "unicast" else "all")
           else
             "off";
+        IPv6_rpfilter =
+          if cfg.checkReversePath == false then
+            "no"
+          else
+            let
+              mode = if cfg.checkReversePath == true then "strict" else cfg.checkReversePath;
+              suffix = if cfg.filterForward then "" else "-forward";
+            in
+            "${mode}${suffix}";
       };
       zones = {
         nixos-fw-default = {
