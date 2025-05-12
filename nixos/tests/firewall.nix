@@ -59,8 +59,7 @@ import ./make-test-python.nix (
               ];
             };
           };
-          networking.nftables.enable = backend == "nftables";
-          networking.firewall.firewalld.enable = backend == "firewalld";
+          networking.nftables.enable = backend != "iptables";
           services.httpd.enable = true;
           services.httpd.adminAddr = "foo@example.org";
 
