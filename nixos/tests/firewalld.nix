@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   name = "firewalld";
   meta.maintainers = with pkgs.lib.maintainers; [
@@ -7,12 +7,14 @@
 
   nodes = {
     walled = {
+      networking.nftables.enable = true;
       services.firewalld.enable = true;
       services.httpd.enable = true;
       services.httpd.adminAddr = "foo@example.org";
     };
 
     open = {
+      networking.nftables.enable = true;
       services.firewalld = {
         enable = true;
         settings.DefaultZone = "trusted";
