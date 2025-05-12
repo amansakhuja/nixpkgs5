@@ -34,7 +34,9 @@ buildNpmPackage (finalAttrs: {
   # official MSFT version
   postPatch = ''
     ${jq}/bin/jq --sort-keys \
-      'del(.dependencies["@scrypted/node-pty"]) | .dependencies["node-pty"] |= "1.0.0"' \
+      ' del(.dependencies["@scrypted/node-pty"])
+      | .dependencies["node-pty"] |= "1.0.0"
+      | .dependencies.py |= "npm:@bjia56/portable-python@^0.1.131"' \
       package.json \
       | ${moreutils}/bin/sponge package.json
 
@@ -42,7 +44,7 @@ buildNpmPackage (finalAttrs: {
   '';
 
   sourceRoot = "${finalAttrs.src.name}/server";
-  npmDepsHash = "sha256-NZJ8cPoJ0TLu6+qTmObeifWdLpUtH5VCBV6NAD7F/8w=";
+  npmDepsHash = "sha256-4UaaymGbOJcanccgv3OHQGANC+MdXfDNe9rTsHkzq4g=";
 
   env = {
     SCRYPTED_PYTHON_PATH = "${python.interpreter}";
