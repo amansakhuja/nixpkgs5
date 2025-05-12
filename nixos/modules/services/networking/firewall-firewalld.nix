@@ -5,6 +5,15 @@ let
 in
 {
   config = lib.mkIf (cfg.enable && cfg.backend == "firewalld") {
+    assertions = [
+      {
+        assertion = cfg.interfaces == { };
+        message = ''
+          Per interface configurations is not supported with the firewalld
+          based firewall. Create zone files instead.
+        '';
+      }
+    ];
     services.firewalld = {
       settings = {
         DefaultZone = lib.mkDefault "nixos-fw-default";

@@ -14,7 +14,7 @@ import ./make-test-python.nix (
 
     nodes = {
       walled =
-        { ... }:
+        { lib, ... }:
         {
           networking.firewall = {
             enable = true;
@@ -40,23 +40,25 @@ import ./make-test-python.nix (
                 to = 8010;
               }
             ];
-            interfaces.eth0 = {
-              allowedTCPPorts = [ 10003 ];
-              allowedTCPPortRanges = [
-                {
-                  from = 10000;
-                  to = 10005;
-                }
-              ];
-            };
-            interfaces.eth3 = {
-              allowedUDPPorts = [ 10003 ];
-              allowedUDPPortRanges = [
-                {
-                  from = 10000;
-                  to = 10005;
-                }
-              ];
+            interfaces = lib.mkIf (backend != "firewalld") {
+              eth0 = {
+                allowedTCPPorts = [ 10003 ];
+                allowedTCPPortRanges = [
+                  {
+                    from = 10000;
+                    to = 10005;
+                  }
+                ];
+              };
+              eth3 = {
+                allowedUDPPorts = [ 10003 ];
+                allowedUDPPortRanges = [
+                  {
+                    from = 10000;
+                    to = 10005;
+                  }
+                ];
+              };
             };
           };
           networking.nftables.enable = backend != "iptables";
