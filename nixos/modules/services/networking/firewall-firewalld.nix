@@ -7,7 +7,7 @@ in
   config = lib.mkIf (cfg.enable && cfg.backend == "firewalld") {
     services.firewalld = {
       settings = {
-        DefaultZone = "nixos-fw-default";
+        DefaultZone = lib.mkDefault "nixos-fw-default";
         LogDenied =
           if cfg.logRefusedConnections then
             (if cfg.logRefusedUnicastsOnly then "unicast" else "all")
