@@ -17,6 +17,8 @@ in
       zones = {
         nixos-fw-default = {
           target = if cfg.rejectPackets then "%%REJECT%%" else "DROP";
+          icmpBlockInversion = true;
+          icmpBlocks = lib.mkIf cfg.allowPing [ "echo-request" ];
           ports =
             let
               f = protocol: port: { inherit protocol port; };
