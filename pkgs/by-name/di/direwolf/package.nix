@@ -15,6 +15,7 @@
   espeak,
   udev,
   udevCheckHook,
+  versionCheckHook,
   nix-update-script,
   extraScripts ? false,
 }:
@@ -50,6 +51,7 @@ stdenv.mkDerivation (finalAttrs: {
       perl
       espeak
     ];
+  nativeInstallCheckInputs = [ versionCheckHook ];
 
   preConfigure = lib.optionals (!extraScripts) ''
     echo "" > scripts/CMakeLists.txt
@@ -76,6 +78,8 @@ stdenv.mkDerivation (finalAttrs: {
     '';
 
   doInstallCheck = true;
+
+  versionCheckProgramArg = [ "-u" ];
 
   passthru.updateScript = nix-update-script { };
 
