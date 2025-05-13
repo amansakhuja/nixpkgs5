@@ -62,6 +62,7 @@
 let
   inherit (lib)
     enableFeature
+    getExe
     getExe'
     licenses
     makeSearchPathOutput
@@ -84,7 +85,6 @@ let
   # Mark versions older than minSupportedVersion as EOL.
   minSupportedVersion = "4.17";
 
-  #TODO: fix paths instead.
   scriptEnvPath = makeSearchPathOutput "out" "bin" [
     bridge-utils
     coreutils
@@ -225,8 +225,8 @@ stdenv.mkDerivation (finalAttrs: {
       "XEN_WHOAMI=${finalAttrs.pname}"
       "XEN_DOMAIN=${finalAttrs.vendor}"
 
-      "GIT=${coreutils}/bin/false"
-      "WGET=${coreutils}/bin/false"
+      "GIT=${getExe' coreutils "false"}"
+      "WGET=${getExe' coreutils "false"}"
       "EFI_VENDOR=${finalAttrs.vendor}"
       "INSTALL_EFI_STRIP=1"
       "LD=${getExe' binutils-unwrapped-all-targets "ld"}"
@@ -273,7 +273,7 @@ stdenv.mkDerivation (finalAttrs: {
     # launch_xenstore.sh helper script.
     + ''
       substituteInPlace tools/hotplug/Linux/launch-xenstore.in \
-        --replace-fail "/bin/mkdir" "${coreutils}/bin/mkdir"
+        --replace-fail "/bin/mkdir" "${getExe' coreutils "mkdir"}"
     ''
 
     # The following expression fixes the paths called by Xen's systemd
@@ -281,10 +281,10 @@ stdenv.mkDerivation (finalAttrs: {
     + ''
       substituteInPlace \
         tools/hotplug/Linux/systemd/{xen-init-dom0,xen-qemu-dom0-disk-backend,xenconsoled,xendomains,xenstored}.service.in \
-        --replace-fail /bin/grep ${gnugrep}/bin/grep
+        --replace-fail /bin/grep ${getExe gnugrep}
       substituteInPlace \
        tools/hotplug/Linux/systemd/{xen-qemu-dom0-disk-backend,xenconsoled}.service.in \
-        --replace-fail "/bin/mkdir" "${coreutils}/bin/mkdir"
+        --replace-fail "/bin/mkdir" "${getExe' coreutils "mkdir"}"
     '';
 
   installPhase = ''
@@ -310,7 +310,7 @@ stdenv.mkDerivation (finalAttrs: {
     ''
 
     # Fix shebangs in Xen's various scripts.
-    #TODO: Remove any and all usage of `sed` and replace these complicated magic runes with readable code.
+    # TODO: Patch the individual calls instead.
     + ''
       shopt -s extglob
       for i in $out/etc/xen/scripts/!(*.sh); do
