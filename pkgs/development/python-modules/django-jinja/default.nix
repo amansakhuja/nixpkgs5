@@ -13,7 +13,7 @@
 
   # tests
   pytest-django,
-  pytestCheckHook
+  pytestCheckHook,
 }:
 
 buildPythonPackage rec {
