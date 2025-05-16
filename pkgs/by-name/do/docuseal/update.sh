@@ -19,6 +19,9 @@ rm -f "$dir/gemset.nix" "$dir/Gemfile" "$dir/Gemfile.lock" "$dir/yarn.lock"
 
 git clone https://github.com/docusealco/docuseal.git --branch "$latest" "$repo"
 
+# patch ruby version
+sed -i "/^ruby '[0-9]\+\.[0-9]\+\.[0-9]\+'$/d" "$repo/Gemfile"
+
 # fix: https://github.com/nix-community/bundix/issues/88
 BUNDLE_GEMFILE="$repo/Gemfile" bundler lock --remove-platform x86_64-linux --lockfile="$repo/Gemfile.lock"
 BUNDLE_GEMFILE="$repo/Gemfile" bundler lock --remove-platform aarch64-linux --lockfile="$repo/Gemfile.lock"
