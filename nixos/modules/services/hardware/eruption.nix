@@ -19,12 +19,19 @@ in
       description = "Set this to true, to enable feature-gated functionality. May expose serious bugs";
     };
     driverMaturityLevel = lib.mkOption {
-      type = lib.types.enum [ "stable" "testing" "experimental" ];
+      type = lib.types.enum [
+        "stable"
+        "testing"
+        "experimental"
+      ];
       default = "testing";
       description = "only allows drivers with the respective code maturity level to bind";
     };
     keyboardVariant = lib.mkOption {
-      type = lib.types.enum [ "ISO" "ANSI" ];
+      type = lib.types.enum [
+        "ISO"
+        "ANSI"
+      ];
       default = "ISO";
       description = "Switch between sub-variants of your device. (Only partially supported)";
     };
@@ -94,7 +101,12 @@ in
     systemd.services = {
       eruption = {
         description = "Realtime RGB LED Driver for Linux";
-        documentation = [ "man:eruption(8)" "man:eruption.conf(5)" "man:eruptionctl(1)" "man:eruption-netfx(1)" ];
+        documentation = [
+          "man:eruption(8)"
+          "man:eruption.conf(5)"
+          "man:eruptionctl(1)"
+          "man:eruption-netfx(1)"
+        ];
         wants = [ "basic.target" ];
         wantedBy = [ "basic.target" ];
         startLimitIntervalSec = 300;
@@ -120,33 +132,37 @@ in
       };
 
       "eruption-install-files" = {
-          description = "Install all files for Eruption";
-          after = [ "network.target" ];
-          before = [ "eruption.service" ];
-          wantedBy = [ "multi-user.target" ];
+        description = "Install all files for Eruption";
+        after = [ "network.target" ];
+        before = [ "eruption.service" ];
+        wantedBy = [ "multi-user.target" ];
 
-          serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
-              ExecStop = "${pkgs.coreutils}/bin/rm -r /usr/share/eruption /usr/share/eruption-gui-gtk3 /var/lib/eruption/profiles";
-              TimoutStopSec = 10;
-          };
-          script = ''
-              for abs_path in $(find "${cfg.package}/usr/share/eruption/scripts" -type f) $(find "${cfg.package}/var/lib/eruption/profiles" -type f) "${cfg.package}/usr/share/eruption-gui-gtk3/schemas/gschemas.compiled"; do
-                  rel_path=$(realpath --relative-to="${cfg.package}" "$abs_path")
-                  mkdir -p $(dirname "/$rel_path")
-                  ln -sf "$abs_path" "/$rel_path"
-              done
-          '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStop = "${pkgs.coreutils}/bin/rm -r /usr/share/eruption /usr/share/eruption-gui-gtk3 /var/lib/eruption/profiles";
+          TimoutStopSec = 10;
+        };
+        script = ''
+          for abs_path in $(find "${cfg.package}/usr/share/eruption/scripts" -type f) $(find "${cfg.package}/var/lib/eruption/profiles" -type f) "${cfg.package}/usr/share/eruption-gui-gtk3/schemas/gschemas.compiled"; do
+              rel_path=$(realpath --relative-to="${cfg.package}" "$abs_path")
+              mkdir -p $(dirname "/$rel_path")
+              ln -sf "$abs_path" "/$rel_path"
+          done
+        '';
 
-          enable = true;
+        enable = true;
       };
     };
 
     systemd.user.services = {
       "eruption-audio-proxy" = {
         description = "Audio proxy daemon for Eruption";
-        documentation = [ "man:eruption-audio-proxy(1)" "man:audio-proxy.conf(5)" "man:eruptionctl(1)" ];
+        documentation = [
+          "man:eruption-audio-proxy(1)"
+          "man:audio-proxy.conf(5)"
+          "man:eruptionctl(1)"
+        ];
         requires = [ "sound.target" ];
         partOf = [ "graphical-session.target" ];
         bindsTo = [ "graphical-session.target" ];
@@ -171,7 +187,11 @@ in
 
       "eruption-fx-proxy" = {
         description = "Effects proxy daemon for Eruption";
-        documentation = [ "man:eruption-fx-proxy(1)" "man:fx-proxy.conf(5)" "man:eruptionctl(1)" ];
+        documentation = [
+          "man:eruption-fx-proxy(1)"
+          "man:fx-proxy.conf(5)"
+          "man:eruptionctl(1)"
+        ];
         wants = [ "graphical-session.target" ];
         bindsTo = [ "graphical-session.target" ];
         wantedBy = [ "graphical-session.target" ];
@@ -195,7 +215,11 @@ in
 
       "eruption-process-monitor" = {
         description = "Process Monitoring and Introspection for Eruption";
-        documentation = [ "man:eruption-process-monitor(1)" "man:process-monitor.conf(5)" "man:eruptionctl(1)" ];
+        documentation = [
+          "man:eruption-process-monitor(1)"
+          "man:process-monitor.conf(5)"
+          "man:eruptionctl(1)"
+        ];
         partOf = [ "graphical-session.target" ];
         bindsTo = [ "graphical-session.target" ];
         wantedBy = [ "graphical-session.target" ];
@@ -219,38 +243,39 @@ in
     };
 
     environment.etc =
-    let
-      standardProfiles = lib.optionals cfg.includeStandardProfiles [ "/var/lib/eruption/profiles/" ];
-      standardScripts = lib.optionals cfg.includeStandardScripts [ "/usr/share/eruption/scripts/" ];
-      profileDirs = "\"" + (lib.concatStringsSep "\", \"" (standardProfiles ++ cfg.profileDirs)) + "\"";
-      scriptDirs = "\"" + (lib.concatStringsSep "\", \"" (standardScripts ++ cfg.scriptDirs)) + "\"";
-    in
-    {
-      "eruption/eruption.conf".text = ''# Eruption - Realtime RGB LED Driver for Linux
-# Main configuration file
+      let
+        standardProfiles = lib.optionals cfg.includeStandardProfiles [ "/var/lib/eruption/profiles/" ];
+        standardScripts = lib.optionals cfg.includeStandardScripts [ "/usr/share/eruption/scripts/" ];
+        profileDirs = "\"" + (lib.concatStringsSep "\", \"" (standardProfiles ++ cfg.profileDirs)) + "\"";
+        scriptDirs = "\"" + (lib.concatStringsSep "\", \"" (standardScripts ++ cfg.scriptDirs)) + "\"";
+      in
+      {
+        "eruption/eruption.conf".text = ''
+          # Eruption - Realtime RGB LED Driver for Linux
+          # Main configuration file
 
-# This file has been generated by the NixOS Confiuguration
-# Edit your confguration.nix to edit this file
+          # This file has been generated by the NixOS Confiuguration
+          # Edit your confguration.nix to edit this file
 
-[global]
-enable_experimental_features = ${lib.boolToString cfg.enableExperimentalFeatures}
-driver_maturity_level = "${cfg.driverMaturityLevel}"
+          [global]
+          enable_experimental_features = ${lib.boolToString cfg.enableExperimentalFeatures}
+          driver_maturity_level = "${cfg.driverMaturityLevel}"
 
-profile_dirs = [ ${profileDirs} ]
-script_dirs = [ ${scriptDirs} ]
+          profile_dirs = [ ${profileDirs} ]
+          script_dirs = [ ${scriptDirs} ]
 
-keyboard_variant = "${cfg.keyboardVariant}"
+          keyboard_variant = "${cfg.keyboardVariant}"
 
-enable_mouse = ${lib.boolToString cfg.enableMouse}
-grab_mouse = ${lib.boolToString cfg.grabMouse}
+          enable_mouse = ${lib.boolToString cfg.enableMouse}
+          grab_mouse = ${lib.boolToString cfg.grabMouse}
 
-afk_profile = "${cfg.afkProfile}"
-afk_timeout_secs = ${toString cfg.afkTimeoutSecs}
+          afk_profile = "${cfg.afkProfile}"
+          afk_timeout_secs = ${toString cfg.afkTimeoutSecs}
 
-profile_fade_milliseconds = ${toString cfg.profileFadeMilliseconds}
-'';
-      "eruption/profile.d/eruption.sh".source = "${cfg.package}/etc/profile.d/eruption.sh";
-    };
+          profile_fade_milliseconds = ${toString cfg.profileFadeMilliseconds}
+        '';
+        "eruption/profile.d/eruption.sh".source = "${cfg.package}/etc/profile.d/eruption.sh";
+      };
   };
 
   meta.maintainers = with lib.maintainers; [ puckla ];
