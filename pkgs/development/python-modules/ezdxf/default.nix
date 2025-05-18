@@ -22,7 +22,7 @@
 }:
 
 buildPythonPackage rec {
-  version = "1.4.1";
+  version = "1.4.2";
   pname = "ezdxf";
 
   pyproject = true;
@@ -31,7 +31,7 @@ buildPythonPackage rec {
     owner = "mozman";
     repo = "ezdxf";
     tag = "v${version}";
-    hash = "sha256-WZsXP6VYwho/SgfS2u9nvJlWinxuoENB2xNWPamvOmQ=";
+    hash = "sha256-XNy7/N6tQIf7rVx8q85fzI3mFMIcwaOi7wBz4hNRWjY=";
   };
 
   nativeBuildInputs = lib.optionals withGui [ qt6.wrapQtAppsHook ];
