@@ -11134,6 +11134,8 @@ self: super: with self; {
 
   pid = callPackage ../development/python-modules/pid { };
 
+  pidng = callPackage ../development/python-modules/pidng { };
+
   piep = callPackage ../development/python-modules/piep { };
 
   piexif = callPackage ../development/python-modules/piexif { };
