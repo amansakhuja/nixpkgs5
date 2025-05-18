@@ -3,6 +3,7 @@
   fetchFromGitHub,
   flutter327,
   gst_all_1,
+  killall,
 }:
 
 flutter327.buildFlutterApplication rec {
@@ -25,6 +26,7 @@ flutter327.buildFlutterApplication rec {
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     gst_all_1.gst-plugins-bad
+    killall
   ];
 
   postInstall = ''
