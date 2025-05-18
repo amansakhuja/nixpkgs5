@@ -4,6 +4,7 @@
   flutter327,
   gst_all_1,
   killall,
+  piper-tts,
 }:
 
 flutter327.buildFlutterApplication rec {
@@ -27,11 +28,13 @@ flutter327.buildFlutterApplication rec {
     gst_all_1.gst-plugins-good
     gst_all_1.gst-plugins-bad
     killall
+    piper-tts
   ];
 
   postInstall = ''
     install -D flatpak/com.mikeasoft.pied.desktop -t $out/share/applications
     install -D flatpak/com.mikeasoft.pied.png -t $out/share/pixmaps
+    ln -s ${piper-tts}/bin/piper $out/bin/piper
   '';
 
   meta = {
