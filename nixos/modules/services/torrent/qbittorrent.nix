@@ -19,7 +19,7 @@ let
     escape
     collect
     mapAttrsRecursive
-    optional
+    optionals
     ;
   inherit (lib.types)
     str
@@ -167,7 +167,7 @@ in
           "nss-lookup.target"
         ];
         wantedBy = [ "multi-user.target" ];
-        restartTriggers = optional (cfg.serverConfig != { }) configFile;
+        restartTriggers = optionals (cfg.serverConfig != { }) [ configFile ];
 
         serviceConfig = {
           Type = "simple";
@@ -178,8 +178,8 @@ in
               (getExe cfg.package)
               "--profile=${cfg.profileDir}"
             ]
-            ++ optional (cfg.webuiPort != null) "--webui-port=${toString cfg.webuiPort}"
-            ++ optional (cfg.torrentingPort != null) "--torrenting-port=${toString cfg.torrentingPort}"
+            ++ optionals (cfg.webuiPort != null) [ "--webui-port=${toString cfg.webuiPort}" ]
+            ++ optionals (cfg.torrentingPort != null) [ "--torrenting-port=${toString cfg.torrentingPort}" ]
             ++ cfg.extraArgs
           );
           TimeoutStopSec = 1800;
@@ -230,8 +230,8 @@ in
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
-      optional (cfg.webuiPort != null) cfg.webuiPort
-      ++ optional (cfg.torrentingPort != null) cfg.torrentingPort
+      optionals (cfg.webuiPort != null) [ cfg.webuiPort ]
+      ++ optionals (cfg.torrentingPort != null) [ cfg.torrentingPort ]
     );
   };
   meta.maintainers = with maintainers; [ fsnkty ];
