@@ -54,6 +54,9 @@ let
     beta = {
       version = "2.7.61.3";
       hash = "sha256-ZfpfCMM2ptT+S+PjMQ7hHLQDAy8/5nhIkjlGFouhAFI=";
+      # https://gitlab.archlinux.org/schiele/prusa-slicer/-/blob/d839bb84345c0f3ab3eb151a5777f0ca85b5f318/allow_wayland.patch
+      # https://gitlab.archlinux.org/archlinux/packaging/packages/prusa-slicer/-/issues/3
+      patches = [ ./super-slicer-allow-wayland.patch ];
     };
   };
 
