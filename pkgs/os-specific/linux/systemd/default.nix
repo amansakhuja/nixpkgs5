@@ -18,6 +18,7 @@
   glibcLocales,
   autoPatchelfHook,
   fetchpatch,
+  callPackage,
 
   # glib is only used during tests (test-bus-gvariant, test-bus-marshal)
   glib,
@@ -86,6 +87,10 @@
   # closure of GHC via emscripten and jdk.
   bpftools,
   libbpf,
+
+  # vmlinux.h file containing the kernel's BTF information,
+  # used throughout systemd's BPF programs.
+  vmlinux-btf ? callPackage ./vmlinux-btf.nix { },
 
   # Needed to produce a ukify that works for cross compiling UKIs.
   targetPackages,
@@ -562,13 +567,13 @@ stdenv.mkDerivation (finalAttrs: {
       (lib.mesonEnable "selinux" withSelinux)
       (lib.mesonEnable "tpm2" withTpm2Tss)
       (lib.mesonEnable "pcre2" withPCRE2)
-      (lib.mesonEnable "bpf-framework" withLibBPF)
       (lib.mesonEnable "bootloader" withBootloader)
       (lib.mesonEnable "ukify" withUkify)
       (lib.mesonEnable "kmod" withKmod)
       (lib.mesonEnable "qrencode" withQrencode)
       (lib.mesonEnable "vmspawn" withVmspawn)
       (lib.mesonEnable "libarchive" withLibarchive)
+      (lib.mesonEnable "bpf-framework" withLibBPF)
       (lib.mesonEnable "xenctrl" false)
       (lib.mesonEnable "gnutls" false)
       (lib.mesonEnable "xkbcommon" false)
@@ -600,7 +605,10 @@ stdenv.mkDerivation (finalAttrs: {
       (lib.mesonBool "create-log-dirs" false)
       (lib.mesonBool "smack" true)
       (lib.mesonBool "b_pie" true)
-
+    ]
+    ++ lib.optionals withLibBPF [
+      (lib.mesonOption "vmlinux-h" "provided")
+      (lib.mesonOption "vmlinux-h-path" "${vmlinux-btf}/vmlinux.h")
     ]
     ++ lib.optionals (withShellCompletions == false) [
       (lib.mesonOption "bashcompletiondir" "no")
@@ -610,6 +618,7 @@ stdenv.mkDerivation (finalAttrs: {
       (lib.mesonBool "gshadow" false)
       (lib.mesonBool "idn" false)
     ];
+
   preConfigure =
     let
       # A list of all the runtime binaries referenced by the source code (plus
@@ -896,6 +905,7 @@ stdenv.mkDerivation (finalAttrs: {
       util-linux
       kmod
       kbd
+      vmlinux-btf
       ;
 
     # Many TPM2-related units are only installed if this trio of features are
