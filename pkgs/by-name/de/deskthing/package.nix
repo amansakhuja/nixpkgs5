@@ -6,11 +6,11 @@
 }:
 let
   pname = "deskthing";
-  version = "0.11.1";
+  version = "0.11.6";
 
   src = fetchurl {
     url = "https://github.com/ItsRiprod/${pname}/releases/download/v${version}/deskthing-linux-${version}-setup.AppImage";
-    hash = "sha256-ppisF4B6Ehj6PB3vGPcHk1EQhTgjaSjTKuU7O0s/exY=";
+    hash = "sha256-els9b0EaBREiiWPheARBMokuQwizUO2cNq5JrFQ7QPk=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
