@@ -28,7 +28,6 @@ flutter327.buildFlutterApplication rec {
     gst_all_1.gst-plugins-good
     gst_all_1.gst-plugins-bad
     killall
-    piper-tts
   ];
 
   postInstall = ''
