@@ -1,12 +1,16 @@
 {
   lib,
+  callPackage,
   buildNpmPackage,
   fetchFromGitHub,
   openssl,
   prisma,
-  prisma-engines,
   nixosTests,
 }:
+
+let
+  prisma-engines = callPackage ./prisma-engines.nix { };
+in
 
 buildNpmPackage rec {
   pname = "spliit";
@@ -52,7 +56,7 @@ buildNpmPackage rec {
       --chdir $out/lib/node_modules/spliit2 \
       --set PRISMA_SCHEMA_ENGINE_BINARY ${lib.getExe' prisma-engines "schema-engine"} \
       --set PRISMA_QUERY_ENGINE_BINARY ${lib.getExe' prisma-engines "query-engine"} \
-      --set PRISMA_QUERY_ENGINE_LIBRARY ${lib.getLib prisma-engines}/lib/libquery_engine.node \
+      --set PRISMA_QUERY_ENGINE_LIBRARY ${lib.getLib prisma-engines}/lib/libquery_engine.so.node \
       --run "$out/lib/node_modules/spliit2/node_modules/.bin/prisma migrate deploy" \
       --add-flags start \
   '';
