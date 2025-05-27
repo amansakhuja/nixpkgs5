@@ -857,10 +857,10 @@ rec {
         _directoryEntries path lhs
       );
 
-  # Filters all files in a path based on a predicate
-  # Type: ({ name, type, ... } -> Bool) -> Path -> FileSet
+  # Filters all files in a file set based on a predicate
+  # Type: ({ name, type, ... } -> Bool) -> FileSet -> FileSet
   _fileFilter =
-    predicate: root:
+    predicate: fileset:
     let
       # Check the predicate for a single file
       # Type: String -> String -> filesetTree
@@ -888,16 +888,22 @@ rec {
         mapAttrs (
           name: type: if type == "directory" then fromDir (path + "/${name}") else fromFile name type
         ) (readDir path);
-
-      rootType = pathType root;
     in
-    if rootType == "directory" then
-      _create root (fromDir root)
+    if fileset._internalIsEmptyWithoutBase then
+      _emptyWithoutBase
     else
-      # Single files are turned into a directory containing that file or nothing.
-      _create (dirOf root) {
-        ${baseNameOf root} = fromFile (baseNameOf root) rootType;
-      };
+      _create fileset._internalBase (
+        if fileset._internalTree == "directory" then
+          fromDir fileset._internalBase
+        else
+          lib.mapAttrsRecursive (
+            components: type:
+            if type == "directory" then
+              fromDir (fileset._internalBase + ("/" + concatStringsSep "/" components))
+            else
+              fromFile (lib.last components) type
+          ) fileset._internalTree
+      );
 
   # Support for `builtins.fetchGit` with `submodules = true` was introduced in 2.4
   # https://github.com/NixOS/nix/commit/55cefd41d63368d4286568e2956afd535cb44018
