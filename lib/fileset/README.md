@@ -46,7 +46,7 @@ An attribute set with these values:
 - `_type` (constant string `"fileset"`):
   Tag to indicate this value is a file set.
 
-- `_internalVersion` (constant `3`, the current version):
+- `_internalVersion` (constant `4`, the current version):
   Version of the representation.
 
 - `_internalIsEmptyWithoutBase` (bool):
@@ -55,6 +55,11 @@ An attribute set with these values:
   This is the only way to represent an empty file set without needing a base path.
 
   Such a value can be used as the identity element for `union` and the return value of `unions []` and co.
+
+- `_internalHasVirtualFiles` (bool):
+  Whether this file set *potentially* has any virtual files, where the path might not exist.
+  This is kept `true`, even when all virtual files have been removed via `difference` or `intersection`.
+  If `true`, certain optimizations for unions can not take place.
 
 - `_internalBase` (path):
   Any files outside of this path cannot influence the set of files.

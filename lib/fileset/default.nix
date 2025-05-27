@@ -100,6 +100,7 @@
 let
 
   inherit (import ./internal.nix { inherit lib; })
+    _create
     _coerce
     _singleton
     _coerceMany
@@ -197,6 +198,27 @@ in
     else
       _singleton path;
 
+  /**
+    Create a file set from any path.
+    The path is not checked for existence.
+
+    # Inputs
+
+    `path`
+
+    : 1\. Function argument
+
+    # Type
+
+    ```
+    virtual :: Path -> FileSet
+    ```
+  */
+  virtual =
+    path:
+    _create true (dirOf path) {
+      ${baseNameOf path} = "virtual";
+    };
 
   /**
     Incrementally evaluate and trace a file set in a pretty way.
