@@ -51,6 +51,8 @@ buildGoModule rec {
     license = licenses.apsl20;
     maintainers = with maintainers; [
       netbrain
+      vdemeester
+      chmouel
     ];
     mainProgram = "tkn-pac";
   };
