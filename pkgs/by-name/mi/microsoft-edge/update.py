@@ -40,6 +40,13 @@ def write_expression():
         "upstream_version"
     )
     os.system(f'update-source-version microsoft-edge "{version}"')
+    write_msedgedriver_hash(version)
 
+def write_msedgdriver_hash(version: Version):
+    PACKAGE_PATH = dirname(abspath(__file__)) + "../../ms/msedgedriver/default.nix"
+    msedgdriver_url = f"https://msedgedriver.azureedge.net/{version}/edgedriver_linux64.zip"
+    command = f"nix hash to-sri --type sha256 $(nix-prefetch-url --unpack {msedgedriver_url})"
+
+    os.system(command)
 
 write_expression()

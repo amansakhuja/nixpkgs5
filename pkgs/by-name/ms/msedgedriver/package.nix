@@ -7,37 +7,20 @@
   nspr,
   nss,
   stdenvNoCC,
+
+  # Since this pretty much depends on the browser having the same version we just use that version
+  microsoft-edge,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "msedgedriver";
-  # finding a version that has all 4 builds is a pain
-  # https://msedgewebdriverstorage.z22.web.core.windows.net/?form=MA13LH
-  version = "136.0.3240.92";
+  inherit (microsoft-edge) version;
 
-  src =
-    let
-      inherit (stdenvNoCC.hostPlatform) system;
-      selectSystem = attrs: attrs.${system} or (throw "Unsupported system: ${system}");
-      suffix = selectSystem {
-        x86_64-linux = "linux64";
-        aarch64-linux = "arm64";
-        x86_64-darwin = "mac64";
-        aarch64-darwin = "mac64_m1";
-      };
-
-      hash = selectSystem {
-        x86_64-linux = "sha256-LKpTAfxvL1qhAQ5PMtl5TryodlOc0Gl14oAangqUR34=";
-        aarch64-linux = "sha256-NmZTABjJpR8j4UlAW1bz/Gtj22bcTSHBin5+TMt2nN4=";
-        x86_64-darwin = "sha256-kQMFe96DobQD5LlB1vSkjtAIZsX1c6D7XRAm1gHZQmw=";
-        aarch64-darwin = "sha256-qxd7/nqnqCJ15YAOUH/xZCM22qNETnmgBJkisn10iDk=";
-      };
-    in
-    fetchzip {
-      url = "https://msedgedriver.azureedge.net/${finalAttrs.version}/edgedriver_${suffix}.zip";
-      inherit hash;
-      stripRoot = false;
-    };
+  src = fetchzip {
+    url = "https://msedgedriver.azureedge.net/${finalAttrs.version}/edgedriver_linux64.zip";
+    hash = "sha256-LKpTAfxvL1qhAQ5PMtl5TryodlOc0Gl14oAangqUR34=";
+    stripRoot = false;
+  };
 
   buildInputs = [
     glib
@@ -46,7 +29,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     nss
   ];
 
-  nativeBuildInputs = lib.optionals (!stdenvNoCC.hostPlatform.isDarwin) [ autoPatchelfHook ];
+  nativeBuildInputs = [ autoPatchelfHook ];
 
   installPhase =
     if stdenvNoCC.hostPlatform.isDarwin then
@@ -75,9 +58,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     maintainers = with lib.maintainers; [ cholli ];
     platforms = [
       "x86_64-linux"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
     ];
     mainProgram = "msedgedriver";
   };
