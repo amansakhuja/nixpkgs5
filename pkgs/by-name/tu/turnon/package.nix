@@ -14,18 +14,18 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "turnon";
-  version = "2.6.3";
+  version = "2.7.1";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "swsnr";
     repo = "turnon";
     rev = "v${version}";
-    hash = "sha256-fRDyfgS+jLGFJTYIEXJ27cCM9knfbIjlGpYNU4OyoJ0=";
+    hash = "sha256-hZA2vkTLvLHSvTlZgXLN52wUVw+r8trHH6urwLrtW/8=";
   };
 
   useFetchCargoVendor = true;
-  cargoHash = "sha256-Bg3+PX5/BlqeN3EEFzBX42Dw4BbyKHlN1dnQSHnEz+c=";
+  cargoHash = "sha256-fqAGWLk6EWGQcrZYyCF1Aez1+yBg7Qdj1DTAfVwI5FQ=";
 
   doCheck = true;
 
@@ -71,7 +71,7 @@ rustPlatform.buildRustPackage rec {
   meta = {
     description = "Turn on devices in your local network";
     homepage = "https://codeberg.org/swsnr/turnon";
-    license = lib.licenses.mpl20;
+    license = lib.licenses.eupl12;
     maintainers = with lib.maintainers; [ mksafavi ];
     mainProgram = "de.swsnr.turnon";
     platforms = lib.platforms.linux;
