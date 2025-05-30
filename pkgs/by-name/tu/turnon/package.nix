@@ -1,6 +1,6 @@
 {
   lib,
-  fetchFromGitHub,
+  fetchFromGitea,
   rustPlatform,
   cairo,
   pango,
@@ -15,7 +15,8 @@ rustPlatform.buildRustPackage rec {
   pname = "turnon";
   version = "2.6.3";
 
-  src = fetchFromGitHub {
+  src = fetchFromGitea {
+    domain = "codeberg.org";
     owner = "swsnr";
     repo = "turnon";
     rev = "v${version}";
@@ -59,7 +60,7 @@ rustPlatform.buildRustPackage rec {
 
   meta = {
     description = "Turn on devices in your local network";
-    homepage = "https://github.com/swsnr/turnon";
+    homepage = "https://codeberg.org/swsnr/turnon";
     license = lib.licenses.mpl20;
     maintainers = with lib.maintainers; [ mksafavi ];
     mainProgram = "turnon";
