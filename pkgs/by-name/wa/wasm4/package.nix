@@ -22,11 +22,13 @@ let
     owner = "aduros";
     repo = "wasm4";
     tag = "v${version}";
-    hash = "sha256-QZtPqq92SXmH5DbyTgyHK+GG2TZglRpTKyX2tCd2xd8=";
+    hash = "sha256-QmSqQh+8w8pxoQcgHrsTfv/lIb5Xh7LkATnSMDUwjKo=";
+    # native runtime has submodule-vendored dependencies
+    fetchSubmodules = true;
   };
   webDevtools = buildNpmPackage (finalAttrs: {
     pname = "web-devtools";
-    version = "1.0.0";
+    inherit version;
 
     inherit src;
     sourceRoot = "${src.name}/devtools/web";
@@ -36,8 +38,7 @@ let
   });
   webRuntime = buildNpmPackage (finalAttrs: {
     pname = "wasm4-runtime";
-    # unversioned
-    version = "0.0.0";
+    inherit version;
 
     inherit src;
     sourceRoot = "${src.name}/runtimes/web";
@@ -56,17 +57,9 @@ let
   });
   nativeRuntime = superStdenv.mkDerivation (finalAttrs: {
     pname = "wasm4-runtime-native";
-    # unversioned
-    version = "0.0.0";
+    inherit version;
 
-    src = fetchFromGitHub {
-      owner = "aduros";
-      repo = "wasm4";
-      tag = "v${version}";
-      hash = "sha256-QmSqQh+8w8pxoQcgHrsTfv/lIb5Xh7LkATnSMDUwjKo=";
-      # native runtime has submodule-vendored dependencies
-      fetchSubmodules = true;
-    };
+    inherit src;
     sourceRoot = "${finalAttrs.src.name}/runtimes/native";
 
     cmakeFlags = [ "-DWASM_BACKEND=wasm3" ];
