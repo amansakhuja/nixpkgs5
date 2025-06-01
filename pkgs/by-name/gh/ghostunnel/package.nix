@@ -35,18 +35,16 @@ buildGoModule (finalAttrs: {
   checkFlags = [ "-skip=^Test(ImportDelete|Signer|Certificate)(RSA|ECDSA|EC)$" ];
 
   passthru.tests =
-    let
-      module = {
-        services.ghostunnel.package = finalAttrs.finalPackage;
-      };
-    in
-    {
-      nixos = nixosTests.ghostunnel.extendNixOS { inherit module; };
-      /**
-        does not support overriding yet!
-      */
-      podman = nixosTests.podman-tls-ghostunnel;
+  let
+    module = {
+      services.ghostunnel.package = finalAttrs.finalPackage;
     };
+  in
+  {
+    nixos = nixosTests.ghostunnel.extendNixOS { inherit module; };
+    /** does not support overriding yet! */
+    podman = nixosTests.podman-tls-ghostunnel;
+  };
 
   meta = with lib; {
     description = "TLS proxy with mutual authentication support for securing non-TLS backend applications";
