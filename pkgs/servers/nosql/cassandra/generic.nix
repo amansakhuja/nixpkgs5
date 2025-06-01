@@ -116,21 +116,7 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
-    tests = nixosTests."cassandra_${generation}".extend {
-      modules = [
-        {
-          getPackage = lib.mkForce (
-            pkgs:
-            if stdenv.hostPlatform.isLinux then
-              finalAttrs.finalPackage
-            else
-              lib.warn
-                "To run the NixOS tests on a non-Linux host, use the `nixosTests` attribute in your native package set instead. Ignoring package overrides if any."
-                pkgs."cassandra_${generation}"
-          );
-        }
-      ];
-    };
+    tests = nixosTests."cassandra_${generation}".setPackage finalAttrs.finalPackage;
 
     updateScript = callPackage ./update-script.nix { inherit generation; };
   };

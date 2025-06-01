@@ -5,7 +5,7 @@
 }:
 let
   pkgs = config.node.pkgs;
-  testPackage = config.getPackage pkgs;
+  testPackage = config.node.package;
 
   clusterName = "NixOS Automated-Test Cluster";
 
@@ -38,7 +38,6 @@ let
     listenAddress = ipAddress;
     rpcAddress = ipAddress;
     seedAddresses = [ "192.168.1.1" ];
-    package = testPackage;
     maxHeapSize = "${numMaxHeapSize}M";
     heapNewSize = "100M";
     inherit jmxPort;
@@ -66,19 +65,17 @@ let
     };
 in
 {
-  options = {
-    getPackage = lib.mkOption {
-      description = "The Cassandra package to test, given a `pkgs`.";
-      type = lib.types.functionTo lib.types.package;
-      default = pkgs: pkgs.cassandra;
-    };
-  };
+  imports = [
+    ./common/set-package.nix
+  ];
 
   config = {
     name = "cassandra-${testPackage.version}";
     meta = {
       maintainers = with lib.maintainers; [ johnazoidberg ];
     };
+
+    setPackage = pkg: { services.cassandra.package = pkg; };
 
     nodes = {
       cass0 = nodeCfg "192.168.1.1" { };
