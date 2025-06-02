@@ -212,6 +212,17 @@ let
       '';
     };
 
+    mirrors = mkOption {
+      type = types.attrsOf (types.listOf types.str);
+      default = import ../build-support/fetchurl/mirrors.nix;
+      description = ''
+        Customized set of mirror URLs.
+
+        The default mirror list can be found in
+        [/pkgs/build-support/fetchurl/mirrors.nix](https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/fetchurl/mirrors.nix).
+      '';
+    };
+
     rewriteURL = mkOption {
       type = types.functionTo (types.nullOr types.str);
       description = ''
