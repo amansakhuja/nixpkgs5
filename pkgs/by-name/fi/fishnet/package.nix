@@ -69,7 +69,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
       runtimeEnv = {
         PNAME = "fishnet";
         PKG_FILE = builtins.toString ./package.nix;
-        GITHUB_REPOSITORY = "lichess-org/fishnet";
+        GITHUB_REPOSITORY = "${finalAttrs.src.owner}/${finalAttrs.src.repo}";
         NNUE_BIG_FILE = nnueBigFile;
         NNUE_BIG_HASH = nnueBigHash;
         NNUE_SMALL_FILE = nnueSmallFile;
@@ -80,11 +80,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
     });
   };
 
-  meta = with lib; {
+  meta = {
     description = "Distributed Stockfish analysis for lichess.org";
     homepage = "https://github.com/lichess-org/fishnet";
-    license = licenses.gpl3Plus;
-    maintainers = with maintainers; [
+    license = lib.licenses.gpl3Plus;
+    maintainers = with lib.maintainers; [
       tu-maurice
       thibaultd
     ];
