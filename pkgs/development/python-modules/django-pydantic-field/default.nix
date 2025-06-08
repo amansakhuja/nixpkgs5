@@ -28,7 +28,7 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "";
-    homepage = "https://github.com/${src.owner}/${pname}";
+    homepage = "https://github.com/surenkov/django-pydantic-field";
     maintainers = with lib.maintainers; [ kiara ];
     license = licenses.mit;
   };
