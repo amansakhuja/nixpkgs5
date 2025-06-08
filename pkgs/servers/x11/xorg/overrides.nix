@@ -1222,7 +1222,6 @@ self: super:
   xkbprint = addMainProgram super.xkbprint { };
   xkill = addMainProgram super.xkill { };
   xload = addMainProgram super.xload { };
-  xlsatoms = addMainProgram super.xlsatoms { };
   xlsclients = addMainProgram super.xlsclients { };
   xmag = addMainProgram super.xmag { };
   xmessage = addMainProgram super.xmessage { };
