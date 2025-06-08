@@ -14,7 +14,7 @@ buildPythonPackage rec {
 
   src = fetchFromGitHub {
     owner = "surenkov";
-    repo = pname;
+    repo = "django-pydantic-field";
     rev = version;
     hash = "sha256-rlnS67OGljWD8Sbyutb43txAH0jA2+8ju1ntSEP3whM=";
   };
