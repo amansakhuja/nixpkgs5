@@ -1102,7 +1102,6 @@ self: super:
 
   xbacklight = addMainProgram super.xbacklight { };
   xclock = addMainProgram super.xclock { };
-  xcmsdb = addMainProgram super.xcmsdb { };
   xcompmgr = addMainProgram super.xcompmgr { };
   xconsole = addMainProgram super.xconsole { };
   xcursorgen = addMainProgram super.xcursorgen { };
