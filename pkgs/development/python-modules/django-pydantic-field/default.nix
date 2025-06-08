@@ -27,7 +27,7 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    description = "";
+    description = "Django JSONField with Pydantic models as a Schema";
     homepage = "https://github.com/surenkov/django-pydantic-field";
     maintainers = with lib.maintainers; [ kiara ];
     license = licenses.mit;
