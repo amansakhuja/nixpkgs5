@@ -39,6 +39,10 @@ buildDunePackage rec {
   meta = {
     homepage = "https://github.com/ocaml-multicore/kcas";
     description = "STM based on lock-free MCAS";
+    longDescription = ''
+      A software transactional memory (STM) implementation based on an atomic lock-free multi-word compare-and-set (MCAS) algorithm enhanced with read-only compare operations and ability to block awaiting for changes.
+    '';
+    changelog = "https://raw.githubusercontent.com/ocaml-multicore/kcas/refs/tags/${version}/CHANGES.md";
     license = lib.licenses.isc;
     maintainers = [ lib.maintainers.vbgl ];
   };
