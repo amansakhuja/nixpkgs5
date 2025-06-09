@@ -27,6 +27,7 @@
   xorg-docs,
   xorgproto,
   xorg-sgml-doctools,
+  xprop,
   xtrans,
 }:
 
@@ -46,6 +47,7 @@ self: with self; {
     sessreg
     xbitmaps
     xorgproto
+    xprop
     xtrans
     ;
   fontalias = font-alias;
@@ -7372,42 +7374,6 @@ self: with self; {
       buildInputs = [
         libX11
         libXmu
-        xorgproto
-      ];
-      passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
-      meta = {
-        pkgConfigModules = [ ];
-        platforms = lib.platforms.unix;
-      };
-    })
-  ) { };
-
-  # THIS IS A GENERATED FILE.  DO NOT EDIT!
-  xprop = callPackage (
-    {
-      stdenv,
-      pkg-config,
-      fetchurl,
-      libX11,
-      xorgproto,
-      testers,
-    }:
-    stdenv.mkDerivation (finalAttrs: {
-      pname = "xprop";
-      version = "1.2.7";
-      builder = ./builder.sh;
-      src = fetchurl {
-        url = "mirror://xorg/individual/app/xprop-1.2.7.tar.xz";
-        sha256 = "0pw2iv7dcy2xq5fh3427nx88pjj9d9rry3930qj1c6mricaf6dj4";
-      };
-      hardeningDisable = [
-        "bindnow"
-        "relro"
-      ];
-      strictDeps = true;
-      nativeBuildInputs = [ pkg-config ];
-      buildInputs = [
-        libX11
         xorgproto
       ];
       passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
