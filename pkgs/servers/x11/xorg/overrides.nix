@@ -1255,7 +1255,6 @@ self: super:
     };
   });
 
-  xrefresh = addMainProgram super.xrefresh { };
   xset = addMainProgram super.xset { };
   xsetroot = addMainProgram super.xsetroot { };
   xsm = addMainProgram super.xsm { };
