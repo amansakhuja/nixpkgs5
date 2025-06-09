@@ -265,11 +265,11 @@ For an example, see the `magma` package.
 
 ### `passthru.testers` {#cuda-testing-packages-passthru-testers}
 
-The `passthru.testers` attribute set exists to allow running tests outside the Nix sandbox. There are a number of reasons why this is useful:
+The `passthru.testers` attribute set exists to allow running tests outside the Nix sandbox. There are a number of reasons why this is useful, since such a test:
 
-- The test, when wrapped with utilities like `nixGL` or `nix-gl-host`, can be run on non-NixOS systems.
-- The test has network access patterns which are difficult or impossible to sandbox.
-- The test produces output which is not deterministic, such as timing information.
+- When wrapped with utilities like `nixGL` or `nix-gl-host`, can be run on non-NixOS systems.
+- Has network access patterns which are difficult or impossible to sandbox.
+- Is free to produce output which is not deterministic, such as timing information.
 
 Attributes added to `passthru.testers` are derivations which produce an executable which runs a test. The produced executable should:
 
