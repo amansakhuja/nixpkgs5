@@ -30,7 +30,7 @@ stdenv.mkDerivation (finalAttrs: {
   patches = [
     # Use gtest from nixpkgs instead of downloading it from github
     # ref https://github.com/joaoleal/CppADCodeGen/pull/90
-    ./90.patch
+    ./90_cmake-look-for-system-gtest.patch
   ];
 
   outputs = [
