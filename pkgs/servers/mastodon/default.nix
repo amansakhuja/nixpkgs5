@@ -82,6 +82,9 @@ stdenv.mkDerivation rec {
         -exec gzip --best --keep --force {} ';' \
         -exec brotli --best --keep {} ';'
 
+      gzip --best --keep public/packs/sw.js
+      brotli --best --keep public/packs/sw.js
+
       runHook postBuild
     '';
 
@@ -132,6 +135,8 @@ stdenv.mkDerivation rec {
       -exec brotli --best --keep {} ';'
     ln -s assets/500.html.gz public/500.html.gz
     ln -s assets/500.html.br public/500.html.br
+    ln -s packs/sw.js.gz public/sw.js.gz
+    ln -s packs/sw.js.br public/sw.js.br
 
     rm -rf log
     ln -s /var/log/mastodon log
