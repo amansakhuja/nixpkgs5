@@ -24,7 +24,7 @@ python3Packages.buildPythonApplication rec {
     pip
   ];
 
-  propagatedBuildInputs = with python3Packages; [
+  dependencies = with python3Packages; [
     # Core dependencies from pyproject.toml
     click
     rich
