@@ -17,7 +17,7 @@ python3Packages.buildPythonApplication rec {
 
   pyproject = true;
 
-  nativeBuildInputs = with python3Packages; [
+  build-system = with python3Packages; [
     hatchling
     setuptools
     wheel
