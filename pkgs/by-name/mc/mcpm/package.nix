@@ -56,7 +56,7 @@ python3Packages.buildPythonApplication rec {
   ];
 
   meta = {
-    description = "MCPM - Model Context Protocol Manager";
+    description = "Model Context Protocol Manager";
     homepage = "https://mcpm.sh";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ luochen1990 ];
