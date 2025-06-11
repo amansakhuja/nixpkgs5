@@ -6,10 +6,10 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "arcticons-sans";
-  version = "0.590";
+  version = "0.593";
 
   src = fetchzip {
-    hash = "sha256-0iSkTfUMgrKi6LF+9KAihPus0biGuOFsYN51ydYAF5E=";
+    hash = "sha256-OiLmSozKiVRbnefVMmPXRaKCHZb7brynfJew1NYrT0M=";
     url = "https://github.com/arcticons-team/arcticons-font/archive/refs/tags/${finalAttrs.version}.zip";
   };
 

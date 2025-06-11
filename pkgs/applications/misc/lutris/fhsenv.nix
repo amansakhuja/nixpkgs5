@@ -21,7 +21,7 @@ let
       gtksourceview
       gnome-desktop
       libgnome-keyring
-      webkitgtk_4_0
+      webkitgtk_4_1
     ];
   xorgDeps =
     pkgs: with pkgs.xorg; [
@@ -126,7 +126,7 @@ buildFHSEnv {
       # Libretro
       fluidsynth
       hidapi
-      mesa
+      libgbm
       libdrm
 
       # MAME

@@ -12,16 +12,16 @@
 
 buildGoModule rec {
   pname = "trayscale";
-  version = "0.14.0";
+  version = "0.18.0";
 
   src = fetchFromGitHub {
     owner = "DeedleFake";
     repo = "trayscale";
-    rev = "v${version}";
-    hash = "sha256-QUHWcAwyS+A9PzYk+bkDzHr7JPzJluq1+iOt25Z+TPc=";
+    tag = "v${version}";
+    hash = "sha256-c6SZjkRuyf+3YEdZYLz2qe7ThNZhOk6vAKC/P90CCE0=";
   };
 
-  vendorHash = "sha256-jEX+7d/2lmNKq3PLoRYyZrcy3A8+9fcQbmVmGacgX2w=";
+  vendorHash = "sha256-4ilgRX820VuOYAtFpPVU0AGLkC6SSUcoweA1BWHhIws=";
 
   subPackages = [ "cmd/trayscale" ];
 
@@ -60,6 +60,6 @@ buildGoModule rec {
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ sikmir ];
     mainProgram = "trayscale";
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.unix;
   };
 }

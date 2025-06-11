@@ -8,23 +8,22 @@
 
 buildPythonPackage rec {
   pname = "json-repair";
-  version = "0.30.3";
+  version = "0.46.2";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "mangiucugna";
     repo = "json_repair";
     tag = "v${version}";
-    hash = "sha256-8EHrI+Z9SempjiBwCeLlskA7FPOhYbi0WHevi7ewlrY=";
+    hash = "sha256-Xj3gLduN5aiy/XJ8jOaJEp4o3iX+PTD6eLBGHoHQ5HM=";
   };
 
   build-system = [ setuptools ];
 
-  nativeBuildInputs = [ pytestCheckHook ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
   disabledTestPaths = [
     "tests/test_performance.py"
-    "tests/test_coverage.py"
   ];
 
   pythonImportsCheck = [ "json_repair" ];
@@ -32,7 +31,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Module to repair invalid JSON, commonly used to parse the output of LLMs";
     homepage = "https://github.com/mangiucugna/json_repair/";
-    changelog = "https://github.com/mangiucugna/json_repair/releases/tag/${version}";
+    changelog = "https://github.com/mangiucugna/json_repair/releases/tag/${src.tag}";
     license = licenses.mit;
     maintainers = with maintainers; [ greg ];
   };

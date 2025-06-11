@@ -13,6 +13,7 @@
   Xaw3d,
   acl,
   alsa-lib,
+  apple-sdk,
   autoreconfHook,
   cairo,
   dbus,
@@ -31,6 +32,7 @@
   jansson,
   libXaw,
   libXcursor,
+  libXft,
   libXi,
   libXpm,
   libgccjit,
@@ -44,6 +46,7 @@
   libxml2,
   llvmPackages_14,
   m17n_lib,
+  mailcap,
   mailutils,
   makeWrapper,
   motif,
@@ -53,27 +56,34 @@
   recurseIntoAttrs,
   sigtool,
   sqlite,
-  substituteAll,
+  replaceVars,
   systemd,
   tree-sitter,
   texinfo,
   webkitgtk_4_0,
   wrapGAppsHook3,
+  writeText,
   zlib,
 
   # Boolean flags
-  withNativeCompilation ? stdenv.buildPlatform.canExecute stdenv.hostPlatform,
+
+  # FIXME: Native compilation breaks build and runtime on macOS 15.4;
+  # see <https://github.com/NixOS/nixpkgs/issues/395169>.
+  withNativeCompilation ?
+    stdenv.buildPlatform.canExecute stdenv.hostPlatform && !stdenv.hostPlatform.isDarwin,
   noGui ? false,
   srcRepo ? true,
   withAcl ? false,
   withAlsaLib ? false,
   withAthena ? false,
+  withCairo ? withX,
   withCsrc ? true,
   withDbus ? stdenv.hostPlatform.isLinux,
   withGTK3 ? withPgtk && !noGui,
   withGlibNetworking ? withPgtk || withGTK3 || (withX && withXwidgets),
   withGpm ? stdenv.hostPlatform.isLinux,
-  withImageMagick ? lib.versionOlder version "27" && (withX || withNS),
+  # https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS.27#L140-L142
+  withImageMagick ? false,
   # Emacs 30+ has native JSON support
   withJansson ? lib.versionOlder version "30",
   withMailutils ? true,
@@ -81,13 +91,13 @@
   withNS ? stdenv.hostPlatform.isDarwin && !(variant == "macport" || noGui),
   withPgtk ? false,
   withSelinux ? stdenv.hostPlatform.isLinux,
-  withSQLite3 ? lib.versionAtLeast version "29",
+  withSQLite3 ? true,
   withSystemd ? lib.meta.availableOn stdenv.hostPlatform systemd,
   withToolkitScrollBars ? true,
-  withTreeSitter ? lib.versionAtLeast version "29",
-  withWebP ? lib.versionAtLeast version "29",
+  withTreeSitter ? true,
+  withWebP ? true,
   withX ? !(stdenv.hostPlatform.isDarwin || noGui || withPgtk),
-  withXinput2 ? withX && lib.versionAtLeast version "29",
+  withXinput2 ? withX,
   withXwidgets ?
     !stdenv.hostPlatform.isDarwin
     && !noGui
@@ -109,20 +119,8 @@
       "lucid"
   ),
 
-  # macOS dependencies for NS and macPort
-  Accelerate,
-  AppKit,
-  Carbon,
-  Cocoa,
-  GSS,
-  IOKit,
-  ImageCaptureCore,
-  ImageIO,
-  OSAKit,
-  Quartz,
-  QuartzCore,
-  UniformTypeIdentifiers,
-  WebKit,
+  # test
+  callPackage,
 }:
 
 assert (withGTK3 && !withNS && variant != "macport") -> withX || withPgtk;
@@ -131,6 +129,7 @@ assert noGui -> !(withX || withGTK3 || withNS || variant == "macport");
 assert withAcl -> stdenv.hostPlatform.isLinux;
 assert withAlsaLib -> stdenv.hostPlatform.isLinux;
 assert withGpm -> stdenv.hostPlatform.isLinux;
+assert withImageMagick -> (withX || withNS);
 assert withNS -> stdenv.hostPlatform.isDarwin && !(withX || variant == "macport");
 assert withPgtk -> withGTK3 && !withX;
 assert withXwidgets -> !noGui && (withGTK3 || withPgtk);
@@ -171,32 +170,37 @@ mkDerivation (finalAttrs: {
   patches =
     patches fetchpatch
     ++ lib.optionals withNativeCompilation [
-      (substituteAll {
-        src =
-          if lib.versionOlder finalAttrs.version "29" then
-            ./native-comp-driver-options-28.patch
-          else if lib.versionOlder finalAttrs.version "30" then
+      (replaceVars
+        (
+          if lib.versionOlder finalAttrs.version "30" then
             ./native-comp-driver-options.patch
           else
-            ./native-comp-driver-options-30.patch;
-        backendPath = (
-          lib.concatStringsSep " " (
-            builtins.map (x: ''"-B${x}"'') (
-              [
-                # Paths necessary so the JIT compiler finds its libraries:
-                "${lib.getLib libgccjit}/lib"
-              ]
-              ++ libGccJitLibraryPaths
-              ++ [
-                # Executable paths necessary for compilation (ld, as):
-                "${lib.getBin stdenv.cc.cc}/bin"
-                "${lib.getBin stdenv.cc.bintools}/bin"
-                "${lib.getBin stdenv.cc.bintools.bintools}/bin"
-              ]
+            ./native-comp-driver-options-30.patch
+        )
+        {
+          backendPath = (
+            lib.concatStringsSep " " (
+              builtins.map (x: ''"-B${x}"'') (
+                [
+                  # Paths necessary so the JIT compiler finds its libraries:
+                  "${lib.getLib libgccjit}/lib"
+                ]
+                ++ libGccJitLibraryPaths
+                ++ [
+                  # Executable paths necessary for compilation (ld, as):
+                  "${lib.getBin stdenv.cc.cc}/bin"
+                  "${lib.getBin stdenv.cc.bintools}/bin"
+                  "${lib.getBin stdenv.cc.bintools.bintools}/bin"
+                ]
+                ++ lib.optionals stdenv.hostPlatform.isDarwin [
+                  # The linker needs to know where to find libSystem on Darwin.
+                  "${apple-sdk.sdkroot}/usr/lib"
+                ]
+              )
             )
-          )
-        );
-      })
+          );
+        }
+      )
     ];
 
   postPatch = lib.concatStringsSep "\n" [
@@ -221,16 +225,24 @@ mkDerivation (finalAttrs: {
     # Reduce closure size by cleaning the environment of the emacs dumper
     ''
       substituteInPlace src/Makefile.in \
-        --replace 'RUN_TEMACS = ./temacs' 'RUN_TEMACS = env -i ./temacs'
+        --replace-warn 'RUN_TEMACS = ./temacs' 'RUN_TEMACS = env -i ./temacs'
     ''
 
     ''
       substituteInPlace lisp/international/mule-cmds.el \
-        --replace /usr/share/locale ${gettext}/share/locale
+        --replace-warn /usr/share/locale ${gettext}/share/locale
 
       for makefile_in in $(find . -name Makefile.in -print); do
-        substituteInPlace $makefile_in --replace /bin/pwd pwd
+        substituteInPlace $makefile_in --replace-warn /bin/pwd pwd
       done
+    ''
+
+    ''
+      substituteInPlace lisp/net/mailcap.el \
+        --replace-fail '"/etc/mime.types"' \
+                       '"/etc/mime.types" "${mailcap}/etc/mime.types"' \
+        --replace-fail '("/etc/mailcap" system)' \
+                       '("/etc/mailcap" system) ("${mailcap}/etc/mailcap" system)'
     ''
 
     ""
@@ -324,7 +336,6 @@ mkDerivation (finalAttrs: {
     ]
     ++ lib.optionals withX [
       Xaw3d
-      cairo
       giflib
       libXaw
       libXpm
@@ -332,6 +343,12 @@ mkDerivation (finalAttrs: {
       libpng
       librsvg
       libtiff
+    ]
+    ++ lib.optionals withCairo [
+      cairo
+    ]
+    ++ lib.optionals (withX && !withCairo) [
+      libXft
     ]
     ++ lib.optionals withXinput2 [
       libXi
@@ -344,27 +361,6 @@ mkDerivation (finalAttrs: {
     ]
     ++ lib.optionals withNS [
       librsvg
-      AppKit
-      GSS
-      ImageIO
-    ]
-    ++ lib.optionals (variant == "macport") [
-      Accelerate
-      AppKit
-      Carbon
-      Cocoa
-      IOKit
-      OSAKit
-      Quartz
-      QuartzCore
-      WebKit
-      # TODO are these optional?
-      GSS
-      ImageCaptureCore
-      ImageIO
-    ]
-    ++ lib.optionals (variant == "macport" && stdenv.hostPlatform.isAarch64) [
-      UniformTypeIdentifiers
     ];
 
   # Emacs needs to find movemail at run time, see info (emacs) Movemail
@@ -387,8 +383,8 @@ mkDerivation (finalAttrs: {
       else if withX then
         [
           (lib.withFeatureAs true "x-toolkit" toolkit)
-          (lib.withFeature true "cairo")
-          (lib.withFeature true "xft")
+          (lib.withFeature withCairo "cairo")
+          (lib.withFeature (!withCairo) "xft")
         ]
       else if withPgtk then
         [
@@ -492,15 +488,25 @@ mkDerivation (finalAttrs: {
     patchelf --add-needed "libXcursor.so.1" "$out/bin/emacs"
   '';
 
+  setupHook = ./setup-hook.sh;
+
   passthru = {
     inherit withNativeCompilation;
     inherit withTreeSitter;
     inherit withXwidgets;
     pkgs = recurseIntoAttrs (emacsPackagesFor finalAttrs.finalPackage);
-    tests = { inherit (nixosTests) emacs-daemon; };
+    tests = {
+      inherit (nixosTests) emacs-daemon;
+      withPackages = callPackage ./build-support/wrapper-test.nix {
+        emacs = finalAttrs.finalPackage;
+      };
+    };
   };
 
-  meta = meta // {
+  meta = {
     broken = withNativeCompilation && !(stdenv.buildPlatform.canExecute stdenv.hostPlatform);
-  };
+    knownVulnerabilities = lib.optionals (lib.versionOlder version "30") [
+      "CVE-2024-53920 CVE-2025-1244, please use newer versions such as emacs30"
+    ];
+  } // meta;
 })

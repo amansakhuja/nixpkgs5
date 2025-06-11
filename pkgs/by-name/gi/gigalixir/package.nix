@@ -1,18 +1,19 @@
-{ stdenv
-, lib
-, python3
-, fetchPypi
-, git
+{
+  stdenv,
+  lib,
+  python3,
+  fetchPypi,
+  git,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "gigalixir";
-  version = "1.12.1";
+  version = "1.13.1";
   format = "setuptools";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-T16+0F28/SxDl53GGTRzKbG+ghbL/80NkY08WpCixhA=";
+    hash = "sha256-hYIuSLK2HeeXPL28qKvkKwPVpOwObNGrVWbDq6B0/IA=";
   };
 
   postPatch = ''
@@ -31,13 +32,15 @@ python3.pkgs.buildPythonApplication rec {
     stripe
   ];
 
-  nativeCheckInputs = [
-    git
-  ] ++ (with python3.pkgs; [
-    httpretty
-    pytestCheckHook
-    sure
-  ]);
+  nativeCheckInputs =
+    [
+      git
+    ]
+    ++ (with python3.pkgs; [
+      httpretty
+      pytestCheckHook
+      sure
+    ]);
 
   disabledTests = [
     # Test requires network access

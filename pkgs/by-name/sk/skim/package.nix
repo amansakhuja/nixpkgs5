@@ -12,7 +12,7 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "skim";
-  version = "0.15.0";
+  version = "0.18.0";
 
   outputs = [
     "out"
@@ -23,15 +23,16 @@ rustPlatform.buildRustPackage rec {
   src = fetchFromGitHub {
     owner = "skim-rs";
     repo = "skim";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-Y/MVjwpNyYXjQWB3s8WRblCukBr0z81k3gf3bf58KGE=";
+    tag = "v${version}";
+    hash = "sha256-79HHJeAP3pnM/KAdGsGw31MRXl3Qz2ttTvXX+oBCcow=";
   };
 
   postPatch = ''
     sed -i -e "s|expand('<sfile>:h:h')|'$out'|" plugin/skim.vim
   '';
 
-  cargoHash = "sha256-llpNnZdIFHCmyyVla+tZOgpMTavu/m3ZGFZaS5EbiVo=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-N1s6Kf6iy28QcrLQy6TVbXjfSb9KtzJeaKksW4wXsMw=";
 
   nativeBuildInputs = [ installShellFiles ];
 
@@ -64,12 +65,13 @@ rustPlatform.buildRustPackage rec {
 
   meta = {
     description = "Command-line fuzzy finder written in Rust";
-    homepage = "https://github.com/lotabout/skim";
+    homepage = "https://github.com/skim-rs/skim";
     changelog = "https://github.com/skim-rs/skim/releases/tag/v${version}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [
       dywedir
       getchoo
+      krovuxdev
     ];
     mainProgram = "sk";
   };

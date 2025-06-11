@@ -2,7 +2,7 @@
   lib,
   asioSupport ? true,
   asio,
-  boost180,
+  boost,
   log4cxxSupport ? false,
   log4cxx,
   snappySupport ? false,
@@ -43,18 +43,18 @@ let
     ++ lib.optional zstdSupport zstd
     ++ lib.optional log4cxxSupport log4cxx
     ++ lib.optional asioSupport asio
-    ++ lib.optional (!asioSupport) boost180;
+    ++ lib.optional (!asioSupport) boost;
 
 in
-stdenv.mkDerivation (finalAttrs: rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libpulsar";
-  version = "3.6.0";
+  version = "3.7.1";
 
   src = fetchFromGitHub {
     owner = "apache";
     repo = "pulsar-client-cpp";
-    rev = "v${version}";
-    hash = "sha256-P1LhUH7V3EtWBXwPHQdN11mCjuyUyVdrtZsUItvC8xU=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-RHWi0KCq7U7Dr3Ic7kduc8P64VpAThTQ3lDxLLEqzIU=";
   };
 
   nativeBuildInputs =
@@ -92,7 +92,7 @@ stdenv.mkDerivation (finalAttrs: rec {
   meta = with lib; {
     homepage = "https://pulsar.apache.org/docs/next/client-libraries-cpp/";
     description = "Apache Pulsar C++ library";
-    changelog = "https://github.com/apache/pulsar-client-cpp/releases/tag/v${version}";
+    changelog = "https://github.com/apache/pulsar-client-cpp/releases/tag/v${finalAttrs.version}";
     platforms = platforms.all;
     license = licenses.asl20;
     maintainers = with maintainers; [

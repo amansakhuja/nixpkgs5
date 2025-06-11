@@ -39,7 +39,7 @@ stdenv.mkDerivation (finalAttrs: {
       gtk3
       libdrm
       libxkbcommon
-      mesa
+      libgbm
       nspr
       nss
       pango
@@ -82,7 +82,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   postFixup = ''
     substituteInPlace $out/share/applications/figma-linux.desktop \
-          --replace "Exec=/opt/figma-linux/figma-linux" "Exec=$out/bin/${finalAttrs.pname}"
+          --replace "Exec=/opt/figma-linux/figma-linux" "Exec=$out/bin/figma-linux"
   '';
 
   meta = with lib; {

@@ -26,26 +26,25 @@
   vulkan-loader,
   glslang,
   spirv-tools,
-  gtest,
-  apple-sdk_11,
+  glew,
 }:
 let
   clientExecutable = "TaterClient-DDNet";
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "taterclient-ddnet";
-  version = "9.0.1";
+  version = "10.3.0";
 
   src = fetchFromGitHub {
     owner = "sjrc6";
     repo = "taterclient-ddnet";
-    rev = "refs/tags/V${finalAttrs.version}";
-    hash = "sha256-s+GIY29WYbVETtJSLBfP87pakRfxgGcw3Dk3p6HHoYA=";
+    tag = "V${finalAttrs.version}";
+    hash = "sha256-OEoiUtD87xsXBgAZ65mmfmAJcEvrley3drRX+IJo20s=";
   };
 
-  cargoDeps = rustPlatform.fetchCargoTarball {
+  cargoDeps = rustPlatform.fetchCargoVendor {
     inherit (finalAttrs) pname src version;
-    hash = "sha256-u+IhlJYVEYeWnmFzRmcVqJfM3zBy70k9yp0AjRTovwg=";
+    hash = "sha256-VKGc4LQjt2FHbELLBKtV8rKpxjGBrzlA3m9BSdZ/6Z0=";
   };
 
   nativeBuildInputs = [
@@ -55,34 +54,35 @@ stdenv.mkDerivation (finalAttrs: {
     rustc
     cargo
     rustPlatform.cargoSetupHook
+    glslang # for glslangValidator
+    python3
   ];
 
-  nativeCheckInputs = [ gtest ];
+  buildInputs = [
+    curl
+    libnotify
+    pcre
+    sqlite
+    freetype
+    libGLU
+    libogg
+    opusfile
+    SDL2
+    wavpack
+    ffmpeg
+    x264
+    vulkan-loader
+    vulkan-headers
+    glslang
+    spirv-tools
+    glew
+  ] ++ lib.optionals stdenv.hostPlatform.isLinux [ libX11 ];
 
-  buildInputs =
-    [
-      curl
-      libnotify
-      pcre
-      python3
-      sqlite
-      freetype
-      libGLU
-      libogg
-      opusfile
-      SDL2
-      wavpack
-      ffmpeg
-      x264
-      vulkan-loader
-      vulkan-headers
-      glslang
-      spirv-tools
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [ libX11 ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      apple-sdk_11
-    ];
+  strictDeps = true;
+
+  patches = [
+    ./client_log_format_security.patch
+  ];
 
   postPatch = ''
     substituteInPlace src/engine/shared/storage.cpp \
@@ -90,16 +90,19 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   cmakeFlags = [
-    "-DAUTOUPDATE=OFF"
-    "-DCLIENT=ON"
-    "-DSERVER=OFF"
-    "-DTOOLS=OFF"
-    "-DCLIENT_EXECUTABLE=${clientExecutable}"
+    (lib.cmakeBool "AUTOUPDATE" false)
+    (lib.cmakeBool "CLIENT" true)
+    (lib.cmakeBool "SERVER" false)
+    (lib.cmakeBool "TOOLS" false)
+    (lib.cmakeBool "DISCORD" false)
+    (lib.cmakeFeature "CLIENT_EXECUTABLE" clientExecutable)
   ];
 
-  # Tests loop forever on Darwin for some reason
-  doCheck = !stdenv.hostPlatform.isDarwin;
-  checkTarget = "run_tests";
+  # Since we are not building the server executable, the `run_tests` Makefile target
+  # will not be generated.
+  #
+  # See https://github.com/sjrc6/TaterClient-ddnet/blob/V10.3.0/CMakeLists.txt#L3072
+  doCheck = false;
 
   preFixup = lib.optionalString stdenv.hostPlatform.isDarwin ''
     # Upstream links against <prefix>/lib while it installs this library in <prefix>/lib/ddnet

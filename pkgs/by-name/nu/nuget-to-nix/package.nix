@@ -1,8 +1,7 @@
 {
   lib,
-  runCommandLocal,
   runtimeShell,
-  substituteAll,
+  replaceVarsWith,
   nix,
   coreutils,
   jq,
@@ -10,31 +9,33 @@
   curl,
   gnugrep,
   gawk,
+  nuget-to-json,
   cacert,
 }:
 
-runCommandLocal "nuget-to-nix"
-  {
-    script = substituteAll {
-      src = ./nuget-to-nix.sh;
-      inherit runtimeShell cacert;
+replaceVarsWith {
+  name = "nuget-to-nix";
+  dir = "bin";
 
-      binPath = lib.makeBinPath [
-        nix
-        coreutils
-        jq
-        xmlstarlet
-        curl
-        gnugrep
-        gawk
-      ];
-    };
+  src = ./nuget-to-nix.sh;
+  isExecutable = true;
 
-    meta = {
-      description = "Convert a nuget packages directory to a lockfile for buildDotnetModule";
-      mainProgram = "nuget-to-nix";
-    };
-  }
-  ''
-    install -Dm755 $script $out/bin/nuget-to-nix
-  ''
+  replacements = {
+    inherit runtimeShell cacert;
+    binPath = lib.makeBinPath [
+      nix
+      coreutils
+      jq
+      xmlstarlet
+      curl
+      gnugrep
+      gawk
+      nuget-to-json
+    ];
+  };
+
+  meta = {
+    description = "Convert a nuget packages directory to a lockfile for buildDotnetModule";
+    mainProgram = "nuget-to-nix";
+  };
+}

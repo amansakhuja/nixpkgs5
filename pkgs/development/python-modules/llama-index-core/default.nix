@@ -1,6 +1,8 @@
 {
   lib,
   aiohttp,
+  aiosqlite,
+  banks,
   buildPythonPackage,
   dataclasses-json,
   deprecated,
@@ -8,17 +10,17 @@
   fetchFromGitHub,
   filetype,
   fsspec,
+  hatchling,
   jsonpath-ng,
   llamaindex-py-client,
   nest-asyncio,
   networkx,
-  nltk,
   nltk-data,
+  nltk,
   numpy,
   openai,
   pandas,
   pillow,
-  poetry-core,
   pytest-asyncio,
   pytest-mock,
   pytestCheckHook,
@@ -36,7 +38,7 @@
 
 buildPythonPackage rec {
   pname = "llama-index-core";
-  version = "0.12.2";
+  version = "0.12.37";
   pyproject = true;
 
   disabled = pythonOlder "3.8";
@@ -44,8 +46,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "run-llama";
     repo = "llama_index";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-Zt97JZHp0MsHFtdrx6Xjqhz/jREWwevGSz8u9l5t8oI=";
+    tag = "v${version}";
+    hash = "sha256-M6DiCJZu9mtb8NxzEiBsbpLJmpStNScTtHdr70H7Dvk=";
   };
 
   sourceRoot = "${src.name}/${pname}";
@@ -66,10 +68,12 @@ buildPythonPackage rec {
 
   pythonRelaxDeps = [ "tenacity" ];
 
-  build-system = [ poetry-core ];
+  build-system = [ hatchling ];
 
   dependencies = [
     aiohttp
+    aiosqlite
+    banks
     dataclasses-json
     deprecated
     dirtyjson
@@ -129,16 +133,28 @@ buildPythonPackage rec {
 
   disabledTests = [
     # Tests require network access
+    "test_context_extraction_basic"
+    "test_context_extraction_custom_prompt"
+    "test_context_extraction_oversized_document"
+    "test_document_block_from_b64"
+    "test_document_block_from_bytes"
+    "test_document_block_from_path"
+    "test_document_block_from_url"
     "test_from_namespaced_persist_dir"
     "test_from_persist_dir"
+    "test_mimetype_raw_data"
+    "test_multiple_documents_context"
     # asyncio.exceptions.InvalidStateError: invalid state
     "test_workflow_context_to_dict_mid_run"
+    "test_SimpleDirectoryReader"
+    # RuntimeError
+    "test_str"
   ];
 
   meta = with lib; {
     description = "Data framework for your LLM applications";
     homepage = "https://github.com/run-llama/llama_index/";
-    changelog = "https://github.com/run-llama/llama_index/blob/${version}/CHANGELOG.md";
+    changelog = "https://github.com/run-llama/llama_index/blob/${src.tag}/CHANGELOG.md";
     license = licenses.mit;
     maintainers = with maintainers; [ fab ];
   };

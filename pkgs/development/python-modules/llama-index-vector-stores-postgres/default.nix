@@ -5,30 +5,26 @@
   fetchPypi,
   llama-index-core,
   pgvector,
-  poetry-core,
+  hatchling,
   psycopg2,
 }:
 
 buildPythonPackage rec {
   pname = "llama-index-vector-stores-postgres";
-  version = "0.3.2";
+  version = "0.5.3";
   pyproject = true;
 
   src = fetchPypi {
     pname = "llama_index_vector_stores_postgres";
     inherit version;
-    hash = "sha256-Ny1hKQUwrzvb/GI2WRa80i0EsE92oqSEdj6hFBle6H8=";
+    hash = "sha256-P4gn+1mm4m8iah7F1yAbMm9+cAfyt+WKxH4Jcq+9O2k=";
   };
 
   pythonRemoveDeps = [ "psycopg2-binary" ];
 
-  pythonRelaxDeps = [
-    "pgvector"
-  ];
+  pythonRelaxDeps = [ "pgvector" ];
 
-  build-system = [
-    poetry-core
-  ];
+  build-system = [ hatchling ];
 
   dependencies = [
     asyncpg

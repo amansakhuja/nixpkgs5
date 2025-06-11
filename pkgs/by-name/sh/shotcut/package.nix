@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   stdenv,
-  substituteAll,
+  replaceVars,
   SDL2,
   frei0r,
   ladspaPlugins,
@@ -13,19 +13,19 @@
   fftw,
   qt6,
   cmake,
-  darwin,
   gitUpdater,
   ffmpeg,
 }:
+
 stdenv.mkDerivation (finalAttrs: {
   pname = "shotcut";
-  version = "24.11.17";
+  version = "25.01.25";
 
   src = fetchFromGitHub {
     owner = "mltframework";
     repo = "shotcut";
-    rev = "refs/tags/v${finalAttrs.version}";
-    hash = "sha256-sOBGLQYRGHcXNoKTmqbBqmheUFHe7p696BTCiwtF5JY=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-YrnmhxD7Yf2LgdEaBU4mmRdvZdO6VQ6IAb4s+V9QvLM=";
   };
 
   nativeBuildInputs = [
@@ -46,16 +46,15 @@ stdenv.mkDerivation (finalAttrs: {
     qt6.qtmultimedia
     qt6.qtcharts
     qt6.qtwayland
-  ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwin.apple_sdk.frameworks.Cocoa ];
+  ];
 
   env.NIX_CFLAGS_COMPILE = "-DSHOTCUT_NOUPGRADE";
 
   cmakeFlags = [ "-DSHOTCUT_VERSION=${finalAttrs.version}" ];
 
   patches = [
-    (substituteAll {
+    (replaceVars ./fix-mlt-ffmpeg-path.patch {
       inherit mlt ffmpeg;
-      src = ./fix-mlt-ffmpeg-path.patch;
     })
   ];
 

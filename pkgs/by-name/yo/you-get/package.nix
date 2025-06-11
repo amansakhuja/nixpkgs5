@@ -2,7 +2,7 @@
   lib,
   python3,
   fetchPypi,
-  substituteAll,
+  replaceVars,
   ffmpeg,
   installShellFiles,
 }:
@@ -22,8 +22,7 @@ python3.pkgs.buildPythonApplication rec {
   };
 
   patches = [
-    (substituteAll {
-      src = ./ffmpeg-path.patch;
+    (replaceVars ./ffmpeg-path.patch {
       ffmpeg = "${lib.getBin ffmpeg}/bin/ffmpeg";
       ffprobe = "${lib.getBin ffmpeg}/bin/ffmpeg";
       version = lib.getVersion ffmpeg;
@@ -43,12 +42,12 @@ python3.pkgs.buildPythonApplication rec {
     "you_get"
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Tiny command line utility to download media contents from the web";
     homepage = "https://you-get.org";
     changelog = "https://github.com/soimort/you-get/raw/v${version}/CHANGELOG.rst";
-    license = licenses.mit;
-    maintainers = with maintainers; [ ryneeverett ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ryneeverett ];
     mainProgram = "you-get";
   };
 }

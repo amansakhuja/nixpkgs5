@@ -2,26 +2,21 @@
   lib,
   rustPlatform,
   fetchFromGitHub,
-  stdenv,
-  darwin,
+  versionCheckHook,
 }:
-
 rustPlatform.buildRustPackage rec {
   pname = "cargo-modules";
-  version = "0.20.2";
+  version = "0.24.1";
 
   src = fetchFromGitHub {
     owner = "regexident";
     repo = "cargo-modules";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-GrkAEblelLWIGYdOlbRWNBibNnb+/eA3e8aM5+L7Z7g=";
+    tag = "v${version}";
+    hash = "sha256-VApgcyG2wKZ2kXHvToWfFi/YM0Q0Ebw2G1RJfmMrGuI=";
   };
 
-  cargoHash = "sha256-/CQWVrXwkg0xVFAC2nYHtGlWYxU2TIkCLb6+NgmarDw=";
-
-  buildInputs = lib.optionals stdenv.hostPlatform.isDarwin [
-    darwin.apple_sdk.frameworks.CoreServices
-  ];
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-kKYB6Dvvw/DkMJ0q9PPltZMBgGQJ50L7MXFOVjkHSEM=";
 
   checkFlags = [
     "--skip=cfg_test::with_tests::smoke"
@@ -45,12 +40,17 @@ rustPlatform.buildRustPackage rec {
     "--skip=selection::no_modules::smoke"
     "--skip=selection::no_traits::smoke"
     "--skip=selection::no_types::smoke"
+    "--skip=selection::no_owns::smoke"
   ];
+
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  doInstallCheck = true;
+  versionCheckProgramArg = "--version";
 
   meta = {
     description = "Cargo plugin for showing a tree-like overview of a crate's modules";
     homepage = "https://github.com/regexident/cargo-modules";
-    changelog = "https://github.com/regexident/cargo-modules/blob/${version}/CHANGELOG.md";
+    changelog = "https://github.com/regexident/cargo-modules/blob/${src.tag}/CHANGELOG.md";
     license = lib.licenses.mpl20;
     maintainers = with lib.maintainers; [
       figsoda

@@ -37,7 +37,7 @@
   libXScrnSaver,
   libxkbcommon,
   libdrm,
-  mesa,
+  libgbm,
   # It's unknown which version of openssl that postman expects but it seems that
   # OpenSSL 3+ seems to work fine (cf.
   # https://github.com/NixOS/nixpkgs/issues/254325). If postman breaks apparently
@@ -56,12 +56,12 @@ let
     {
       aarch64-linux = {
         arch = "arm64";
-        sha256 = "sha256-yq2J5KRv/NJDaQG7e7RKyzbJqKWRolSU9X6khHxlrNo=";
+        sha256 = "sha256-XtY5SmYoU2OhX69jRb8uSGwx5vPiSfgmF2jY7mJIrTY=";
       };
 
       x86_64-linux = {
         arch = "64";
-        sha256 = "sha256-fAaxrLZSXGBYr4Vu0Cz2pZwXivSTkaIF5wL217cB9qM=";
+        sha256 = "sha256-eEgUk3VnahmFua8UrNMUi2lG0UujiuDTs64XqaAkYe8=";
       };
     }
     .${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
@@ -105,7 +105,7 @@ stdenv.mkDerivation rec {
     gtk3
     freetype
     fontconfig
-    mesa
+    libgbm
     nss
     nspr
     pango

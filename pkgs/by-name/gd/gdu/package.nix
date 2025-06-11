@@ -10,13 +10,13 @@
 
 buildGoModule rec {
   pname = "gdu";
-  version = "5.29.0";
+  version = "5.30.1";
 
   src = fetchFromGitHub {
     owner = "dundee";
     repo = "gdu";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-w48I7HU/pA53Pq6ZVwtby+YvFddVUjj8orL40Gifqoo=";
+    tag = "v${version}";
+    hash = "sha256-3SymmE3J+lphyRKTQ+sLsnXaBvLyjJRlwpy79U4+t5o=";
   };
 
   vendorHash = "sha256-aKhHC3sPRyi/l9BxeUgx+3TdYulb0cI9WxuPvbLoswg=";
@@ -47,7 +47,7 @@ buildGoModule rec {
 
   passthru.tests.version = testers.testVersion { package = gdu; };
 
-  meta = with lib; {
+  meta = {
     description = "Disk usage analyzer with console interface";
     longDescription = ''
       Gdu is intended primarily for SSD disks where it can fully
@@ -56,8 +56,8 @@ buildGoModule rec {
     '';
     homepage = "https://github.com/dundee/gdu";
     changelog = "https://github.com/dundee/gdu/releases/tag/v${version}";
-    license = with licenses; [ mit ];
-    maintainers = with maintainers; [
+    license = with lib.licenses; [ mit ];
+    maintainers = with lib.maintainers; [
       fab
       zowoq
     ];

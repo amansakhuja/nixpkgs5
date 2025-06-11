@@ -364,13 +364,13 @@
 
 buildPythonPackage rec {
   pname = "types-aiobotocore";
-  version = "2.15.2.post3";
+  version = "2.22.0";
   pyproject = true;
 
   src = fetchPypi {
     pname = "types_aiobotocore";
     inherit version;
-    hash = "sha256-Q/7wqPWvo4nwJVh0va051T8EbjeyMKWVRIBbADIyBjs=";
+    hash = "sha256-BMas2YT5o30i2y6/Zw/4TlX28ifTzHHpspdyDUpxtxg=";
   };
 
   build-system = [ setuptools ];

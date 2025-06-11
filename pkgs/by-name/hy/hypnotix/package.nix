@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  substituteAll,
+  replaceVars,
   xapp,
   circle-flags,
   gettext,
@@ -15,18 +15,17 @@
 
 stdenv.mkDerivation rec {
   pname = "hypnotix";
-  version = "4.8";
+  version = "4.9";
 
   src = fetchFromGitHub {
     owner = "linuxmint";
     repo = "hypnotix";
     rev = version;
-    hash = "sha256-/RW7AGEr/cAnEvjKXSqOWtAfVfqGYrGbIiQN3K5WLM4=";
+    hash = "sha256-mM6NeDtRoPUSQ/smtvpYJ3qqeqiPHquP96ChJgSJWL0=";
   };
 
   patches = [
-    (substituteAll {
-      src = ./libmpv-path.patch;
+    (replaceVars ./libmpv-path.patch {
       libmpv = "${lib.getLib mpv}/lib/libmpv${stdenv.hostPlatform.extensions.sharedLibrary}";
     })
   ];

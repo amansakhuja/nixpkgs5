@@ -10,16 +10,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "fedimint";
-  version = "0.4.4";
+  version = "0.5.1";
 
   src = fetchFromGitHub {
     owner = "fedimint";
     repo = "fedimint";
     rev = "v${version}";
-    hash = "sha256-YyvppmKs6RCIzmn9bezNxjoCSlPY6GCWmy+bsSbCA2A=";
+    hash = "sha256-dhZYOfXepOnt1lQEgrM/y++5V58weiiTMAyMKl2t37Q=";
   };
 
-  cargoHash = "sha256-nWwAmthTOzKDLrHN0v/usC8DfmHzywNJs/6xdyCBBZY=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-WElH4AdLlF/BuxRrURUv6xNGUVBZ6hhSFg1p+T3jG54=";
 
   nativeBuildInputs = [
     protobuf

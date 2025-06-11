@@ -1,6 +1,11 @@
-{ lib, buildDunePackage, fetchurl
-, dune-configurator, cmdliner
-, lwt, withLwt ? true
+{
+  lib,
+  buildDunePackage,
+  fetchurl,
+  dune-configurator,
+  cmdliner,
+  lwt,
+  withLwt ? true,
 }:
 
 buildDunePackage rec {
@@ -22,6 +27,10 @@ buildDunePackage rec {
   ];
 
   doCheck = true;
+
+  preCheck = ''
+    export DUNE_CACHE=disabled
+  '';
 
   meta = with lib; {
     description = "Hexdump in OCaml";

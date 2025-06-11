@@ -23,7 +23,7 @@ for the maintainers to provide feedback.
 
 For critical packages, this convention needs to be negotiated with the
 maintainer. A critical package is one that causes mass-rebuild, or where an
-author is listed in the [`CODEOWNERS`](../.github/CODEOWNERS) file.
+author is listed in the [`OWNERS`](../ci/OWNERS) file.
 
 In case of critical security updates, the [security team](https://nixos.org/community/teams/security) might override these
 heuristics in order to get the fixes in as fast as possible.
@@ -39,6 +39,10 @@ maintainer. Commit access to the Nixpkgs repository is not required for that.
 In order to do so, add yourself to the
 [`maintainer-list.nix`](./maintainer-list.nix), and then to the desired
 package's `meta.maintainers` list, and send a PR with the changes.
+
+If you're adding yourself as a maintainer as part of another PR (in which
+you become a maintainer of a package, for example), make your change to
+`maintainer-list.nix` in a separate commit.
 
 ### How to lose maintainer status
 

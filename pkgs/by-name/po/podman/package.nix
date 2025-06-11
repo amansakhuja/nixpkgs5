@@ -18,7 +18,7 @@
   makeWrapper,
   runtimeShell,
   symlinkJoin,
-  substituteAll,
+  replaceVars,
   extraPackages ? [ ],
   crun,
   runc,
@@ -74,18 +74,17 @@ let
 in
 buildGoModule rec {
   pname = "podman";
-  version = "5.3.1";
+  version = "5.5.1";
 
   src = fetchFromGitHub {
     owner = "containers";
     repo = "podman";
     rev = "v${version}";
-    hash = "sha256-kABP10QX4r11UDUcd6Sukb+9+LRm/ba3iATz6DTOJYw=";
+    hash = "sha256-/dGFDwjAAc1D88VslVDolf2YVPZ9cHUCQjdaEreQSE0=";
   };
 
   patches = [
-    (substituteAll {
-      src = ./hardcode-paths.patch;
+    (replaceVars ./hardcode-paths.patch {
       bin_path = helpersBin;
     })
 
@@ -182,7 +181,7 @@ buildGoModule rec {
       oci-containers-podman = nixosTests.oci-containers.podman;
     };
 
-  meta = with lib; {
+  meta = {
     homepage = "https://podman.io/";
     description = "Program for managing pods, containers and container images";
     longDescription = ''
@@ -191,8 +190,8 @@ buildGoModule rec {
       To install on NixOS, please use the option `virtualisation.podman.enable = true`.
     '';
     changelog = "https://github.com/containers/podman/blob/v${version}/RELEASE_NOTES.md";
-    license = licenses.asl20;
-    maintainers = with maintainers; [ ] ++ teams.podman.members;
+    license = lib.licenses.asl20;
+    teams = [ lib.teams.podman ];
     mainProgram = "podman";
   };
 }

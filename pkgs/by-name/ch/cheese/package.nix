@@ -67,20 +67,23 @@ stdenv.mkDerivation rec {
   buildInputs = [
     adwaita-icon-theme
     clutter-gst
-    clutter-gtk
     dbus
-    gdk-pixbuf
-    glib
     gnome-desktop
     gnome-video-effects
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
-    gst_all_1.gstreamer
     gtk3
     libcanberra-gtk3
     librsvg
     pipewire # PipeWire provides a gstreamer plugin for using PipeWire for video
+  ];
+
+  propagatedBuildInputs = [
+    clutter-gtk
+    gdk-pixbuf
+    glib
+    gst_all_1.gstreamer
   ];
 
   preFixup = ''
@@ -95,19 +98,24 @@ stdenv.mkDerivation rec {
     )
   '';
 
+  # Fix GCC 14 build
+  # ../libcheese/cheese-flash.c:135:22: error: assignment to 'GtkWidget *' {aka 'struct _GtkWidget *'} from
+  # incompatible pointer type 'GObject *' {aka 'struct _GObject *'} [-Wincompatible-pointer-types]
+  env.NIX_CFLAGS_COMPILE = "-Wno-error=incompatible-pointer-types";
+
   passthru = {
     updateScript = gnome.updateScript {
       packageName = "cheese";
     };
   };
 
-  meta = with lib; {
+  meta = {
     homepage = "https://gitlab.gnome.org/GNOME/cheese";
     changelog = "https://gitlab.gnome.org/GNOME/cheese/-/blob/${version}/NEWS?ref_type=tags";
     description = "Take photos and videos with your webcam, with fun graphical effects";
     mainProgram = "cheese";
-    maintainers = with maintainers; [ aleksana ];
-    license = licenses.gpl2Plus;
-    platforms = platforms.linux;
+    maintainers = with lib.maintainers; [ aleksana ];
+    license = lib.licenses.gpl2Plus;
+    platforms = lib.platforms.linux;
   };
 }

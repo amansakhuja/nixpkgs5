@@ -8,12 +8,12 @@
   versionCheckHook,
 }:
 let
-  version = "4.0.6610";
+  version = "4.0.7030";
   src = fetchFromGitHub {
     owner = "Azure";
     repo = "azure-functions-core-tools";
     tag = version;
-    hash = "sha256-tUNiyvIjaIrdo6377IdXND7YgIk9zKkazDHV4kiWYa8=";
+    hash = "sha256-ibbXUg2VHN2yJk6qwLwDbxcO0XArFFb7XMUCfKH0Tkw=";
   };
   gozip = buildGoModule {
     pname = "gozip";
@@ -29,7 +29,7 @@ buildDotnetModule {
   dotnet-sdk = dotnetCorePackages.sdk_8_0;
   dotnet-runtime = dotnetCorePackages.sdk_8_0;
   dotnetFlags = [ "-p:TargetFramework=net8.0" ];
-  nugetDeps = ./deps.nix;
+  nugetDeps = ./deps.json;
   useDotnetFromEnv = true;
   executables = [ "func" ];
 

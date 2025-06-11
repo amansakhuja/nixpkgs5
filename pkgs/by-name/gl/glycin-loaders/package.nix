@@ -2,10 +2,11 @@
   stdenv,
   lib,
   fetchurl,
-  substituteAll,
+  replaceVars,
   bubblewrap,
   cairo,
   cargo,
+  gettext,
   git,
   gnome,
   gtk4,
@@ -23,11 +24,11 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "glycin-loaders";
-  version = "1.1.2";
+  version = "1.2.1";
 
   src = fetchurl {
     url = "mirror://gnome/sources/glycin/${lib.versions.majorMinor finalAttrs.version}/glycin-${finalAttrs.version}.tar.xz";
-    hash = "sha256-Qccr4eybpV2pDIL8GFc7dC3/WCsJr8N7RWXEfpnMj/Q=";
+    hash = "sha256-zMV46aPoPQ3BU1c30f2gm6qVxxZ/Xl7LFfeGZUCU7tU=";
   };
 
   patches = [
@@ -40,6 +41,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     cargo
+    gettext # for msgfmt
     git
     meson
     ninja
@@ -64,22 +66,23 @@ stdenv.mkDerivation (finalAttrs: {
     "-Dvapi=false"
   ];
 
+  strictDeps = true;
+
   passthru = {
     updateScript = gnome.updateScript {
       attrPath = "glycin-loaders";
       packageName = "glycin";
     };
 
-    glycinPathsPatch = substituteAll {
-      src = ./fix-glycin-paths.patch;
+    glycinPathsPatch = replaceVars ./fix-glycin-paths.patch {
       bwrap = "${bubblewrap}/bin/bwrap";
     };
   };
 
   meta = with lib; {
     description = "Glycin loaders for several formats";
-    homepage = "https://gitlab.gnome.org/sophie-h/glycin";
-    maintainers = teams.gnome.members;
+    homepage = "https://gitlab.gnome.org/GNOME/glycin";
+    teams = [ teams.gnome ];
     license = with licenses; [
       mpl20 # or
       lgpl21Plus

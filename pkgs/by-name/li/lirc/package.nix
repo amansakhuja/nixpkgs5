@@ -46,6 +46,11 @@ stdenv.mkDerivation rec {
     # Add a workaround for linux-headers-5.18 until upstream adapts:
     #   https://sourceforge.net/p/lirc/git/merge-requests/45/
     ./linux-headers-5.18.patch
+
+    # remove check for `Ubuntu` in /proc/version which will override
+    # --with-systemdsystemunitdir
+    # https://sourceforge.net/p/lirc/tickets/385/
+    ./ubuntu.diff
   ];
 
   postPatch = ''
@@ -106,6 +111,9 @@ stdenv.mkDerivation rec {
     "sysconfdir=$out/etc"
     "localstatedir=$TMPDIR"
   ];
+
+  # Upstream ships broken symlinks in docs
+  dontCheckForBrokenSymlinks = true;
 
   meta = with lib; {
     description = "Allows to receive and send infrared signals";

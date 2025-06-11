@@ -84,6 +84,7 @@ stdenv.mkDerivation rec {
 
   patches = [
     ./sconstruct-env-fixes.patch
+    ./sconstrict-rundir-fixes.patch
 
     # fix build with Python 3.12
     (fetchpatch {
@@ -97,9 +98,6 @@ stdenv.mkDerivation rec {
     sed -e "s|systemd_dir = .*|systemd_dir = '$out/lib/systemd/system'|" -i SConscript
     export TAR=noop
     substituteInPlace SConscript --replace "env['CCVERSION']" "env['CC']"
-
-    sconsFlags+=" udevdir=$out/lib/udev"
-    sconsFlags+=" python_libdir=$out/${python3Packages.python.sitePackages}"
   '';
 
   # - leapfetch=no disables going online at build time to fetch leap-seconds
@@ -110,6 +108,8 @@ stdenv.mkDerivation rec {
     "gpsd_group=${gpsdGroup}"
     "systemd=yes"
     "xgps=${if guiSupport then "True" else "False"}"
+    "udevdir=${placeholder "out"}/lib/udev"
+    "python_libdir=${placeholder "out"}/${python3Packages.python.sitePackages}"
   ];
 
   preCheck = ''
@@ -131,7 +131,7 @@ stdenv.mkDerivation rec {
     wrapPythonProgramsIn $out/bin "$out $pythonPath"
   '';
 
-  meta = with lib; {
+  meta = {
     description = "GPS service daemon";
     longDescription = ''
       gpsd is a service daemon that monitors one or more GPSes or AIS
@@ -153,9 +153,9 @@ stdenv.mkDerivation rec {
     '';
     homepage = "https://gpsd.gitlab.io/gpsd/index.html";
     changelog = "https://gitlab.com/gpsd/gpsd/-/blob/release-${version}/NEWS";
-    license = licenses.bsd2;
-    platforms = platforms.unix;
-    maintainers = with maintainers; [
+    license = lib.licenses.bsd2;
+    platforms = lib.platforms.unix;
+    maintainers = with lib.maintainers; [
       bjornfor
       rasendubi
     ];

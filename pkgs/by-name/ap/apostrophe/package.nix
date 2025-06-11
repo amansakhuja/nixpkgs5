@@ -16,6 +16,7 @@
   webkitgtk_6_0,
   texliveMedium,
   shared-mime-info,
+  nix-update-script,
 }:
 
 let
@@ -98,6 +99,7 @@ python3Packages.buildPythonApplication {
 
   passthru = {
     inherit reveal-js;
+    updateScript = nix-update-script { };
   };
 
   meta = {
@@ -105,12 +107,10 @@ python3Packages.buildPythonApplication {
     description = "Distraction free Markdown editor for GNU/Linux";
     license = lib.licenses.gpl3Plus;
     platforms = lib.platforms.linux;
-    maintainers =
-      with lib.maintainers;
-      [
-        sternenseemann
-      ]
-      ++ lib.teams.gnome-circle.members;
+    maintainers = with lib.maintainers; [
+      sternenseemann
+    ];
+    teams = [ lib.teams.gnome-circle ];
     mainProgram = "apostrophe";
   };
 }

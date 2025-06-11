@@ -17,12 +17,12 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "1.8.10";
+  version = "1.8.11";
   pname = "iptables";
 
   src = fetchurl {
     url = "https://www.netfilter.org/projects/${pname}/files/${pname}-${version}.tar.xz";
-    sha256 = "XMJVwYk1bjF9BwdVzpNx62Oht4PDRJj7jDAmTzzFnJw=";
+    sha256 = "2HMD1V74ySvK1N0/l4sm0nIBNkKwKUJXdfW60QCf57I=";
   };
 
   outputs = [
@@ -78,6 +78,7 @@ stdenv.mkDerivation rec {
     description = "Program to configure the Linux IP packet filtering ruleset";
     homepage = "https://www.netfilter.org/projects/iptables/index.html";
     platforms = platforms.linux;
+    mainProgram = "iptables";
     maintainers = with maintainers; [ fpletz ];
     license = licenses.gpl2Plus;
     downloadPage = "https://www.netfilter.org/projects/iptables/files/";

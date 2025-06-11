@@ -9,7 +9,7 @@
 
 buildPythonPackage rec {
   pname = "pynordpool";
-  version = "0.2.2";
+  version = "0.3.0";
   pyproject = true;
 
   disabled = pythonOlder "3.11";
@@ -17,8 +17,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "gjohansson-ST";
     repo = "pynordpool";
-    rev = "refs/tags/v${version}";
-    hash = "sha256-JoH9ROT/npBd8BTEuynsF9gbE0jJgYLFPiwFv0s9sH4=";
+    tag = "v${version}";
+    hash = "sha256-K9rZ7PJhmG7PiNGpnAgC3tX6ZygQdQoae5DnboNgMcs=";
   };
 
   build-system = [ poetry-core ];
@@ -33,7 +33,7 @@ buildPythonPackage rec {
   meta = {
     description = "Python api for Nordpool";
     homepage = "https://github.com/gjohansson-ST/pynordpool";
-    changelog = "https://github.com/gjohansson-ST/pynordpool/releases/tag/v${version}";
+    changelog = "https://github.com/gjohansson-ST/pynordpool/releases/tag/${src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ fab ];
   };

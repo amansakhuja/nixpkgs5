@@ -2,28 +2,46 @@
   buildGoModule,
   fetchFromGitHub,
   lib,
+  versionCheckHook,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "gqlgenc";
-  version = "0.27.3";
+  version = "0.32.1";
 
   src = fetchFromGitHub {
     owner = "yamashou";
     repo = "gqlgenc";
-    rev = "v${version}";
-    sha256 = "sha256-Ep8wrb/s3mMAMNAl2sSRBwxs9Zifls8+12/D6CgCzXg=";
+    rev = "v${finalAttrs.version}";
+    sha256 = "sha256-AGbE+R3502Igl4/HaN8yvFVJBsKQ6iVff8IEvddJLEo=";
   };
+
+  patches = [
+    ./fix-version.patch
+  ];
 
   excludedPackages = [ "example" ];
 
-  vendorHash = "sha256-ln26CHD0q+iPyAx5DalOGyCtVB1QR+7ls1ZjNK8APBU=";
+  vendorHash = "sha256-kBv9Kit5KdPB48V/g1OaeB0ABFd1A1I/9F5LaQDWxUE=";
 
-  meta = with lib; {
+  ldflags = [
+    "-X"
+    "main.version=${finalAttrs.version}"
+  ];
+
+  doInstallCheck = true;
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  versionCheckProgramArg = "version";
+
+  # FAIL: TestLoadConfig_LoadSchema/correct_schema
+  # panic: httptest: failed to listen on a port: listen tcp6 [::1]:0: bind: operation not permitted
+  __darwinAllowLocalNetworking = true;
+
+  meta = {
     description = "Go tool for building GraphQL client with gqlgen";
     mainProgram = "gqlgenc";
     homepage = "https://github.com/Yamashou/gqlgenc";
-    license = licenses.mit;
-    maintainers = with maintainers; [ wattmto ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ wattmto ];
   };
-}
+})

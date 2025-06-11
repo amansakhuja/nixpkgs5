@@ -6,11 +6,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "plemoljp";
-  version = "1.7.1";
+  version = "2.0.4";
 
   src = fetchzip {
     url = "https://github.com/yuru7/PlemolJP/releases/download/v${version}/PlemolJP_v${version}.zip";
-    hash = "sha256-YH1c/2jk8QZNyPvzRZjxNHyNeci9tjn+oOW8xLd8kjk=";
+    hash = "sha256-pajE86IK05mm3Z507bvoMGy8JJwuGWZnUiSrXndiBTk=";
   };
 
   installPhase = ''
@@ -24,11 +24,11 @@ stdenvNoCC.mkDerivation rec {
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Composite font of IBM Plex Mono and IBM Plex Sans JP";
     homepage = "https://github.com/yuru7/PlemolJP";
-    license = licenses.ofl;
-    platforms = platforms.all;
-    maintainers = with maintainers; [ kachick ];
+    license = lib.licenses.ofl;
+    platforms = lib.platforms.all;
+    maintainers = with lib.maintainers; [ kachick ];
   };
 }

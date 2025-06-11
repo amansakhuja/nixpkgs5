@@ -5,16 +5,18 @@
   clangStdenv,
   fetchfossil,
   lib,
+  objfw,
+  writeTextDir,
 }:
 
 clangStdenv.mkDerivation (finalAttrs: {
   pname = "objfw";
-  version = "1.2.2";
+  version = "1.3.1";
 
   src = fetchfossil {
     url = "https://objfw.nil.im/home";
     rev = "${finalAttrs.version}-release";
-    hash = "sha256-s1VTI4POllvX8WHlZJezhIx1jt4SRbXlAaYRBeL05Bw=";
+    hash = "sha256-RhdZyVtBLsv5nP61pmTE2zYX1vS8Cdo+0ZqqVc8ljzQ=";
   };
 
   nativeBuildInputs = [
@@ -30,8 +32,12 @@ clangStdenv.mkDerivation (finalAttrs: {
 
   doCheck = true;
 
+  passthru.tests = {
+    build-hello-world = (import ./test-build-and-run.nix) { inherit clangStdenv objfw writeTextDir; };
+  };
+
   meta = {
-    description = "A portable framework for the Objective-C language";
+    description = "Portable framework for the Objective-C language";
     homepage = "https://objfw.nil.im";
     license = lib.licenses.lgpl3;
     maintainers = [ lib.maintainers.steeleduncan ];

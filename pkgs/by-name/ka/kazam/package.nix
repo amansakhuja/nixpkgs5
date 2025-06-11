@@ -1,7 +1,7 @@
 {
   lib,
   fetchFromGitHub,
-  substituteAll,
+  replaceVars,
   python3Packages,
   gst_all_1,
   wrapGAppsHook3,
@@ -16,7 +16,7 @@
   libgudev,
 }:
 
-python3Packages.buildPythonApplication rec {
+python3Packages.buildPythonApplication {
   pname = "kazam";
   version = "unstable-2021-06-22";
 
@@ -54,8 +54,7 @@ python3Packages.buildPythonApplication rec {
 
   patches = [
     # Fix paths
-    (substituteAll {
-      src = ./fix-paths.patch;
+    (replaceVars ./fix-paths.patch {
       libcanberra = libcanberra-gtk3;
       inherit libpulseaudio;
     })
@@ -69,7 +68,7 @@ python3Packages.buildPythonApplication rec {
     homepage = "https://github.com/niknah/kazam";
     license = licenses.lgpl3;
     platforms = platforms.linux;
-    maintainers = [ maintainers.domenkozar ];
+    maintainers = [ ];
     mainProgram = "kazam";
   };
 }

@@ -124,12 +124,13 @@ let
   genLogConfigFile =
     logName:
     format.generate "synapse-log-${logName}.yaml" (
-      cfg.log
-      // optionalAttrs (cfg.log ? handlers.journal) {
-        handlers.journal = cfg.log.handlers.journal // {
-          SYSLOG_IDENTIFIER = logName;
-        };
-      }
+      attrsets.recursiveUpdate cfg.log (
+        optionalAttrs (cfg.log ? handlers.journal) {
+          handlers.journal = cfg.log.handlers.journal // {
+            SYSLOG_IDENTIFIER = logName;
+          };
+        }
+      )
     );
 
   toIntBase8 =
@@ -705,7 +706,7 @@ in
 
         withJemalloc = mkOption {
           type = types.bool;
-          default = false;
+          default = true;
           description = ''
             Whether to preload jemalloc to reduce memory fragmentation and overall usage.
           '';
@@ -1462,6 +1463,7 @@ in
         baseServiceConfig = {
           environment = optionalAttrs (cfg.withJemalloc) {
             LD_PRELOAD = "${pkgs.jemalloc}/lib/libjemalloc.so";
+            PYTHONMALLOC = "malloc";
           };
           serviceConfig = {
             Type = "notify";
@@ -1596,9 +1598,9 @@ in
   };
 
   meta = {
+    inherit (pkgs.matrix-synapse.meta) maintainers;
     buildDocsInSandbox = false;
     doc = ./synapse.md;
-    maintainers = teams.matrix.members;
   };
 
 }

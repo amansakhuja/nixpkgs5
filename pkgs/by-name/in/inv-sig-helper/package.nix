@@ -10,21 +10,23 @@
   openssl,
 
   # passthru
+  nixosTests,
   unstableGitUpdater,
 }:
 
 rustPlatform.buildRustPackage {
   pname = "inv-sig-helper";
-  version = "0-unstable-2024-12-10";
+  version = "0-unstable-2025-04-23";
 
   src = fetchFromGitHub {
     owner = "iv-org";
     repo = "inv_sig_helper";
-    rev = "ac0269f1586df5a853c4321256866bcbea89802b";
-    hash = "sha256-w8ZvNCs6xz79RjAzIVhtYRJoLzC97RYm2U1ydao3Ons=";
+    rev = "5d3c7a4574fafe0bc5fbed9e7e33483889832fd4";
+    hash = "sha256-WGh62tjKGe9OD19aq+lP9GfYs5PrGqkeT6VvmtNottQ=";
   };
 
-  cargoHash = "sha256-Y9q64ltv2QRtRUy5t40JIfwFh8ryO1D0Gdg7xO1azws=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-DnJL7kkcVn5dW3AoPCn829WmkaCjpDZtYUXnpiB857Q=";
 
   nativeBuildInputs = [
     pkg-config
@@ -34,7 +36,12 @@ rustPlatform.buildRustPackage {
     openssl
   ];
 
-  passthru.updateScript = unstableGitUpdater { };
+  passthru = {
+    tests = {
+      inherit (nixosTests) invidious;
+    };
+    updateScript = unstableGitUpdater { };
+  };
 
   meta = {
     description = "Rust service that decrypts YouTube signatures and manages player information";

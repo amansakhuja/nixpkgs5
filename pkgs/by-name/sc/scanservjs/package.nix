@@ -3,11 +3,14 @@
   fetchFromGitHub,
   buildNpmPackage,
   fetchNpmDeps,
-  nodejs,
-  substituteAll,
+  nodejs_20,
+  replaceVars,
 }:
 
 let
+  # Build fails on node 22, presumably because of esm.
+  # https://github.com/NixOS/nixpkgs/issues/371649
+  nodejs = nodejs_20;
   version = "2.27.1";
   src = fetchFromGitHub {
     owner = "sbs20";
@@ -66,8 +69,7 @@ buildNpmPackage {
   preBuild = ''
     chmod +w /build/source
     patch -p3 <${
-      substituteAll {
-        src = ./decouple-from-source-tree.patch;
+      replaceVars ./decouple-from-source-tree.patch {
         inherit client;
       }
     }

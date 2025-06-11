@@ -8,6 +8,7 @@
   git,
   cmake,
   nixosTests,
+  nixfmt-rfc-style,
   mobilizon-frontend,
   ...
 }:
@@ -59,7 +60,7 @@ mixRelease rec {
         });
 
         # The remainder are Git dependencies (and their deps) that are not supported by mix2nix currently.
-        web_push_encryption = buildMix rec {
+        web_push_encryption = buildMix {
           name = "web_push_encryption";
           version = "0.3.1";
           src = fetchFromGitHub {
@@ -139,11 +140,12 @@ mixRelease rec {
   '';
 
   passthru = {
-    tests.smoke-test = nixosTests.mobilizon;
+    tests = { inherit (nixosTests) mobilizon; };
     updateScript = writeShellScriptBin "update.sh" ''
       set -eou pipefail
 
-      ${mix2nix}/bin/mix2nix '${src}/mix.lock' > pkgs/servers/mobilizon/mix.nix
+      ${lib.getExe mix2nix} '${src}/mix.lock' > pkgs/servers/mobilizon/mix.nix
+      ${lib.getExe nixfmt-rfc-style} pkgs/servers/mobilizon/mix.nix
     '';
     elixirPackage = beamPackages.elixir;
   };
@@ -151,6 +153,7 @@ mixRelease rec {
   meta = with lib; {
     description = "Mobilizon is an online tool to help manage your events, your profiles and your groups";
     homepage = "https://joinmobilizon.org/";
+    changelog = "https://framagit.org/framasoft/mobilizon/-/releases/${src.tag}";
     license = licenses.agpl3Plus;
     maintainers = with maintainers; [
       minijackson
