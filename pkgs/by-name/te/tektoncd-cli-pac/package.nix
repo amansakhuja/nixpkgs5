@@ -12,7 +12,7 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "openshift-pipelines";
     repo = "pipelines-as-code";
-    rev = "v${version}";
+    tag = "v${version}";
     hash = "sha256-d8AOMoWQOoxK0kr+HokSaiFNCDmcc5sOEn1TEFNbx2U=";
   };
 
