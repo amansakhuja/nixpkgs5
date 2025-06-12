@@ -25,7 +25,7 @@ rustPlatform.buildRustPackage rec {
     owner = "eruption-project";
     repo = "eruption";
     rev = "4884ace33ed560ba058e5fa2824b4f3852f0ca90";
-    sha256 = "sha256-Ty5TWW+o2hQiAko20sqZEYKS2LOqkFmyOxqWVbRP7Kc=";
+    hash = "sha256-Ty5TWW+o2hQiAko20sqZEYKS2LOqkFmyOxqWVbRP7Kc=";
   };
 
   useFetchCargoVendor = true;
