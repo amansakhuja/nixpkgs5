@@ -41,7 +41,7 @@ buildGoModule rec {
     runHook postInstallCheck
   '';
 
-  meta = with lib; {
+  meta = {
     homepage = "https://pipelinesascode.com";
     changelog = "https://github.com/openshift-pipelines/pipelines-as-code/releases/tag/v${version}";
     description = "Provides a CLI for interacting with Tekton Pipelines as Code - tkn-pac";
