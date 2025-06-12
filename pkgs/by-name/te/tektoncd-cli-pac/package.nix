@@ -13,7 +13,7 @@ buildGoModule rec {
     owner = "openshift-pipelines";
     repo = "pipelines-as-code";
     rev = "v${version}";
-    sha256 = "sha256-d8AOMoWQOoxK0kr+HokSaiFNCDmcc5sOEn1TEFNbx2U=";
+    hash = "sha256-d8AOMoWQOoxK0kr+HokSaiFNCDmcc5sOEn1TEFNbx2U=";
   };
 
   vendorHash = null;
