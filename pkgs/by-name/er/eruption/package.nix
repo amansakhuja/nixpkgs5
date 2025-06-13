@@ -180,7 +180,7 @@ rustPlatform.buildRustPackage rec {
 
   meta = {
     description = "Realtime RGB LED Driver for Linux";
-    license = lib.licenses.gpl3;
+    license = lib.licenses.gpl3Plus;
     homepage = "https://eruption-project.org/";
     maintainers = with lib.maintainers; [ puckla ];
   };
