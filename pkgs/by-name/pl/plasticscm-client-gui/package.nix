@@ -74,10 +74,10 @@ buildFHSEnv {
   '';
 
   extraInstallCommands = ''
-    mv $out/bin/plasticscm-client-gui $out/bin/.plasticscm-client-gui-fhsenv
+    mv $out/bin/$pname $out/bin/.$pname-fhsenv
 
     for app in plasticgui semanticmergetool gtkmergetool gluon; do
-      makeWrapper $out/bin/.plasticscm-client-gui-fhsenv $out/bin/$app \
+      makeWrapper $out/bin/.$pname-fhsenv $out/bin/$app \
         --add-flags /usr/bin/$app
     done
 
