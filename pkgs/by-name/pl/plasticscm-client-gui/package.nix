@@ -8,7 +8,6 @@
   plasticscm-client-core-unwrapped,
   plasticscm-client-gui-unwrapped,
   plasticscm-theme,
-  stdenv,
 }:
 assert plasticscm-client-gui-unwrapped.version == plasticscm-client-core-unwrapped.version;
 assert plasticscm-client-gui-unwrapped.version == plasticscm-theme.version;
@@ -22,8 +21,12 @@ buildFHSEnv {
     pkgs:
     with pkgs;
     [
-      plasticscm-client-core-unwrapped
       plasticscm-client-gui-unwrapped
+
+      # Dependencies from the Debian package
+      plasticscm-client-core-unwrapped
+
+      # Undocumented dependencies discovered from testing
       fontconfig
     ]
     ++ extraPkgs pkgs;
@@ -34,12 +37,11 @@ buildFHSEnv {
     [
       # Dependencies from the Debian package
       glibc.out
-      stdenv.cc.cc.lib
+      libgcc.lib
       krb5.lib
       lttng-ust.out
       openssl_3.out
       icu74
-      libz
       plasticscm-theme
 
       # Transitive dependencies from the Debian package
@@ -48,6 +50,7 @@ buildFHSEnv {
       e2fsprogs.out
       keyutils.lib
       numactl.out
+      libz
 
       # Undocumented dependencies discovered from testing
       gtk3
