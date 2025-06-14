@@ -3,9 +3,9 @@
   fetchurl,
   lib,
   makeWrapper,
-  stdenv,
+  stdenvNoCC,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "plasticscm-client-core-unwrapped";
   version = "11.0.16.9478";
 

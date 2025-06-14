@@ -2,9 +2,9 @@
   dpkg,
   fetchurl,
   lib,
-  stdenv,
+  stdenvNoCC,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "plasticscm-client-gui-unwrapped";
   version = "11.0.16.9478";
 
