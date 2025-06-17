@@ -209,11 +209,11 @@ let
     [
       nukeReferences
     ]
-    ++ optionals (!stdenv.hostPlatform.isDarwin) [
+    ++ optionals (!stdenv.hostPlatform.isDarwin && !withMinimal) [
       autoconf-archive # needed for AX_CHECK_COMPILE_FLAG
       autoreconfHook
     ]
-    ++ optionals (!stdenv.hostPlatform.isDarwin || passthru.pythonAtLeast "3.14") [
+    ++ optionals ((!stdenv.hostPlatform.isDarwin || passthru.pythonAtLeast "3.14") && !withMinimal) [
       pkg-config
     ]
     ++ optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
