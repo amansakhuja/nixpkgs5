@@ -40,7 +40,6 @@ stdenv.mkDerivation rec {
     missingHashes = yarnMissingHashes;
     yarnOfflineCache = yarn-berry.fetchYarnBerryDeps {
       inherit src;
-      inherit (finalAttrs) missingHashes;
       hash = yarnHash;
       missingHashes = yarnMissingHashes;
     };
