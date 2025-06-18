@@ -5,18 +5,18 @@
   patches ? [ ],
 }:
 let
-  version = "4.4.0-beta.1";
+  version = "4.4.0-beta.2";
 in
 applyPatches {
   src = fetchFromGitHub {
     owner = "mastodon";
     repo = "mastodon";
     rev = "v${version}";
-    hash = "sha256-yhVZ+VwrDDhaHbcnJE2dg6GIwDgJEkO7HNvOXA2SqS8=";
+    hash = "sha256-auCItliAz9gOb1lNutwBFR+nu62YBZ5vdMjLqc261fk=";
 
     passthru = {
       inherit version;
-      yarnHash = "sha256-IC4d/skIHEzJPuKlq4rMAqV+ydqquA6toq4WWCfuDxo=";
+      yarnHash = "sha256-OzlKF1oLmC9ax5xv5HiZCojE0ZB19b4bPfPJF/3aG5A=";
       yarnMissingHashes = ./missing-hashes.json;
     };
   };
