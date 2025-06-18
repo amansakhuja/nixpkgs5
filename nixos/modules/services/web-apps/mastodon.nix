@@ -952,7 +952,7 @@ in
             '';
           path = [
             cfg.package
-            config.services.postgresql.package
+            config.services.postgresql.finalPackage
           ];
           environment =
             env
