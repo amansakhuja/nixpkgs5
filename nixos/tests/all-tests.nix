@@ -1019,6 +1019,7 @@ in
   image-contents = handleTest ./image-contents.nix { };
   openvscode-server = runTest ./openvscode-server.nix;
   open-webui = runTest ./open-webui.nix;
+  openvpn3 = handleTest ./openvpn3 { };
   openvswitch = runTest ./openvswitch.nix;
   orangefs = runTest ./orangefs.nix;
   os-prober = handleTestOn [ "x86_64-linux" ] ./os-prober.nix { };
