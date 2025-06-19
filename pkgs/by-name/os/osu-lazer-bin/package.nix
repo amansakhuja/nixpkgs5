@@ -10,23 +10,23 @@
 
 let
   pname = "osu-lazer-bin";
-  version = "2025.420.0";
+  version = "2025.607.0";
 
   src =
     {
       aarch64-darwin = fetchzip {
         url = "https://github.com/ppy/osu/releases/download/${version}/osu.app.Apple.Silicon.zip";
-        hash = "sha256-rFPh1mziEcbqBhxRAoV2qHKNQeWjWIrprx6tXnLoGLs=";
+        hash = "sha256-rfWP6vF68mE+pnKvJjSgkxzTBj3sWDRlB9NZZkPOYOE=";
         stripRoot = false;
       };
       x86_64-darwin = fetchzip {
         url = "https://github.com/ppy/osu/releases/download/${version}/osu.app.Intel.zip";
-        hash = "sha256-PlyJkN9ALSE8s2gPVkMXoZd+1FKqqFxIFPLkJkXwk0k=";
+        hash = "sha256-FpMugHVyhpyzCRp+EH/RSQDsgoUEQrAuIVCaMTucz88=";
         stripRoot = false;
       };
       x86_64-linux = fetchurl {
         url = "https://github.com/ppy/osu/releases/download/${version}/osu.AppImage";
-        hash = "sha256-yrVFep119E2PkRsyB0UPhZnjR7jXuhd9CktIgL98om4=";
+        hash = "sha256-jG3KedllnVNd5TLSkKYae2V8CzN90g5lJhT4EKI+nuk=";
       };
     }
     .${stdenvNoCC.system} or (throw "osu-lazer-bin: ${stdenvNoCC.system} is unsupported.");
@@ -55,7 +55,7 @@ let
 
   passthru.updateScript = ./update.sh;
 in
-if stdenvNoCC.isDarwin then
+if stdenvNoCC.hostPlatform.isDarwin then
   stdenvNoCC.mkDerivation {
     inherit
       pname

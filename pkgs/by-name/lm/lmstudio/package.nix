@@ -7,12 +7,10 @@
 let
   pname = "lmstudio";
 
-  version_aarch64-darwin = "0.3.14-5";
-  hash_aarch64-darwin = "sha256-8OTfjEZ27ubRFvRQ84em2Gz3mS9w3oev41Qg6MMNjNU=";
-  version_x86_64-linux = "0.3.14-5";
-  hash_x86_64-linux = "sha256-WrO95ez81/A0U1Tt1Oi2PyUp6nvsmQMzK0VUVH1TYbg=";
-
-  passthru.updateScript = ./update.sh;
+  version_aarch64-darwin = "0.3.16-8";
+  hash_aarch64-darwin = "sha256-iuC43czK26Yf4DM9BhUUBjgDilQeURq+ZdeN2BHPeVo=";
+  version_x86_64-linux = "0.3.16-8";
+  hash_x86_64-linux = "sha256-vouDzaSgkYN++FKz0tLn9ItHg0tQmnFk2U7RlQyAUWg=";
 
   meta = {
     description = "LM Studio is an easy to use desktop app for experimenting with local and open-source Large Language Models (LLMs)";
@@ -31,6 +29,7 @@ in
 if stdenv.hostPlatform.isDarwin then
   callPackage ./darwin.nix {
     inherit pname meta;
+    passthru.updateScript = ./update.sh;
     version = version_aarch64-darwin;
     url =
       args.url
@@ -40,6 +39,7 @@ if stdenv.hostPlatform.isDarwin then
 else
   callPackage ./linux.nix {
     inherit pname meta;
+    passthru.updateScript = ./update.sh;
     version = version_x86_64-linux;
     url =
       args.url

@@ -8,7 +8,7 @@
   bzip2,
   zstd,
   spdlog,
-  tbb,
+  tbb_2022_0,
   openssl,
   boost,
   libpqxx,
@@ -22,7 +22,6 @@
   libpng,
   file,
   runCommand,
-  catch2,
   useAVX2 ? stdenv.hostPlatform.avx2Support,
 }:
 
@@ -32,16 +31,18 @@ let
     chmod -R +w $out
     cp -r ${rapidcheck.dev}/* $out
   '';
+  catch2 = catch2_3;
+  tbb = tbb_2022_0;
 in
 stdenv.mkDerivation rec {
   pname = "tiledb";
-  version = "2.27.2";
+  version = "2.28.0";
 
   src = fetchFromGitHub {
     owner = "TileDB-Inc";
     repo = "TileDB";
     tag = version;
-    hash = "sha256-zk4jkXJMh6wpuEKaCvuKUDod+F8B/6W5Lw8gwelcPEM=";
+    hash = "sha256-jNKnc8IPkXDxRUY9QJ+35qt2na1nO6RPeCVWBLb7lME=";
   };
 
   patches = lib.optionals stdenv.hostPlatform.isDarwin [ ./generate_embedded_data_header.patch ];
@@ -67,7 +68,7 @@ stdenv.mkDerivation rec {
   ] ++ lib.optional (!useAVX2) "-DCOMPILER_SUPPORTS_AVX2=FALSE";
 
   nativeBuildInputs = [
-    catch2_3
+    catch2
     clang-tools
     cmake
     python3
@@ -89,9 +90,6 @@ stdenv.mkDerivation rec {
     rapidcheck'
     catch2
   ];
-
-  # fatal error: catch.hpp: No such file or directory
-  doCheck = false;
 
   nativeCheckInputs = [
     gtest

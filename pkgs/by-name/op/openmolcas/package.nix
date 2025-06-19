@@ -69,13 +69,13 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "openmolcas";
-  version = "25.02";
+  version = "25.06";
 
   src = fetchFromGitLab {
     owner = "Molcas";
     repo = "OpenMolcas";
     rev = "v${version}";
-    hash = "sha256-Ty7C7zj1lQixuUzeKLcwQCmcPexZXtIGDzp1wUMKDi0=";
+    hash = "sha256-/d+jusCFtbAVwvords2B7Cxuxh3FwnR/AWGDeir43oU=";
   };
 
   patches = [
@@ -123,24 +123,25 @@ stdenv.mkDerivation rec {
 
   passthru = lib.optionalAttrs enableMpi { inherit mpi; };
 
+  cmakeFlags = [
+    "-DOPENMP=ON"
+    "-DTOOLS=ON"
+    "-DHDF5=ON"
+    "-DFDE=ON"
+    "-DEXTERNAL_LIBXC=${lib.getDev libxc}"
+    (lib.strings.cmakeBool "DMRG" enableQcmaquis)
+    (lib.strings.cmakeBool "NEVPT2" enableQcmaquis)
+    "-DCMAKE_SKIP_BUILD_RPATH=ON"
+    (lib.strings.cmakeBool "BUILD_STATIC_LIBS" stdenv.hostPlatform.isStatic)
+    (lib.strings.cmakeBool "BUILD_SHARED_LIBS" (!stdenv.hostPlatform.isStatic))
+    "-DLINALG=Manual"
+    (lib.strings.cmakeBool "DGA" enableMpi)
+    (lib.strings.cmakeBool "MPI" enableMpi)
+  ];
+
   preConfigure =
     ''
-      cmakeFlagsArray+=(
-        "-DOPENMP=ON"
-        "-DTOOLS=ON"
-        "-DHDF5=ON"
-        "-DFDE=ON"
-        "-DEXTERNAL_LIBXC=${lib.getDev libxc}"
-        ${lib.strings.cmakeBool "DMRG" enableQcmaquis}
-        ${lib.strings.cmakeBool "NEVPT2" enableQcmaquis}
-        "-DCMAKE_SKIP_BUILD_RPATH=ON"
-        ${lib.strings.cmakeBool "BUILD_STATIC_LIBS" stdenv.hostPlatform.isStatic}
-        ${lib.strings.cmakeBool "BUILD_SHARED_LIBS" (!stdenv.hostPlatform.isStatic)}
-        "-DLINALG=Manual"
-        "-DLINALG_LIBRARIES=-lblas -llapack"
-        ${lib.strings.cmakeBool "DGA" enableMpi}
-        ${lib.strings.cmakeBool "MPI" enableMpi}
-      )
+      cmakeFlagsArray+=("-DLINALG_LIBRARIES=-lblas -llapack")
     ''
     + lib.optionalString enableMpi ''
       export GAROOT=${globalarrays};

@@ -28,19 +28,21 @@
 
 buildPythonPackage rec {
   pname = "streamlit";
-  version = "1.44.0";
+  version = "1.45.1";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-2nWTO66UWVFn9Dgi3qQ/zd4NdHQz99BJiSZteJZ5Ubs=";
+    hash = "sha256-431WwK9SQNvCQJdogOgTZmicKQpVk3ZBckb5s/UbQhc=";
   };
 
   build-system = [
     setuptools
   ];
+
+  pythonRelaxDeps = [ "packaging" ];
 
   dependencies = [
     altair

@@ -25,20 +25,21 @@ in
 
 python.pkgs.buildPythonApplication rec {
   pname = "awsebcli";
-  version = "3.22";
+  version = "3.24.1";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "aws";
     repo = "aws-elastic-beanstalk-cli";
     tag = version;
-    hash = "sha256-I85VteUjPPWRixXC1mEiMmk46mYPzQJoaYcHV8ztMU4=";
+    hash = "sha256-t6dqiC9zY3Apcc4F/x5c/QhsNKGBZxIY20a50wCEER8=";
   };
 
   pythonRelaxDeps = [
     "botocore"
     "colorama"
     "pathspec"
+    "packaging"
     "PyYAML"
     "six"
     "termcolor"
@@ -46,13 +47,14 @@ python.pkgs.buildPythonApplication rec {
   ];
 
   dependencies = with python.pkgs; [
+    packaging
     blessed
     botocore
     cement
     colorama
+    fabric
     pathspec
     pyyaml
-    future
     requests
     semantic-version
     setuptools
@@ -85,14 +87,18 @@ python.pkgs.buildPythonApplication rec {
 
     # AssertionError: Expected 'echo' to be called once. Called 2 times
     "test_multiple_modules__one_or_more_of_the_specified_modules_lacks_an_env_yaml"
+
+    # fails on hydra only on aarch64-linux
+    # ebcli.objects.exceptions.CredentialsError: Operation Denied. You appear to have no credentials
+    "test_aws_eb_profile_environment_variable_found__profile_exists_in_credentials_file"
   ];
 
-  meta = with lib; {
+  meta = {
     description = "Command line interface for Elastic Beanstalk";
     homepage = "https://aws.amazon.com/elasticbeanstalk/";
     changelog = "https://github.com/aws/aws-elastic-beanstalk-cli/blob/${version}/CHANGES.rst";
-    license = licenses.asl20;
-    maintainers = with maintainers; [ kirillrdy ];
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ kirillrdy ];
     mainProgram = "eb";
   };
 }

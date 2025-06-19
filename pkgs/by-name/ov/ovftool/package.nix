@@ -85,6 +85,15 @@ let
   };
 
   ovftoolSystem = ovftoolSystems.${stdenv.system} or (throw "unsupported system ${stdenv.system}");
+
+  # Regrettably, we need to compile this version or else ovftool complains about unknown symbols.
+  ovftool-xercesc = xercesc.overrideAttrs (prev: rec {
+    version = "3.2.5";
+    src = fetchurl {
+      url = lib.replaceStrings [ prev.version ] [ version ] prev.src.url;
+      hash = "sha256-VFz8zmxOdVIHvR8n4xkkHlDjfAwnJQ8RzaEWAY8e8PU=";
+    };
+  });
 in
 stdenv.mkDerivation (final: {
   pname = "ovftool";
@@ -111,7 +120,7 @@ stdenv.mkDerivation (final: {
       icu60
       libiconv
       libxcrypt-legacy
-      xercesc
+      ovftool-xercesc
       zlib
       curl
     ]
@@ -120,14 +129,17 @@ stdenv.mkDerivation (final: {
       openssl
     ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      darwin.Libsystem
       libxml2
     ];
 
-  nativeBuildInputs = [
-    unzip
-    makeWrapper
-  ] ++ lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
+  nativeBuildInputs =
+    [
+      unzip
+      makeWrapper
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      autoPatchelfHook
+    ];
 
   postUnpack = ''
     # The linux package wraps ovftool.bin with ovftool. Wrapping
@@ -231,7 +243,6 @@ stdenv.mkDerivation (final: {
       done
 
       # Patches for ovftool binary
-      change_args+=(-change /usr/lib/libSystem.B.dylib ${darwin.Libsystem}/lib/libSystem.B.dylib)
       change_args+=(-change /usr/lib/libc++.1.dylib ${stdenv.cc.libcxx}/lib/libc++.1.dylib)
       change_args+=(-change /usr/lib/libiconv.2.dylib ${libiconv}/lib/libiconv.2.dylib)
       change_args+=(-change /usr/lib/libxml2.2.dylib ${libxml2}/lib/libxml2.2.dylib)
@@ -240,7 +251,7 @@ stdenv.mkDerivation (final: {
       change_args+=(-change @loader_path/lib/libexpat.dylib ${expat}/lib/libexpat.dylib)
       change_args+=(-change @loader_path/lib/libicudata.60.2.dylib ${icu60}/lib/libicudata.60.2.dylib)
       change_args+=(-change @loader_path/lib/libicuuc.60.2.dylib ${icu60}/lib/libicuuc.60.2.dylib)
-      change_args+=(-change @loader_path/lib/libxerces-c-3.2.dylib ${xercesc}/lib/libxerces-c-3.2.dylib)
+      change_args+=(-change @loader_path/lib/libxerces-c-3.2.dylib ${ovftool-xercesc}/lib/libxerces-c.dylib)
 
       # lolwut
       change_args+=(-change @GOBUILD_CAYMAN_CURL_ROOT@/apple_mac64/lib/libcurl.4.dylib ${curl.out}/lib/libcurl.4.dylib)
@@ -250,12 +261,12 @@ stdenv.mkDerivation (final: {
       otool -L "$out/libexec/ovftool"
 
       # Additional patches for ovftool dylibs
-      change_args+=(-change /usr/lib/libresolv.9.dylib ${darwin.Libsystem}/lib/libresolv.9.dylib)
+      change_args+=(-change /usr/lib/libresolv.9.dylib ${lib.getLib darwin.libresolv}/lib/libresolv.9.dylib)
       change_args+=(-change @loader_path/libcares.2.dylib ${c-ares}/lib/libcares.2.dylib)
       change_args+=(-change @loader_path/libexpat.dylib ${expat}/lib/libexpat.dylib)
       change_args+=(-change @loader_path/libicudata.60.2.dylib ${icu60}/lib/libicudata.60.2.dylib)
       change_args+=(-change @loader_path/libicuuc.60.2.dylib ${icu60}/lib/libicuuc.60.2.dylib)
-      change_args+=(-change @loader_path/libxerces-c-3.2.dylib ${xercesc}/lib/libxerces-c-3.2.dylib)
+      change_args+=(-change @loader_path/libxerces-c-3.2.dylib ${ovftool-xercesc}/lib/libxerces-c.dylib)
 
       # Add new absolute paths for other libs to all libs
       for lib in $out/lib/*.dylib; do
@@ -330,7 +341,7 @@ stdenv.mkDerivation (final: {
     ];
     platforms = builtins.attrNames ovftoolSystems;
     mainProgram = "ovftool";
-    knownVulnerabilities = lib.optionals (stdenv.isDarwin) [
+    knownVulnerabilities = lib.optionals (stdenv.hostPlatform.isDarwin) [
       "The bundled version of openssl 1.0.2zj in ovftool for Darwin has open vulnerabilities."
       "https://openssl-library.org/news/vulnerabilities-1.0.2/"
       "CVE-2024-0727"

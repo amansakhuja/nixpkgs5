@@ -46,7 +46,7 @@ let
       meta = with lib; {
         description = "Collection of Varnish Cache modules (vmods) by Varnish Software";
         homepage = "https://github.com/varnish/varnish-modules";
-        inherit (varnish.meta) license platforms maintainers;
+        inherit (varnish.meta) license platforms teams;
       };
     };
 in
@@ -54,10 +54,6 @@ in
   modules15 = common {
     version = "0.15.1";
     hash = "sha256-Et/iWOk2FWJBDOpKjNXm4Nh5i1SU4zVPaID7kh+Uj9M=";
-  };
-  modules25 = common {
-    version = "0.25.0";
-    hash = "sha256-m/7moizVyvoP8xnpircAFVUqCmCfTGkgVyRc6zkdVsk=";
   };
   modules26 = common {
     version = "0.26.0";

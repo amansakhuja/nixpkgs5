@@ -38,7 +38,7 @@
   enablePlugin ? (lib.systems.equals stdenv.hostPlatform stdenv.buildPlatform), # Whether to support user-supplied plug-ins
   name ? "gcc",
   libcCross ? null,
-  threadsCross ? null, # for MinGW
+  threadsCross ? { }, # for MinGW
   withoutTargetLibc ? false,
   flex,
   gnused ? null,
@@ -428,6 +428,10 @@ pipe
             "fortify3"
             "trivialautovarinit"
           ]
+          ++ optionals (!atLeast13) [
+            "strictflexarrays1"
+            "strictflexarrays3"
+          ]
           ++ optional (
             !(targetPlatform.isLinux && targetPlatform.isx86_64 && targetPlatform.libc == "glibc")
           ) "shadowstack"
@@ -449,7 +453,7 @@ pipe
             description
             longDescription
             platforms
-            maintainers
+            teams
             ;
         }
         // optionalAttrs (!atLeast11) {

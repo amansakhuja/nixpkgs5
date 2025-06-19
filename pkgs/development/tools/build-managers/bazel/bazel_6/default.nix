@@ -217,7 +217,7 @@ stdenv.mkDerivation rec {
       binaryBytecode # source bundles dependencies as jars
     ];
     license = licenses.asl20;
-    maintainers = lib.teams.bazel.members;
+    teams = [ lib.teams.bazel ];
     mainProgram = "bazel";
     inherit platforms;
   };
@@ -241,7 +241,7 @@ stdenv.mkDerivation rec {
     # guarantee that it will always run in any nix context.
     #
     # See also ./bazel_darwin_sandbox.patch in bazel_5. That patch uses
-    # NIX_BUILD_TOP env var to conditionnally disable sleep features inside the
+    # NIX_BUILD_TOP env var to conditionally disable sleep features inside the
     # sandbox.
     #
     # If you want to investigate the sandbox profile path,

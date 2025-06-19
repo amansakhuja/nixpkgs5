@@ -3,7 +3,7 @@
   stdenv,
   fetchFromGitHub,
 
-  substituteAll,
+  replaceVars,
 
   # nativeBuildInputs
   cmake,
@@ -30,19 +30,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "box2d";
-  version = "3.1.0";
+  version = "3.1.1";
 
   src = fetchFromGitHub {
     owner = "erincatto";
     repo = "box2d";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-QTSU1+9x8GoUK3hlTDMh43fc4vbNfFR7syt6xVHIuPs=";
+    hash = "sha256-IqQy9A8fWLG9H8ZPmOXeFZDaaks84miRuzXaFlNwm0g=";
   };
 
   patches = [
     # prevent CMake from trying to download some libraries from the internet
-    (substituteAll {
-      src = ./cmake_dont_fetch_enkits.patch;
+    (replaceVars ./cmake_dont_fetch_enkits.patch {
       enkits_src = fetchFromGitHub {
         owner = "dougbinks";
         repo = "enkiTS";

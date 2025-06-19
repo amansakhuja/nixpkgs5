@@ -32,17 +32,20 @@
   syrupy,
   postgresql,
   postgresqlTestHook,
+
+  # passthru
+  nix-update-script,
 }:
 buildPythonPackage rec {
   pname = "langgraph";
-  version = "0.3.24";
+  version = "0.4.1";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "langchain-ai";
     repo = "langgraph";
-    tag = "${version}";
-    hash = "sha256-NlTpBXBeADlIHQDlt0muJEuoKOgXiAtAo8GoU5CsvZo=";
+    tag = version;
+    hash = "sha256-bTxtfduuuyRITZqhk15aWwxNwiZ7TMTgBOEPat6zVIc=";
   };
 
   postgresqlTestSetupPost = ''
@@ -125,15 +128,18 @@ buildPythonPackage rec {
     "tests/test_pregel_async.py"
   ];
 
-  passthru = {
-    inherit (langgraph-sdk) updateScript;
-    skipBulkUpdate = true; # Broken, see https://github.com/NixOS/nixpkgs/issues/379898
+  # Since `langgraph` is the only unprefixed package, we have to use an explicit match
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--version-regex"
+      "([0-9.]+)"
+    ];
   };
 
   meta = {
     description = "Build resilient language agents as graphs";
     homepage = "https://github.com/langchain-ai/langgraph";
-    changelog = "https://github.com/langchain-ai/langgraph/releases/tag/${version}";
+    changelog = "https://github.com/langchain-ai/langgraph/releases/tag/${src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ sarahec ];
   };

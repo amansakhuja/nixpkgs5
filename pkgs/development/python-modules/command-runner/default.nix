@@ -9,7 +9,7 @@
 
 buildPythonPackage rec {
   pname = "command-runner";
-  version = "1.7.3";
+  version = "1.7.4";
   pyproject = true;
 
   disabled = pythonOlder "3.7";
@@ -18,7 +18,7 @@ buildPythonPackage rec {
     owner = "netinvent";
     repo = "command_runner";
     tag = "v${version}";
-    hash = "sha256-BNjMMs44eDnGmcFXiMydJIU0RpsFOyd2TjH7BOGQP2E=";
+    hash = "sha256-i5VWoXHCdZtf4tJGgYvBqcMaBSSruCOkIl5ntZoSHio=";
   };
 
   build-system = [ setuptools ];
@@ -39,6 +39,6 @@ buildPythonPackage rec {
     '';
     changelog = "https://github.com/netinvent/command_runner/releases/tag/${src.tag}";
     license = licenses.bsd3;
-    maintainers = teams.wdz.members;
+    teams = [ teams.wdz ];
   };
 }

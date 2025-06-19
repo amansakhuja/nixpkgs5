@@ -5,18 +5,17 @@
 }:
 mkYaziPlugin {
   pname = "piper.yazi";
-  version = "25.4.8-unstable-2025-04-13";
+  version = "25.5.28-unstable-2025-05-28";
 
   src = fetchFromGitHub {
     owner = "yazi-rs";
     repo = "plugins";
-    rev = "b12a9ab085a8c2fe2b921e1547ee667b714185f9";
-    hash = "sha256-LWN0riaUazQl3llTNNUMktG+7GLAHaG/IxNj1gFhDRE=";
+    rev = "f9b3f8876eaa74d8b76e5b8356aca7e6a81c0fb7";
+    hash = "sha256-EoIrbyC7WgRzrEtvso2Sr6HnNW91c5E+RZGqnjEi6Zo=";
   };
 
   meta = {
     description = "Pipe any shell command as a previewer";
-    homepage = "https://yazi-rs.github.io";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ khaneliman ];
   };

@@ -3,12 +3,13 @@
   stdenv,
   fetchFromGitHub,
   nix-update-script,
-  pnpm_9,
+  # Pinned, because our FODs are not guaranteed to be stable between major versions.
+  pnpm_10,
   nodejs,
   python3,
   makeWrapper,
-  # Upstream uses EOL Electron 31.  Use next oldest version.
-  electron_33,
+  # Electron updates frequently break Heroic, so pin same version as upstream, or newest non-EOL.
+  electron_36,
   vulkan-helper,
   gogdl,
   legendary-heroic,
@@ -17,27 +18,27 @@
 }:
 
 let
-  electron = electron_33;
+  electron = electron_36;
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "heroic-unwrapped";
-  version = "2.16.1";
+  version = "2.17.2";
 
   src = fetchFromGitHub {
     owner = "Heroic-Games-Launcher";
     repo = "HeroicGamesLauncher";
-    rev = "v${finalAttrs.version}";
-    hash = "sha256-BnBzbbyi9cdO6W59cnY13hnhH+tjrTryTp9XIcERwh4=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-oJIs+tsE0PUbX+2pyvH7gPdFuevN8sfrXASu0SxDkBU=";
   };
 
-  pnpmDeps = pnpm_9.fetchDeps {
+  pnpmDeps = pnpm_10.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-2IQyXULgFoz0rFQ8SwERgMDzzo7pZ3DbqhwrWNYSwRo=";
+    hash = "sha256-9WCIdQ91IU8pfq6kpbmmn6APBTNwpCi9ovgRuWYUad8=";
   };
 
   nativeBuildInputs = [
     nodejs
-    pnpm_9.configHook
+    pnpm_10.configHook
     python3
     makeWrapper
   ];
@@ -53,11 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preBuild
 
     # set nodedir to prevent node-gyp from downloading headers
-    # taken from https://nixos.org/manual/nixpkgs/stable/#javascript-tool-specific
-    mkdir -p $HOME/.node-gyp/${nodejs.version}
-    echo 9 > $HOME/.node-gyp/${nodejs.version}/installVersion
-    ln -sfv ${nodejs}/include $HOME/.node-gyp/${nodejs.version}
-    export npm_config_nodedir=${nodejs}
+    export npm_config_nodedir=${electron.headers}
 
     pnpm --offline electron-vite build
     pnpm --offline electron-builder \

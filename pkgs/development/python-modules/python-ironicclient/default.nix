@@ -30,7 +30,7 @@ buildPythonPackage rec {
 
   src = fetchFromGitHub {
     owner = "openstack";
-    repo = pname;
+    repo = "python-ironicclient";
     tag = version;
     hash = "sha256-HqsOMvJ8SK8IEZgeClLd0TnQLBweBEru0Bw4WRSDG7s=";
   };
@@ -89,6 +89,6 @@ buildPythonPackage rec {
     mainProgram = "baremetal";
     homepage = "https://github.com/openstack/python-ironicclient";
     license = licenses.asl20;
-    maintainers = teams.openstack.members;
+    teams = [ teams.openstack ];
   };
 }
