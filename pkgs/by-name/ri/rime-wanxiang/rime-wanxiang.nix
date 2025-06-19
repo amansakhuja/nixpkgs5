@@ -5,9 +5,13 @@
   librime,
   rime-data,
   nix-update-script,
+  callPackage,
 }:
 
-stdenvNoCC.mkDerivation (finalAttrs: {
+let
+  updater = callPackage ./dict-updater.nix {};
+
+in stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "rime-wanxiang";
   version = "7.1.1";
 
@@ -20,13 +24,22 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     librime
-  ];
-
-  buildInputs = [
     rime-data
   ];
 
+  buildInputs = [
+    updater
+  ];
+
   dontConfigure = true;
+
+  patchPhase = ''
+    runHook prePatch
+
+    rm -r .github custom LICENSE squirrel.yaml weasel.yaml *.md *.trime.yaml
+
+    runHook postPatch
+  '';
 
   buildPhase = ''
     runHook preBuild
@@ -43,13 +56,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    dst=$out/share/rime-data
-    mkdir -p $dst
+    data_dir=$out/share/rime-data
+    bin_dir=$out/bin
+    mkdir -p $data_dir $bin_dir
 
-    rm -r .github custom LICENSE squirrel.yaml weasel.yaml *.md *.trime.yaml
     mv default.yaml wanxiang_suggested_default.yaml
 
-    cp -pr -t $dst *
+    cp -pr -t $data_dir *
+    ln -s ${updater}/bin/* $bin_dir
 
     runHook postInstall
   '';

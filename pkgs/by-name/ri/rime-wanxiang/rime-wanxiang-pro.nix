@@ -5,9 +5,13 @@
   librime,
   rime-data,
   nix-update-script,
+  callPackage,
 }:
 
-stdenvNoCC.mkDerivation (finalAttrs: {
+let
+  updater = callPackage ./dict-updater.nix { isProVersion = true; };
+
+in stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "rime-wanxiang-pro";
   version = "7.1";
 
@@ -21,6 +25,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     librime
     rime-data
+  ];
+
+  buildInputs = [
+    updater
   ];
 
   dontConfigure = true;
@@ -48,12 +56,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    dst=$out/share/rime-data
-    mkdir -p $dst
+    data_dir=$out/share/rime-data
+    bin_dir=$out/bin
+    mkdir -p $data_dir $bin_dir
 
     mv default.yaml wanxiang_pro_suggested_default.yaml
 
-    cp -pr -t $dst *
+    cp -pr -t $data_dir *
+    ln -s ${updater}/bin/* $bin_dir
 
     runHook postInstall
   '';
