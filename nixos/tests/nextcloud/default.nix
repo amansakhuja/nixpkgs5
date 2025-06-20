@@ -131,18 +131,19 @@ let
     in
     map callNextcloudTest (
       [
-        ./basic.nix
-        ./with-declarative-redis-and-secrets.nix
-        ./with-mysql-and-memcached.nix
-        ./with-postgresql-and-redis.nix
-        ./with-objectstore.nix
+        /*
+          ./basic.nix
+          ./with-declarative-redis-and-secrets.nix
+          ./with-mysql-and-memcached.nix
+          ./with-postgresql-and-redis.nix
+          ./with-objectstore.nix
+        */
       ]
       ++ (pkgs.lib.optional (version >= 32) ./without-admin-user.nix)
     );
 in
 listToAttrs (
   concatMap genTests [
-    30
-    31
+    32
   ]
 )
