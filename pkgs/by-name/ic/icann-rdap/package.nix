@@ -22,7 +22,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   cargoHash = "sha256-2R6GrcuksEOk8GiVkFhMljS12V2n0J1rCw9MCOtwMjA=";
 
   nativeBuildInputs = [ perl ];
-  nativeCheckInputs = lib.optionals stdenv.hostPlatform.isDarwin [ writableTmpDirAsHomeHook ];
+
+  doCheck = !stdenv.hostPlatform.isDarwin;
 
   meta = {
     description = "Official ICANN RDAP tools, containing cli client and server";
