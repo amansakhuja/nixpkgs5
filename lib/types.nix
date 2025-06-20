@@ -1268,7 +1268,7 @@ let
               {
                 headError = checkDefsForError check loc defs;
                 value = configuration.config;
-                valueMeta = configuration;
+                valueMeta = { inherit configuration; };
               };
           };
           emptyValue = {
