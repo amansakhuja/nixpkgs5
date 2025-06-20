@@ -1,8 +1,9 @@
-{ writeShellApplication
-, curl
-, jq
-, unzip
-, isProVersion ? false
+{
+  writeShellApplication,
+  curl,
+  jq,
+  unzip,
+  isProVersion ? false,
 }:
 
 let
@@ -21,12 +22,17 @@ let
     fileMatch = "cn_dicts.zip";
   };
 
-  updaterName = "update-rime-wanxiang${ if isProVersion then "-pro-" else "-" }dict";
+  updaterName = "update-rime-wanxiang${if isProVersion then "-pro-" else "-"}dict";
   dictRelease = if isProVersion then proDictRelease else basicDictRelease;
 
-in writeShellApplication {
+in
+writeShellApplication {
   name = updaterName;
-  runtimeInputs = [ curl jq unzip ];
+  runtimeInputs = [
+    curl
+    jq
+    unzip
+  ];
   text = ''
     set -e
 

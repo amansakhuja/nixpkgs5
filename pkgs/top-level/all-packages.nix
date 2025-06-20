@@ -16833,7 +16833,5 @@ with pkgs;
     php = php83; # https://github.com/tchapi/davis/issues/195
   };
 
-  inherit (import ../by-name/ri/rime-wanxiang pkgs)
-    rime-wanxiang
-    rime-wanxiang-pro;
+  rime-wanxiang-pro = callPackage ../by-name/ri/rime-wanxiang/package-pro.nix { };
 }

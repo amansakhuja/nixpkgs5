@@ -11,7 +11,8 @@
 let
   updater = callPackage ./dict-updater.nix { isProVersion = true; };
 
-in stdenvNoCC.mkDerivation (finalAttrs: {
+in
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "rime-wanxiang-pro";
   version = "7.1";
 
@@ -68,7 +69,7 @@ in stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {};
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "Feature-rich pinyin schema for Rime, enhanced edition for double pinyin";

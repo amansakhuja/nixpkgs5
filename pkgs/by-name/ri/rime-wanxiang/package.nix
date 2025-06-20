@@ -9,9 +9,10 @@
 }:
 
 let
-  updater = callPackage ./dict-updater.nix {};
+  updater = callPackage ./dict-updater.nix { };
 
-in stdenvNoCC.mkDerivation (finalAttrs: {
+in
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "rime-wanxiang";
   version = "7.1.1";
 
