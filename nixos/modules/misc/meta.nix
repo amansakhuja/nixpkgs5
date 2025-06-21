@@ -40,8 +40,11 @@ let
     merge = loc: defs: defs;
   };
 
-  # TODO: add to lib?
-  resolveDefaultNix = p: if lib.pathType p == "directory" then p + "/default.nix" else p;
+  /**
+    Append default.nix the path is a directory. Unknown paths such as custom _file strings are assumed not to be directories.
+  */
+  resolveDefaultNix =
+    p: if lib.pathExists p && lib.pathType p == "directory" then p + "/default.nix" else p;
 
   /**
     Custom type for `meta.tests` option.
