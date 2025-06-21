@@ -196,7 +196,11 @@ in
 
   config.meta = {
     # Make the option value valid even if not loaded into e.g. a NixOS with real definitions.
-    tests = _: { };
+    tests =
+      { nixosTests }:
+      {
+        inherit (nixosTests) meta;
+      };
   };
 
   meta.maintainers = [
