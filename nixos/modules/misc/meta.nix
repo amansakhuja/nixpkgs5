@@ -40,6 +40,9 @@ let
     merge = loc: defs: defs;
   };
 
+  # TODO: add to lib?
+  resolveDefaultNix = p: if lib.pathType p == "directory" then p + "/default.nix" else p;
+
   /**
     Custom type for `meta.tests` option.
   */
@@ -60,7 +63,7 @@ let
             map (
               { file, value, ... }:
               {
-                "${toString file}" = value;
+                "${toString (resolveDefaultNix file)}" = value;
               }
             ) defs
           );
@@ -70,7 +73,7 @@ let
       filter =
         paths:
         let
-          pathSet = lib.genAttrs (map toString paths) (_path: null);
+          pathSet = lib.genAttrs (map (p: toString (resolveDefaultNix p)) paths) (_path: null);
           relevant = builtins.intersectAttrs pathSet byModulePath;
 
           # Optimize evaluation order by sorting by test name. This way, even
