@@ -29,6 +29,7 @@ in
 {
   plugins,
   hash ? fakeHash,
+  doInstallCheck ? true,
 }:
 
 let
@@ -83,7 +84,7 @@ caddy.overrideAttrs (
 
     # xcaddy built output always uses pseudo-version number
     # we enforce user provided plugins are present and have matching tags here
-    doInstallCheck = true;
+    inherit doInstallCheck;
     installCheckPhase = ''
       runHook preInstallCheck
 
@@ -113,7 +114,6 @@ caddy.overrideAttrs (
 
           if [[ "$expected_in_build" == "$module_from_build" ]]; then
             unset 'notfound[i]'
-            break
           fi
         done
       done < <(echo "$build_info_output")
@@ -124,7 +124,9 @@ caddy.overrideAttrs (
             echo "Plugin with alias \"$plugin\" not found in build:"
             echo "  specified: \"$plugin\""
             echo "  The check looks for the replacement module \"''${plugin#*=}\" in the build output."
-            echo "  This replacement module was not found. Open an issue in nixpkgs or upstream."
+            echo "  This replacement module was not found:"
+            echo "  - if you are using `go.mod` alias or other advanced usage(s), set `doInstallCheck = false` or write your own `installCheckPhase` in `caddy.withPlugins` call"
+            echo "  - if you are sure this error is caused by packaging, or caused by caddy/xcaddy, raise an issue with nixpkgs or upstream"
           else
             local base=''${plugin%@*}
             local specified=''${plugin#*@}
@@ -143,7 +145,9 @@ caddy.overrideAttrs (
             if (( found == 0 )); then
               echo "Plugin \"$base\" not found in build:"
               echo "  specified: \"$base@$specified\""
-              echo "  plugin does not exist in the xcaddy build output, open an issue in nixpkgs or upstream"
+              echo "  plugin does not exist in the xcaddy build output:"
+              echo "  - if you are using `go.mod` alias or other advanced usage(s), set `doInstallCheck = false` or write your own `installCheckPhase` in `caddy.withPlugins` call"
+              echo "  - if you are sure this error is caused by packaging, or caused by caddy/xcaddy, raise an issue with nixpkgs or upstream"
             fi
           fi
         done
