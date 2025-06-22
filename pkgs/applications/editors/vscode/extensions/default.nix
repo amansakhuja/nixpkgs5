@@ -5397,6 +5397,8 @@ let
 
       wakatime.vscode-wakatime = callPackage ./WakaTime.vscode-wakatime { };
 
+      washan.cargo-appraiser = callPackage ./washan.cargo-appraiser { };
+
       wholroyd.jinja = buildVscodeMarketplaceExtension {
         mktplcRef = {
           name = "jinja";
