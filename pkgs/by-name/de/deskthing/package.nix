@@ -3,6 +3,7 @@
   fetchurl,
   appimageTools,
   makeDesktopItem,
+  imagemagick,
 }:
 let
   pname = "deskthing";
@@ -22,7 +23,11 @@ appimageTools.wrapType2 {
     install -m 444 -D ${appimageContents}/${pname}.desktop -t $out/share/applications
     substituteInPlace $out/share/applications/${pname}.desktop \
       --replace-fail 'Exec=AppRun' 'Exec=${pname}'
-    cp -r ${appimageContents}/usr/share/icons $out/share
+
+    # install "0x0" icon as 512x512
+    install -m 444 -D \
+      ${appimageContents}/usr/share/icons/hicolor/0x0/apps/deskthing.png \
+      $out/share/icons/hicolor/512x512/apps/deskthing.png
   '';
 
   extraPkgs =
