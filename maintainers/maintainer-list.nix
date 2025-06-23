@@ -1606,6 +1606,12 @@
     githubId = 7644264;
     name = "Andrew Gazelka";
   };
+  andrewgigena = {
+    email = "work@andrewgigena.dev";
+    github = "andrewgigena";
+    githubId = 37125554;
+    name = "Andrew Gigena";
+  };
   AndrewKvalheim = {
     email = "andrew@kvalhe.im";
     github = "AndrewKvalheim";
@@ -4622,6 +4628,13 @@
     githubId = 2245737;
     name = "Christopher Mark Poole";
   };
+  chrjabs = {
+    email = "contact@christophjabs.info";
+    github = "chrjabs";
+    githubId = 98587286;
+    name = "Christoph Jabs";
+    keys = [ { fingerprint = "47D6 1FEB CD86 F3EC D2E3  D68A 83D0 74F3 48B2 FD9D"; } ];
+  };
   chrpinedo = {
     github = "chrpinedo";
     githubId = 2324630;
@@ -5702,6 +5715,12 @@
     github = "DarkOnion0";
     githubId = 68606322;
   };
+  darkyzhou = {
+    name = "darkyzhou";
+    email = "me@zqy.io";
+    github = "darkyzhou";
+    githubId = 7220778;
+  };
   daru-san = {
     name = "Daru";
     email = "zadarumaka@proton.me";
@@ -5973,6 +5992,13 @@
     github = "DearRude";
     githubId = 30749142;
     keys = [ { fingerprint = "4E35 F2E5 2132 D654 E815  A672 DB2C BC24 2868 6000"; } ];
+  };
+  debling = {
+    name = "Denilson S. Ebling";
+    email = "d.ebling8@gmail.com";
+    github = "debling";
+    githubId = 32403873;
+    keys = [ { fingerprint = "3EDD 9C88 B0F2 58F8 C25F  5D2C CCBC 8AA1 AF06 2142"; } ];
   };
   declan = {
     name = "Declan Rixon";
@@ -11020,6 +11046,13 @@
     github = "iwanb";
     githubId = 4035835;
     name = "Iwan";
+  };
+  ixhby = {
+    email = "phoenix@ixhby.dev";
+    github = "ixhbinphoenix";
+    githubId = 47122082;
+    name = "Emilia Nyx";
+    keys = [ { fingerprint = "91DB 328E 3FAB 8A08 9AF6  5276 3E62 370C 1D77 3013"; } ];
   };
   ixmatus = {
     email = "parnell@digitalmentat.com";
@@ -21787,6 +21820,12 @@
     keys = [ { fingerprint = "6AE2 A847 23D5 6D98 5B34  0BC0 8E5F A470 9F69 E911"; } ];
     name = "Ralph Seichter";
   };
+  rskew = {
+    name = "Rowan Skewes";
+    email = "rowan.skewes@gmail.com";
+    github = "rskew";
+    githubId = 16100155;
+  };
   rski = {
     name = "rski";
     email = "rom.skiad+nix@gmail.com";
@@ -28014,6 +28053,12 @@
       { fingerprint = "CBF7 FA5E F4B5 8B68 5977  3E3E 4CAC 61D6 A482 FCD9"; }
       { fingerprint = "E22F 760E E074 E57A 21CB  1733 8DD2 9BB5 2C25 EA09"; }
     ];
+  };
+  Zirconium419122 = {
+    name = "Rasmus Liaskar";
+    github = "Zirconium419122";
+    email = "rasmus@liaskar.net";
+    githubId = 152716976;
   };
   zlepper = {
     name = "Rasmus Hansen";
