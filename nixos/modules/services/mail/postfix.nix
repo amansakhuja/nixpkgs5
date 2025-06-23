@@ -859,12 +859,6 @@ in
         description = "Maps to be compiled and placed into /var/lib/postfix/conf.";
       };
 
-      useSrs = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "Whether to enable sender rewriting scheme";
-      };
-
     };
 
   };
@@ -881,8 +875,6 @@ in
           # This makes it comfortable to run 'postqueue/postdrop' for example.
           systemPackages = [ pkgs.postfix ];
         };
-
-        services.pfix-srsd.enable = config.services.postfix.useSrs;
 
         services.mail.sendmailSetuidWrapper = lib.mkIf config.services.postfix.setSendmail {
           program = "sendmail";
@@ -1058,12 +1050,6 @@ in
             ] ++ lib.optional haveAliases "$alias_maps";
           }
           // lib.optionalAttrs (cfg.dnsBlacklists != [ ]) { smtpd_client_restrictions = clientRestrictions; }
-          // lib.optionalAttrs cfg.useSrs {
-            sender_canonical_maps = [ "tcp:127.0.0.1:10001" ];
-            sender_canonical_classes = [ "envelope_sender" ];
-            recipient_canonical_maps = [ "tcp:127.0.0.1:10002" ];
-            recipient_canonical_classes = [ "envelope_recipient" ];
-          }
           // lib.optionalAttrs cfg.enableHeaderChecks {
             header_checks = [ "regexp:/etc/postfix/header_checks" ];
           };
@@ -1280,6 +1266,10 @@ in
     (lib.mkRenamedOptionModule
       [ "services" "postfix" "tlsTrustedAuthoriies" ]
       [ "services" "postfix" "config" "smtp_tls_CAfile" ]
+    )
+    (lib.mkRenamedOptionModule
+      [ "services" "postfix" "useSrs" ]
+      [ "services" "pfix-srsd" "configurePostfix" ]
     )
 
     (lib.mkChangedOptionModule
