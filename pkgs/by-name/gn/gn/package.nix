@@ -77,6 +77,7 @@ stdenv.mkDerivation (finalAttrs: {
       stesie
       matthewbauer
       primeos
+      marcin-serwin
     ];
   };
 })
