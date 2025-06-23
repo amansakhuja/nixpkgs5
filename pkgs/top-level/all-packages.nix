@@ -4539,8 +4539,6 @@ with pkgs;
 
   tor = callPackage ../tools/security/tor { };
 
-  torsocks = callPackage ../tools/security/tor/torsocks.nix { };
-
   trackma-curses = trackma.override { withCurses = true; };
 
   trackma-gtk = trackma.override { withGTK = true; };
