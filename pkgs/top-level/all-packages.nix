@@ -4537,8 +4537,6 @@ with pkgs;
     }
   );
 
-  tor = callPackage ../tools/security/tor { };
-
   trackma-curses = trackma.override { withCurses = true; };
 
   trackma-gtk = trackma.override { withGTK = true; };
