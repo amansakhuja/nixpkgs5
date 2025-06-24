@@ -130,7 +130,8 @@ let
   '';
 
   # Generate the NixOS manual.
-  generateManualHTML = singlePageManual:
+  generateManualHTML =
+    singlePageManual:
     runCommand "nixos-manual-html"
       {
         nativeBuildInputs = [ buildPackages.nixos-render-docs ];
