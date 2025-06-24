@@ -14,6 +14,7 @@
   nixpkgs ? { },
   markdown-code-runner,
   roboto,
+  singlePageManual ? true,
 }:
 
 stdenvNoCC.mkDerivation (
@@ -85,7 +86,7 @@ stdenvNoCC.mkDerivation (
         --script ./anchor-use.js \
         --toc-depth 1 \
         --section-toc-depth 1 \
-        --into-pages \
+        ${if !singlePageManual then "--into-pages" else ""} \
         manual.md \
         out/index.html
 

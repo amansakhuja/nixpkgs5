@@ -129,12 +129,8 @@ let
       -i ./development/writing-nixos-tests.section.md
   '';
 
-in
-rec {
-  inherit (optionsDoc) optionsJSON optionsNix optionsDocBook;
-
   # Generate the NixOS manual.
-  manualHTML =
+  generateManualHTML = singlePageManual:
     runCommand "nixos-manual-html"
       {
         nativeBuildInputs = [ buildPackages.nixos-render-docs ];
@@ -167,7 +163,7 @@ rec {
           --script ./anchor.min.js \
           --script ./anchor-use.js \
           --toc-depth 1 \
-          --into-pages \
+          ${if !singlePageManual then "--into-pages" else ""} \
           --chunk-toc-depth 1 \
           ./manual.md \
           $dst/${common.indexPath}
@@ -179,6 +175,12 @@ rec {
 
         echo "doc manual $dst" >> $out/nix-support/hydra-build-products
       ''; # */
+in
+rec {
+  inherit (optionsDoc) optionsJSON optionsNix optionsDocBook;
+
+  manualHTML = generateManualHTML true;
+  multiPagesManualHTML = generateManualHTML false;
 
   # Alias for backward compatibility. TODO(@oxij): remove eventually.
   manual = manualHTML;
