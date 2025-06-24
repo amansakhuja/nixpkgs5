@@ -39,9 +39,11 @@ buildPythonPackage rec {
 
   dontUseCmakeConfigure = true;
 
-  env.NIX_CFLAGS_COMPILE = toString (lib.optionals stdenv.cc.isGNU [
-    "-Wno-error=stringop-overflow"
-  ]);
+  env.NIX_CFLAGS_COMPILE = toString (
+    lib.optionals stdenv.cc.isGNU [
+      "-Wno-error=stringop-overflow"
+    ]
+  );
 
   pythonImportsCheck = [ "qh3" ];
 
