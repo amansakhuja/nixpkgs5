@@ -4,6 +4,7 @@
   brotlicffi,
   buildPythonPackage,
   fetchFromGitHub,
+  fetchpatch,
   hatchling,
   h11,
   isPyPy,
@@ -32,6 +33,13 @@ buildPythonPackage rec {
     tag = version;
     hash = "sha256-iSAXeLnyJLLBGx5AQu9xVbkLkitRs33ScPiE5Mw46w0=";
   };
+
+  patches = [
+    (fetchpatch {
+      url = "https://github.com/jawah/urllib3.future/commit/9a6647447c9c5600d25f6aaecb091f501e46a664.patch";
+      hash = "sha256-7MeEWp7F9BEru6R6iJIyGT7xLdFDygvepbfQDRxtekI=";
+    })
+  ];
 
   postPatch = ''
     substituteInPlace pyproject.toml \
