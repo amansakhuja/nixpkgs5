@@ -38,19 +38,29 @@ buildPythonPackage rec {
   ];
 
   optional-dependencies = {
-    inherit (urllib3-future.optional-dependencies) brotli socks ws zstd;
-    full = [
-      orjson
-    ] ++ urllib3-future.optional-dependencies.brotli
+    inherit (urllib3-future.optional-dependencies)
+      brotli
+      socks
+      ws
+      zstd
+      ;
+    full =
+      [
+        orjson
+      ]
+      ++ urllib3-future.optional-dependencies.brotli
       ++ urllib3-future.optional-dependencies.socks
       ++ urllib3-future.optional-dependencies.qh3
       ++ urllib3-future.optional-dependencies.ws
       ++ urllib3-future.optional-dependencies.zstd;
     http3 = urllib3-future.optional-dependencies.qh3;
     ocsp = urllib3-future.optional-dependencies.qh3;
-    speedups = [
-      orjson
-    ] ++ urllib3-future.optional-dependencies.brotli ++ urllib3-future.optional-dependencies.zstd;
+    speedups =
+      [
+        orjson
+      ]
+      ++ urllib3-future.optional-dependencies.brotli
+      ++ urllib3-future.optional-dependencies.zstd;
   };
 
   pythonImportsCheck = [ "niquests" ];
