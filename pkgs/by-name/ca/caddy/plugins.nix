@@ -114,6 +114,7 @@ caddy.overrideAttrs (
 
           if [[ "$expected_in_build" == "$module_from_build" ]]; then
             unset 'notfound[i]'
+            break
           fi
         done
       done < <(echo "$build_info_output")
