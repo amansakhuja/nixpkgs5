@@ -5,12 +5,11 @@
   fetchpatch2,
   meson,
   ninja,
+  ruby,
   python3Minimal,
   nix-update-script,
-  gccStdenv,
-  ruby,
-  rubyPackages,
   testers,
+  iniparser,
   validatePkgConfig,
   # Adds test groups and extra CLI flags.
   buildFixture ? false,
@@ -22,7 +21,14 @@
   supportDouble ? false,
 
 }:
-
+let
+  # On newer versions of Clang, Weverything is too much of everything.
+  ignoredErrors = [
+    "-Wno-unsafe-buffer-usage"
+    "-Wno-reserved-identifier"
+    "-Wno-extra-semi-stmt"
+  ];
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "unity-test";
   version = "2.6.1";
@@ -64,6 +70,7 @@ stdenv.mkDerivation (finalAttrs: {
     validatePkgConfig
   ];
 
+  # For the helper shebangs
   buildInputs = [
     python3Minimal
     ruby
@@ -75,14 +82,12 @@ stdenv.mkDerivation (finalAttrs: {
     (lib.mesonBool "support_double" supportDouble)
   ];
 
-  # https://github.com/ThrowTheSwitch/Unity/blob/v2.6.1/.github/workflows/main.yml#L20-L35
-  # The test suite for Clang/GCC only supports x86 right now.
   doCheck = true;
 
   checkPhase = ''
     runHook preCheck
 
-    make -C../test -j $NIX_BUILD_CORES test
+    make -C../test -j $NIX_BUILD_CORES ${lib.optionalString stdenv.cc.isClang "CC=clang"} E="-Weverything ${lib.escapeShellArgs ignoredErrors}" test
 
     runHook postCheck
   '';
@@ -95,9 +100,12 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     updateScript = nix-update-script { };
-    tests.pkg-config = testers.hasPkgConfigModules {
-      package = finalAttrs.finalPackage;
-      versionCheck = true;
+    tests = {
+      inherit iniparser;
+      pkg-config = testers.hasPkgConfigModules {
+        package = finalAttrs.finalPackage;
+        versionCheck = true;
+      };
     };
   };
 
