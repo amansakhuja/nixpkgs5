@@ -52,7 +52,6 @@ python.pkgs.buildPythonApplication rec {
     celery
     celery-singleton
     channels
-    coreapi
     dj-database-url
     django
     django-celery-beat
