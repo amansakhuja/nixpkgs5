@@ -7,7 +7,6 @@
   pytest-asyncio,
   pytest-mock,
   pytestCheckHook,
-  rustfmt,
   rustPlatform,
   stdenv,
 }:
@@ -31,7 +30,6 @@ buildPythonPackage rec {
 
   nativeBuildInputs = [
     cmake
-    rustfmt
     rustPlatform.bindgenHook
     rustPlatform.cargoSetupHook
     rustPlatform.maturinBuildHook
