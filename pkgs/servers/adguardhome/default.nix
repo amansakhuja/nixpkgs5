@@ -18,6 +18,12 @@ buildGoModule rec {
 
   vendorHash = "sha256-lY24TtW4vpMRUzOZmeX3Ip9ikUc4z1HG49DpeECExdk=";
 
+  ldflags = [
+    "-s"
+    "-w"
+    "-X github.com/AdguardTeam/AdGuardHome/internal/version.version=v${version}"
+  ];
+
   dashboard = buildNpmPackage {
     inherit src;
     name = "dashboard";
