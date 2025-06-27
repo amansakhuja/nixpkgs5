@@ -4,7 +4,25 @@
   stdenv,
   buildPythonPackage ? python3Packages.buildPythonPackage,
   fetchFromGitHub,
+  fetchpatch,
+
+  wrapQtAppsHook ? libsForQt5.wrapQtAppsHook,
+  appdirs ? python3Packages.appdirs,
+  babel ? python3Packages.babel,
+  evdev ? python3Packages.evdev,
+  mock ? python3Packages.mock,
+  pyqt5 ? python3Packages.pyqt5,
+  pyserial ? python3Packages.pyserial,
+  pytestCheckHook ? python3Packages.pytestCheckHook,
+  pytest-qt ? python3Packages.pytest-qt,
+  plover-stroke ? python3Packages.plover-stroke,
+  rtf-tokenize ? python3Packages.rtf-tokenize,
+  setuptools ? python3Packages.setuptools,
   versionCheckHook,
+  wcwidth ? python3Packages.wcwidth,
+  wheel ? python3Packages.wheel,
+  xlib ? python3Packages.xlib,
+
   python3Packages,
   libsForQt5,
 }:
@@ -27,13 +45,13 @@
         sed -i 's/,<77//g' pyproject.toml # pythonRelaxDepsHook doesn't work for this for some reason
       '';
 
-      build-system = with python3Packages; [
+      build-system = [
         babel
         setuptools
         pyqt5
         wheel
       ];
-      dependencies = with python3Packages; [
+      dependencies = [
         appdirs
         evdev
         pyqt5
@@ -44,11 +62,11 @@
         wcwidth
         xlib
       ];
-      nativeBuildInputs = with libsForQt5; [
+      nativeBuildInputs = [
         wrapQtAppsHook
       ];
 
-      nativeCheckInputs = with python3Packages; [
+      nativeCheckInputs = [
         pytestCheckHook
         versionCheckHook
         pytest-qt
