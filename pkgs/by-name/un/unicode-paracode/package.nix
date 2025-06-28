@@ -8,6 +8,7 @@
 }:
 
 python3Packages.buildPythonApplication rec {
+  # We want `pname = "unicode"` so that `nix run nixpkgs#unicode-paracode -- z` runs the `unicode` binary.
   pname = "unicode";
   version = "3.2"; # From `debian/changelog` in the repo
   format = "setuptools";
@@ -21,8 +22,8 @@ python3Packages.buildPythonApplication rec {
   };
 
   ucdtxt = fetchurl {
-    url = "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt";
-    sha256 = "sha256-gG6a7WUDcZfx7IXhK+bozYcPxWCLTeD//ZkPaJ83anM=";
+    url = "https://www.unicode.org/Public/16.0.0/ucd/UnicodeData.txt";
+    sha256 = "sha256-/1jlgjvQlRZlZKAG5H0RETCBPc+L8jTvefpRqHDttI8=";
   };
 
   nativeBuildInputs = [ installShellFiles ];
