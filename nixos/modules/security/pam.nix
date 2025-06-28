@@ -3,6 +3,7 @@
 {
   config,
   lib,
+  utils,
   pkgs,
   ...
 }:
@@ -739,15 +740,8 @@ let
         # Samba stuff to the Samba module.  This requires that the PAM
         # module provides the right hooks.
         rules =
-          let
-            autoOrderRules = lib.flip lib.pipe [
-              (lib.imap1 (index: rule: rule // { order = lib.mkDefault (10000 + index * 100); }))
-              (map (rule: lib.nameValuePair rule.name (removeAttrs rule [ "name" ])))
-              lib.listToAttrs
-            ];
-          in
           lib.optionalAttrs cfg.useDefaultRules {
-            account = autoOrderRules [
+            account = utils.pam.autoOrderRules [
               {
                 name = "ldap";
                 enable = use_ldap;
@@ -813,7 +807,7 @@ let
               }
             ];
 
-            auth = autoOrderRules (
+            auth = utils.pam.autoOrderRules (
               [
                 {
                   name = "oslogin_login";
@@ -1189,7 +1183,7 @@ let
               ]
             );
 
-            password = autoOrderRules [
+            password = utils.pam.autoOrderRules [
               {
                 name = "systemd_home";
                 enable = config.services.homed.enable;
@@ -1279,7 +1273,7 @@ let
               }
             ];
 
-            session = autoOrderRules [
+            session = utils.pam.autoOrderRules [
               {
                 name = "env";
                 enable = cfg.setEnvironment;
