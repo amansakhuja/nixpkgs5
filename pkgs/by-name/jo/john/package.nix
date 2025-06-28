@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  unstableGitUpdater,
   openssl,
   nss,
   nspr,
@@ -130,6 +131,10 @@ stdenv.mkDerivation {
       wrapProgram "$i" --prefix PERL5LIB : "$PERL5LIB:$out/${perlPackages.perl.libPrefix}"
     done
   '';
+
+  passthru.updateScript = unstableGitUpdater {
+    tagFormat = "[0-9].*";
+  };
 
   meta = with lib; {
     description = "John the Ripper password cracker";
