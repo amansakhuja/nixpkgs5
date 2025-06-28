@@ -39,6 +39,15 @@ python3Packages.buildPythonApplication rec {
     installManPage paracode.1 unicode.1
   '';
 
+  checkPhase = ''
+    runHook preCheck
+
+    echo Testing: $out/bin/unicode --brief z
+    diff -u <(echo z U+007A LATIN SMALL LETTER Z) <($out/bin/unicode --brief z 2>&1) && echo Success
+
+    runHook postCheck
+  '';
+
   passthru.updateScript = gitUpdater {
     rev-prefix = "v";
   };
