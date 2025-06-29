@@ -86,6 +86,12 @@ let
       jq = lib.getExe jq;
     };
   } ./qmllint-hook.sh;
+
+
+  qmlplugindumpHook = makeSetupHook {
+    name = "qmlplugindump-hook";
+    substitutions.qmlplugindump = "${qt6.qtdeclarative}/bin/qmlplugindump";
+  } ./qmlplugindump-hook.sh;
 in
 {
   pname,
@@ -141,6 +147,7 @@ let
         qt6.wrapQtAppsHook
         moveOutputsHook
         qmllintHook
+        qmlplugindumpHook
       ]
       ++ lib.optionals hasPythonBindings [
         python3Packages.shiboken6
