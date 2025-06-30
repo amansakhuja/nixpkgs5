@@ -40,13 +40,6 @@ let
           ];
           postPatch = null;
         });
-        ruamel-yaml = prev.ruamel-yaml.overridePythonAttrs (prev: rec {
-          version = "0.17.21";
-          src = prev.src.override {
-            inherit version;
-            hash = "sha256-i3zml6LyEnUqNcGsQURx3BbEJMlXO+SSa1b/P10jt68=";
-          };
-        });
         urllib3 = prev.urllib3.overridePythonAttrs (prev: rec {
           version = "1.26.18";
           build-system = with final; [
@@ -108,7 +101,7 @@ py.pkgs.buildPythonApplication rec {
     jmespath
     prompt-toolkit
     python-dateutil
-    ruamel-yaml
+    ruamel-yaml_0_17_21
     urllib3
   ];
 
