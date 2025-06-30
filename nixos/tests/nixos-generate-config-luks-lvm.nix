@@ -127,7 +127,7 @@ import ./make-test-python.nix (
       for mountpoint in mountpoints:
           if mountpoint not in hardware_config:
               raise Exception(f"Filesystem mount {mountpoint} not found in config")
-              
+
       # Now get the UUIDs of all our created devices to make sure they're used in the config
       root_uuid = machine.succeed("blkid -s UUID -o value /dev/mapper/vg0-root").strip()
       home_uuid = machine.succeed("blkid -s UUID -o value /dev/mapper/vg0-home").strip()
