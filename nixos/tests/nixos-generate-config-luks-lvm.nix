@@ -11,8 +11,8 @@ import ./make-test-python.nix (
 
         virtualisation = {
           emptyDiskImages = [
-            1024  # vdb - for LVM-over-LUKS
-            1024  # vdc - for LUKS-over-LVM
+            1024 # vdb - for LVM-over-LUKS
+            1024 # vdc - for LUKS-over-LVM
           ];
           useBootLoader = true;
           useEFIBoot = true;
@@ -132,7 +132,7 @@ import ./make-test-python.nix (
       root_uuid = machine.succeed("blkid -s UUID -o value /dev/mapper/vg0-root").strip()
       home_uuid = machine.succeed("blkid -s UUID -o value /dev/mapper/vg0-home").strip()
       cryptroot_uuid = machine.succeed("blkid -s UUID -o value /dev/mapper/cryptroot").strip()
-      
+
       # Check that these UUIDs appear in the hardware config, either as /dev/disk/by-uuid/UUID or as "UUID=UUID"
       for uuid in [root_uuid, home_uuid, cryptroot_uuid]:
           if f"/dev/disk/by-uuid/{uuid}" not in hardware_config and f"UUID={uuid}" not in hardware_config:

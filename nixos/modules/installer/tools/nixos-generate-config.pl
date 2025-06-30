@@ -343,7 +343,7 @@ sub findStableDevPath {
     return $dev unless -e $dev;
 
     my $st = stat($dev) or return $dev;
-    
+
     # Special handling for mapper devices (LVM volumes, LUKS devices, etc.)
     # Convert to UUID-based paths when possible for stability
     if ($dev =~ m#^/dev/mapper/(.+)$#) {
@@ -354,7 +354,7 @@ sub findStableDevPath {
                 return $uuid_path;
             }
         }
-        
+
         # If no UUID path is found, preserve the mapper path as fallback
         # This is critical for both LUKS and LVM devices to work correctly
         return $dev;
@@ -430,7 +430,7 @@ foreach my $fs (read_file("/proc/self/mountinfo")) {
     my @superOptions = split /,/, $fields[$n + 2];
     $device =~ s/\\040/ /g; # account for devices with spaces in the name (\040 is the escape character)
     $device =~ s/\\011/\t/g; # account for mount points with tabs in the name (\011 is the escape character)
-    
+
 
     # Skip the read-only bind-mount on /nix/store.
     next if $mountPoint eq "/nix/store" && (grep { $_ eq "rw" } @superOptions) && (grep { $_ eq "ro" } @mountOptions);
@@ -455,7 +455,7 @@ EOF
         }
     }
     $fsByDev{$fields[2]} = $mountPoint;
-    
+
 
     # We don't know how to handle FUSE filesystems.
     if ($fsType eq "fuseblk" || $fsType eq "fuse") {
@@ -469,7 +469,7 @@ EOF
         if (defined $ENV{"DEBUG"}) {
             print STDERR "Processing mapper device: $mapper_name for mountpoint $mountPoint\n";
         }
-        
+
         # Make sure this is actually an LVM volume
         if ($mapper_name =~ /^([^-]+)-(.+)$/) {
             my $vg = $1;
@@ -477,7 +477,7 @@ EOF
             if (defined $ENV{"DEBUG"}) {
                 print STDERR "  Appears to be LVM volume: VG=$vg, LV=$lv\n";
             }
-            
+
             # Verify this is really an LVM volume
             if (-e "/sys/class/block/" . basename(readlink($device))) {
                 my $dmDir = "/sys/class/block/" . basename(readlink($device));
@@ -599,14 +599,14 @@ EOF
         {
             my $dmName = read_file("/sys/class/block/$deviceName/dm/name");
             chomp $dmName;
-            
+
             # Prevent duplicates - check if we already configured this LUKS device
             my $luksDevice = "  boot.initrd.luks.devices.\"$dmName\"";
             if ($fileSystems !~ /^\Q$luksDevice\E/m) {
                 my @slaves = glob("/sys/class/block/$deviceName/slaves/*");
                 my $isLvmBased = 0;
                 my $slaveDevice = "";
-                
+
                 # Check if this is LUKS on top of LVM
                 if (scalar @slaves >= 1) {
                     foreach my $slave (@slaves) {
@@ -619,14 +619,14 @@ EOF
                         }
                     }
                 }
-                
+
                 # If we have a single non-LVM slave, use the standard approach
                 if (scalar @slaves == 1 && !$isLvmBased) {
                     my $slave = "/dev/" . basename($slaves[0]);
                     if (-e $slave) {
                         $fileSystems .= "$luksDevice.device = \"${\(findStableDevPath $slave)}\";\n";
                     }
-                } 
+                }
                 # For LUKS on top of LVM, we need to set preLVM=false
                 elsif ($isLvmBased) {
                     $fileSystems .= "$luksDevice = {\n";
@@ -642,7 +642,7 @@ EOF
                 }
             }
         }
-        
+
         # Check for LVM-over-LUKS, when the current device is LVM but sits on top of LUKS
         if (-e "/sys/class/block/$deviceName/dm/uuid") {
             my $dmUuid = read_file("/sys/class/block/$deviceName/dm/uuid",  err_mode => 'quiet');
@@ -651,7 +651,7 @@ EOF
                 if (defined $ENV{"DEBUG"}) {
                     print STDERR "Found LVM device: $deviceName, mountPoint: $mountPoint, device: $device\n";
                 }
-                
+
                 # Check if any slave is a LUKS device
                 my @slaves = glob("/sys/class/block/$deviceName/slaves/*");
                 foreach my $slave (@slaves) {
@@ -659,16 +659,16 @@ EOF
                     if (defined $ENV{"DEBUG"}) {
                         print STDERR "  Checking slave: $slaveName\n";
                     }
-                    
+
                     my $slaveDmUuid = read_file("/sys/class/block/$slaveName/dm/uuid", err_mode => 'quiet');
                     if (defined $slaveDmUuid && $slaveDmUuid =~ /^CRYPT-LUKS/) {
                         my $dmName = read_file("/sys/class/block/$slaveName/dm/name");
                         chomp $dmName;
-                        
+
                         if (defined $ENV{"DEBUG"}) {
                             print STDERR "    Found LUKS device: $dmName\n";
                         }
-                        
+
                         # Ensure we haven't already added this device
                         my $luksDevice = "  boot.initrd.luks.devices.\"$dmName\"";
                         if ($fileSystems !~ /^\Q$luksDevice\E/m) {
@@ -687,7 +687,7 @@ EOF
                 }
             }
         }
-        
+
         if (-e "/sys/class/block/$deviceName/md/uuid") {
             $useSwraid = 1;
         }
