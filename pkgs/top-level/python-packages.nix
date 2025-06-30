@@ -18159,6 +18159,8 @@ self: super: with self; {
 
   tskit = callPackage ../development/python-modules/tskit { };
 
+  tsv = callPackage ../development/python-modules/tsv { };
+
   ttach = callPackage ../development/python-modules/ttach { };
 
   ttfautohint-py = callPackage ../development/python-modules/ttfautohint-py { };
