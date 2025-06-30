@@ -9,21 +9,20 @@
   nim,
   pandoc,
   pkg-config,
+  brotli,
   zlib,
-  unstableGitUpdater,
-  libseccomp,
-  replaceVars,
+  gitUpdater,
 }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   pname = "chawan";
-  version = "0-unstable-2025-03-27";
+  version = "0.2.0";
 
   src = fetchFromSourcehut {
     owner = "~bptato";
     repo = "chawan";
-    rev = "b2d954b96f227597b62cfae1ac64785bd8f0fb37";
-    hash = "sha256-1kxqzzEMGDFNk25mQX8p7TuADuTMIz+hHZ7p+i7m494=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-DiA7SEXPJTScdoFeGzH45wZP6gZRU8t/fvJLOufuNmU=";
   };
 
   patches = [ ./mancha-augment-path.diff ];
@@ -44,11 +43,11 @@ stdenv.mkDerivation {
     nim
     pandoc
     pkg-config
+    brotli
   ];
 
   buildInputs = [
     curlMinimal
-    libseccomp
     ncurses
     zlib
   ];
@@ -74,15 +73,14 @@ stdenv.mkDerivation {
       wrapProgram $out/bin/mancha ${makeWrapperArgs}
     '';
 
-  passthru.updateScript = unstableGitUpdater { };
+  passthru.updateScript = gitUpdater { rev-prefix = "v"; };
 
   meta = {
     description = "Lightweight and featureful terminal web browser";
     homepage = "https://sr.ht/~bptato/chawan/";
     license = lib.licenses.publicDomain;
     platforms = lib.platforms.unix;
-    maintainers = with lib.maintainers; [ jtbx ];
+    maintainers = with lib.maintainers; [ ];
     mainProgram = "cha";
-    broken = stdenv.hostPlatform.isDarwin; # pending PR #292043
   };
-}
+})

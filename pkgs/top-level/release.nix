@@ -19,7 +19,7 @@
   system ? builtins.currentSystem,
   officialRelease ? false,
   # The platform doubles for which we build Nixpkgs.
-  supportedSystems ? import ../../ci/supportedSystems.nix,
+  supportedSystems ? builtins.fromJSON (builtins.readFile ../../ci/supportedSystems.json),
   # The platform triples for which we build bootstrap tools.
   bootstrapConfigs ? [
     "aarch64-apple-darwin"
@@ -43,7 +43,8 @@
       # so users choosing to allow don't have to rebuild them every time.
       permittedInsecurePackages = [
         "olm-3.2.16" # see PR #347899
-        "kanidm_1_4-1.4.6"
+        "kanidm_1_5-1.5.0"
+        "kanidmWithSecretProvisioning_1_5-1.5.0"
       ];
     };
 
@@ -365,6 +366,7 @@ let
               "ghc96"
               "ghc98"
               "ghc910"
+              "ghc912"
             ]
             (compilerName: {
               inherit (packagePlatforms pkgs.haskell.packages.${compilerName})
@@ -375,10 +377,6 @@ let
         agdaPackages = packagePlatforms pkgs.agdaPackages;
 
         pkgsLLVM.stdenv = [
-          "x86_64-linux"
-          "aarch64-linux"
-        ];
-        pkgsLLVMLibc.stdenv = [
           "x86_64-linux"
           "aarch64-linux"
         ];

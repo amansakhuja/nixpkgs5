@@ -22,6 +22,11 @@ python.pkgs.buildPythonPackage {
   ];
 
   postPatch = ''
+    # high parallelism let the tests easily fail with concurrent errors
+    if (( $NIX_BUILD_CORES > 4)); then
+      NIX_BUILD_CORES=4
+    fi
+
     substituteInPlace pytest.ini --subst-var NIX_BUILD_CORES
   '';
 
@@ -31,12 +36,12 @@ python.pkgs.buildPythonPackage {
     django-annoying
     django-cleanup
     django-crispy-forms
-    django-crispy-bootstrap4
     django-tables2
     djangorestframework
     drf-writable-nested
     django-oauth-toolkit
     bleach
+    crispy-bootstrap4
     gunicorn
     lxml
     markdown
@@ -71,6 +76,11 @@ python.pkgs.buildPythonPackage {
     aiohttp
     inflection
     redis
+    requests-oauthlib
+    pyjwt
+    python3-openid
+    python3-saml
+    standard-imghdr
   ];
 
   configurePhase = ''
@@ -121,7 +131,7 @@ python.pkgs.buildPythonPackage {
     mock
     pytestCheckHook
     pytest-asyncio
-    pytest-cov
+    pytest-cov-stub
     pytest-django
     pytest-factoryboy
     pytest-html

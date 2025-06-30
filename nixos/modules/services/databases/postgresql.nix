@@ -90,6 +90,12 @@ in
       "extraConfig"
     ] "Use services.postgresql.settings instead.")
 
+    (mkRemovedOptionModule [
+      "services"
+      "postgresql"
+      "recoveryConfig"
+    ] "PostgreSQL v12+ doesn't support recovery.conf.")
+
     (mkRenamedOptionModule
       [ "services" "postgresql" "logLinePrefix" ]
       [ "services" "postgresql" "settings" "log_line_prefix" ]
@@ -114,8 +120,24 @@ in
 
       enableJIT = mkEnableOption "JIT support";
 
-      package = mkPackageOption pkgs "postgresql" {
-        example = "postgresql_15";
+      package = mkOption {
+        type = types.package;
+        example = literalExpression "pkgs.postgresql_15";
+        defaultText = literalExpression ''
+          if versionAtLeast config.system.stateVersion "25.11" then
+            pkgs.postgresql_17
+          else if versionAtLeast config.system.stateVersion "24.11" then
+            pkgs.postgresql_16
+          else if versionAtLeast config.system.stateVersion "23.11" then
+            pkgs.postgresql_15
+          else if versionAtLeast config.system.stateVersion "22.05" then
+            pkgs.postgresql_14
+          else
+            pkgs.postgresql_13
+        '';
+        description = ''
+          The package being used by postgresql.
+        '';
       };
 
       finalPackage = mkOption {
@@ -268,6 +290,14 @@ in
           Defines the mapping from system users to database users.
 
           See the [auth doc](https://postgresql.org/docs/current/auth-username-maps.html).
+
+          There is a default map "postgres" which is used for local peer authentication
+          as the postgres superuser role.
+          For example, to allow the root user to login as the postgres superuser, add:
+
+          ```
+          postgres root postgres
+          ```
         '';
       };
 
@@ -588,14 +618,6 @@ in
         '';
       };
 
-      recoveryConfig = mkOption {
-        type = types.nullOr types.lines;
-        default = null;
-        description = ''
-          Contents of the {file}`recovery.conf` file.
-        '';
-      };
-
       superUser = mkOption {
         type = types.str;
         default = "postgres";
@@ -650,7 +672,10 @@ in
             See also https://endoflife.date/postgresql
           '';
         base =
-          if versionAtLeast config.system.stateVersion "24.11" then
+          # XXX Don't forget to keep `defaultText` of `services.postgresql.package` up to date!
+          if versionAtLeast config.system.stateVersion "25.11" then
+            pkgs.postgresql_17
+          else if versionAtLeast config.system.stateVersion "24.11" then
             pkgs.postgresql_16
           else if versionAtLeast config.system.stateVersion "23.11" then
             pkgs.postgresql_15
@@ -676,11 +701,19 @@ in
       (mkBefore "# Generated file; do not edit!")
       (mkAfter ''
         # default value of services.postgresql.authentication
+        local all postgres         peer map=postgres
         local all all              peer
         host  all all 127.0.0.1/32 md5
         host  all all ::1/128      md5
       '')
     ];
+
+    # The default allows to login with the same database username as the current system user.
+    # This is the default for peer authentication without a map, but needs to be made explicit
+    # once a map is used.
+    services.postgresql.identMap = mkAfter ''
+      postgres postgres postgres
+    '';
 
     services.postgresql.systemCallFilter = mkMerge [
       (mapAttrs (const mkDefault) {
@@ -718,11 +751,22 @@ in
       cfg.checkConfig && pkgs.stdenv.hostPlatform == pkgs.stdenv.buildPlatform
     ) configFileCheck;
 
+    systemd.targets.postgresql = {
+      description = "PostgreSQL";
+      wantedBy = [ "multi-user.target" ];
+      bindsTo = [
+        "postgresql.service"
+        "postgresql-setup.service"
+      ];
+    };
+
     systemd.services.postgresql = {
       description = "PostgreSQL Server";
 
-      wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
+
+      # To trigger the .target also on "systemctl start postgresql".
+      bindsTo = [ "postgresql.target" ];
 
       environment.PGDATA = cfg.dataDir;
 
@@ -741,54 +785,7 @@ in
         fi
 
         ln -sfn "${configFile}/postgresql.conf" "${cfg.dataDir}/postgresql.conf"
-        ${optionalString (cfg.recoveryConfig != null) ''
-          ln -sfn "${pkgs.writeText "recovery.conf" cfg.recoveryConfig}" \
-            "${cfg.dataDir}/recovery.conf"
-        ''}
       '';
-
-      # Wait for PostgreSQL to be ready to accept connections.
-      postStart =
-        ''
-          PSQL="psql --port=${builtins.toString cfg.settings.port}"
-
-          while ! $PSQL -d postgres -c "" 2> /dev/null; do
-              if ! kill -0 "$MAINPID"; then exit 1; fi
-              sleep 0.1
-          done
-
-          if test -e "${cfg.dataDir}/.first_startup"; then
-            ${optionalString (cfg.initialScript != null) ''
-              $PSQL -f "${cfg.initialScript}" -d postgres
-            ''}
-            rm -f "${cfg.dataDir}/.first_startup"
-          fi
-        ''
-        + optionalString (cfg.ensureDatabases != [ ]) ''
-          ${concatMapStrings (database: ''
-            $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname = '${database}'" | grep -q 1 || $PSQL -tAc 'CREATE DATABASE "${database}"'
-          '') cfg.ensureDatabases}
-        ''
-        + ''
-          ${concatMapStrings (
-            user:
-            let
-              dbOwnershipStmt = optionalString user.ensureDBOwnership ''$PSQL -tAc 'ALTER DATABASE "${user.name}" OWNER TO "${user.name}";' '';
-
-              filteredClauses = filterAttrs (name: value: value != null) user.ensureClauses;
-
-              clauseSqlStatements = attrValues (mapAttrs (n: v: if v then n else "no${n}") filteredClauses);
-
-              userClauses = ''$PSQL -tAc 'ALTER ROLE "${user.name}" ${concatStringsSep " " clauseSqlStatements}' '';
-            in
-            ''
-              $PSQL -tAc "SELECT 1 FROM pg_roles WHERE rolname='${user.name}'" | grep -q 1 || $PSQL -tAc 'CREATE USER "${user.name}"'
-              ${userClauses}
-
-              ${dbOwnershipStmt}
-            ''
-          ) cfg.ensureUsers}
-        '';
 
       serviceConfig = mkMerge [
         {
@@ -862,11 +859,74 @@ in
 
       unitConfig.RequiresMountsFor = "${cfg.dataDir}";
     };
+
+    systemd.services.postgresql-setup = {
+      description = "PostgreSQL Setup Scripts";
+
+      requires = [ "postgresql.service" ];
+      after = [ "postgresql.service" ];
+
+      serviceConfig = {
+        User = "postgres";
+        Group = "postgres";
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+
+      path = [ cfg.finalPackage ];
+      environment.PGPORT = builtins.toString cfg.settings.port;
+
+      # Wait for PostgreSQL to be ready to accept connections.
+      script =
+        ''
+          check-connection() {
+            psql -d postgres -v ON_ERROR_STOP=1 <<-'  EOF'
+              SELECT pg_is_in_recovery() \gset
+              \if :pg_is_in_recovery
+              \i still-recovering
+              \endif
+            EOF
+          }
+          while ! check-connection 2> /dev/null; do
+              if ! systemctl is-active --quiet postgresql.service; then exit 1; fi
+              sleep 0.1
+          done
+
+          if test -e "${cfg.dataDir}/.first_startup"; then
+            ${optionalString (cfg.initialScript != null) ''
+              psql -f "${cfg.initialScript}" -d postgres
+            ''}
+            rm -f "${cfg.dataDir}/.first_startup"
+          fi
+        ''
+        + optionalString (cfg.ensureDatabases != [ ]) ''
+          ${concatMapStrings (database: ''
+            psql -tAc "SELECT 1 FROM pg_database WHERE datname = '${database}'" | grep -q 1 || psql -tAc 'CREATE DATABASE "${database}"'
+          '') cfg.ensureDatabases}
+        ''
+        + ''
+          ${concatMapStrings (
+            user:
+            let
+              dbOwnershipStmt = optionalString user.ensureDBOwnership ''psql -tAc 'ALTER DATABASE "${user.name}" OWNER TO "${user.name}";' '';
+
+              filteredClauses = filterAttrs (name: value: value != null) user.ensureClauses;
+
+              clauseSqlStatements = attrValues (mapAttrs (n: v: if v then n else "no${n}") filteredClauses);
+
+              userClauses = ''psql -tAc 'ALTER ROLE "${user.name}" ${concatStringsSep " " clauseSqlStatements}' '';
+            in
+            ''
+              psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${user.name}'" | grep -q 1 || psql -tAc 'CREATE USER "${user.name}"'
+              ${userClauses}
+
+              ${dbOwnershipStmt}
+            ''
+          ) cfg.ensureUsers}
+        '';
+    };
   };
 
   meta.doc = ./postgresql.md;
-  meta.maintainers = with lib.maintainers; [
-    thoughtpolice
-    danbst
-  ];
+  meta.maintainers = pkgs.postgresql.meta.maintainers;
 }

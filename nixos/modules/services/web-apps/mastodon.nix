@@ -55,6 +55,9 @@ let
     // lib.optionalAttrs cfg.smtp.authenticate { SMTP_LOGIN = cfg.smtp.user; }
     // lib.optionalAttrs (cfg.elasticsearch.host != null) { ES_HOST = cfg.elasticsearch.host; }
     // lib.optionalAttrs (cfg.elasticsearch.host != null) { ES_PORT = toString cfg.elasticsearch.port; }
+    // lib.optionalAttrs (cfg.elasticsearch.host != null && cfg.elasticsearch.prefix != null) {
+      ES_PREFIX = cfg.elasticsearch.prefix;
+    }
     // lib.optionalAttrs (cfg.elasticsearch.host != null) { ES_PRESET = cfg.elasticsearch.preset; }
     // lib.optionalAttrs (cfg.elasticsearch.user != null) { ES_USER = cfg.elasticsearch.user; }
     // cfg.extraConfig;
@@ -123,10 +126,10 @@ let
     SystemCallArchitectures = "native";
   };
 
-  # Services that all Mastodon units After= and Requires= on
-  commonServices =
+  # Units that all Mastodon units After= and Requires= on
+  commonUnits =
     lib.optional redisActuallyCreateLocally "redis-mastodon.service"
-    ++ lib.optional databaseActuallyCreateLocally "postgresql.service"
+    ++ lib.optional databaseActuallyCreateLocally "postgresql.target"
     ++ lib.optional cfg.automaticMigrations "mastodon-init-db.service";
 
   envFile = pkgs.writeText "mastodon.env" (
@@ -167,8 +170,8 @@ let
         after = [
           "network.target"
           "mastodon-init-dirs.service"
-        ] ++ commonServices;
-        requires = [ "mastodon-init-dirs.service" ] ++ commonServices;
+        ] ++ commonUnits;
+        requires = [ "mastodon-init-dirs.service" ] ++ commonUnits;
         description = "Mastodon sidekiq${jobClassLabel}";
         wantedBy = [ "mastodon.target" ];
         environment = env // {
@@ -206,8 +209,8 @@ let
         after = [
           "network.target"
           "mastodon-init-dirs.service"
-        ] ++ commonServices;
-        requires = [ "mastodon-init-dirs.service" ] ++ commonServices;
+        ] ++ commonUnits;
+        requires = [ "mastodon-init-dirs.service" ] ++ commonUnits;
         wantedBy = [
           "mastodon.target"
           "mastodon-streaming.target"
@@ -670,6 +673,16 @@ in
           default = 9200;
         };
 
+        prefix = lib.mkOption {
+          description = ''
+            If provided, adds a prefix to indexes in Elasticsearch. This allows to use the same
+            Elasticsearch cluster between different projects or Mastodon servers.
+          '';
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "mastodon";
+        };
+
         preset = lib.mkOption {
           description = ''
             It controls the ElasticSearch indices configuration (number of shards and replica).
@@ -960,7 +973,7 @@ in
             '';
           path = [
             cfg.package
-            config.services.postgresql.package
+            (if databaseActuallyCreateLocally then config.services.postgresql.package else pkgs.postgresql)
           ];
           environment =
             env
@@ -985,18 +998,18 @@ in
           after = [
             "network.target"
             "mastodon-init-dirs.service"
-          ] ++ lib.optional databaseActuallyCreateLocally "postgresql.service";
+          ] ++ lib.optional databaseActuallyCreateLocally "postgresql.target";
           requires = [
             "mastodon-init-dirs.service"
-          ] ++ lib.optional databaseActuallyCreateLocally "postgresql.service";
+          ] ++ lib.optional databaseActuallyCreateLocally "postgresql.target";
         };
 
         systemd.services.mastodon-web = {
           after = [
             "network.target"
             "mastodon-init-dirs.service"
-          ] ++ commonServices;
-          requires = [ "mastodon-init-dirs.service" ] ++ commonServices;
+          ] ++ commonUnits;
+          requires = [ "mastodon-init-dirs.service" ] ++ commonUnits;
           wantedBy = [ "mastodon.target" ];
           description = "Mastodon web";
           environment =

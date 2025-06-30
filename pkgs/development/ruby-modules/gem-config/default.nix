@@ -104,7 +104,6 @@
   shared-mime-info,
   libthai,
   libdatrie,
-  CoreServices,
   DarwinTools,
   cctools,
   libtool,
@@ -493,10 +492,11 @@ in
           dontBuilt = true;
           installPhase = ''
             cp -R ext/fast_mmaped_file_rs $out
+            rm $out/Cargo.lock
             cp Cargo.lock $out
           '';
         };
-        hash = "sha256-KVbmDAa9EFwTUTHPF/8ZzycbieMhAuiidiz5rqGIKOo=";
+        hash = "sha256-mukk+tWWeG62q4GcDzkk8TyxVsDjShz30wEj82cElt4=";
       };
 
       nativeBuildInputs = [
@@ -627,10 +627,6 @@ in
         substituteInPlace src/ruby/ext/grpc/extconf.rb \
           --replace 'apple_toolchain = ' 'apple_toolchain = false && '
       '';
-  };
-
-  hitimes = attrs: {
-    buildInputs = lib.optionals stdenv.hostPlatform.isDarwin [ CoreServices ];
   };
 
   hpricot = attrs: {
@@ -885,7 +881,7 @@ in
     # Force pkg-config lookup for libpq.
     # See https://github.com/ged/ruby-pg/blob/6629dec6656f7ca27619e4675b45225d9e422112/ext/extconf.rb#L34-L55
     #
-    # Note that setting --with-pg-config=${lib.getDev postgresql}/bin/pg_config would add
+    # Note that setting --with-pg-config=${postgresql.pg_config}/bin/pg_config would add
     # an unnecessary reference to the entire postgresql package.
     buildFlags = [ "--with-pg-config=ignore" ];
     nativeBuildInputs = [ pkg-config ];

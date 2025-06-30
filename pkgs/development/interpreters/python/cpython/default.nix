@@ -14,20 +14,22 @@
 
   # runtime dependencies
   bzip2,
+  withExpat ? true,
   expat,
   libffi,
   libuuid,
   libxcrypt,
+  withMpdecimal ? true,
   mpdecimal,
   ncurses,
   openssl,
   sqlite,
   xz,
   zlib,
+  zstd,
 
   # platform-specific dependencies
   bashNonInteractive,
-  darwin,
   windows,
 
   # optional dependencies
@@ -72,6 +74,7 @@
   enableFramework ? false,
   noldconfigPatch ? ./. + "/${sourceVersion.major}.${sourceVersion.minor}/no-ldconfig.patch",
   enableGIL ? true,
+  enableDebug ? false,
 
   # pgo (not reproducible) + -fno-semantic-interposition
   # https://docs.python.org/3/using/configure.html#cmdoption-enable-optimizations
@@ -92,6 +95,9 @@
 
   # tests
   testers,
+
+  # allow pythonMinimal to prevent accidental dependencies it doesn't want
+  allowedReferenceNames ? [ ],
 
 }@inputs:
 
@@ -197,6 +203,8 @@ let
     ++ optionals (!stdenv.hostPlatform.isDarwin) [
       autoconf-archive # needed for AX_CHECK_COMPILE_FLAG
       autoreconfHook
+    ]
+    ++ optionals (!stdenv.hostPlatform.isDarwin || passthru.pythonAtLeast "3.14") [
       pkg-config
     ]
     ++ optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
@@ -217,22 +225,26 @@ let
   buildInputs = lib.filter (p: p != null) (
     [
       bzip2
-      expat
       libffi
       libuuid
       libxcrypt
-      mpdecimal
       ncurses
       openssl
       sqlite
       xz
       zlib
     ]
+    ++ optionals (passthru.pythonAtLeast "3.14") [
+      zstd
+    ]
+    ++ optionals withMpdecimal [
+      mpdecimal
+    ]
+    ++ optionals withExpat [
+      expat
+    ]
     ++ optionals bluezSupport [
       bluez
-    ]
-    ++ optionals enableFramework [
-      darwin.apple_sdk.frameworks.Cocoa
     ]
     ++ optionals stdenv.hostPlatform.isMinGW [
       windows.dlfcn
@@ -309,14 +321,9 @@ stdenv.mkDerivation (finalAttrs: {
     ]
     ++ buildInputs;
 
-  prePatch =
-    optionalString stdenv.hostPlatform.isDarwin ''
-      substituteInPlace configure --replace-fail '`/usr/bin/arch`' '"i386"'
-    ''
-    + optionalString (pythonOlder "3.9" && stdenv.hostPlatform.isDarwin && x11Support) ''
-      # Broken on >= 3.9; replaced with ./3.9/darwin-tcl-tk.patch
-      substituteInPlace setup.py --replace-fail /Library/Frameworks /no-such-path
-    '';
+  prePatch = optionalString stdenv.hostPlatform.isDarwin ''
+    substituteInPlace configure --replace-fail '`/usr/bin/arch`' '"i386"'
+  '';
 
   patches =
     [
@@ -326,10 +333,6 @@ stdenv.mkDerivation (finalAttrs: {
       # (since it will do a futile invocation of gcc (!) to find
       # libuuid, slowing down program startup a lot).
       noldconfigPatch
-    ]
-    ++ optionals (pythonOlder "3.12") [
-      # https://www.cve.org/CVERecord?id=CVE-2025-0938
-      ./CVE-2025-0938.patch
     ]
     ++ optionals (stdenv.hostPlatform != stdenv.buildPlatform && stdenv.hostPlatform.isFreeBSD) [
       # Cross compilation only supports a limited number of "known good"
@@ -383,15 +386,6 @@ stdenv.mkDerivation (finalAttrs: {
       # fix failing tests with openssl >= 3.4
       # https://github.com/python/cpython/pull/127361
     ]
-    ++ optionals (pythonAtLeast "3.10" && pythonOlder "3.11") [
-      ./3.10/raise-OSError-for-ERR_LIB_SYS.patch
-    ]
-    ++ optionals (pythonAtLeast "3.11" && pythonOlder "3.12") [
-      (fetchpatch {
-        url = "https://github.com/python/cpython/commit/f4b31edf2d9d72878dab1f66a36913b5bcc848ec.patch";
-        sha256 = "sha256-w7zZMp0yqyi4h5oG8sK4z9BwNEkqg4Ar+en3nlWcxh0=";
-      })
-    ]
     ++ optionals (pythonAtLeast "3.11" && pythonOlder "3.13") [
       # backport fix for https://github.com/python/cpython/issues/95855
       ./platform-triplet-detection.patch
@@ -442,7 +436,7 @@ stdenv.mkDerivation (finalAttrs: {
   env = {
     CPPFLAGS = concatStringsSep " " (map (p: "-I${getDev p}/include") buildInputs);
     LDFLAGS = concatStringsSep " " (map (p: "-L${getLib p}/lib") buildInputs);
-    LIBS = "${optionalString (!stdenv.hostPlatform.isDarwin) "-lcrypt"}";
+    LIBS = "${optionalString (!stdenv.hostPlatform.isDarwin && libxcrypt != null) "-lcrypt"}";
     NIX_LDFLAGS = lib.optionalString (stdenv.cc.isGNU && !stdenv.hostPlatform.isStatic) (
       {
         "glibc" = "-lgcc_s";
@@ -458,7 +452,11 @@ stdenv.mkDerivation (finalAttrs: {
   configureFlags =
     [
       "--without-ensurepip"
+    ]
+    ++ optionals withExpat [
       "--with-system-expat"
+    ]
+    ++ optionals withMpdecimal [
       "--with-system-libmpdec"
     ]
     ++ optionals (openssl != null) [
@@ -484,6 +482,9 @@ stdenv.mkDerivation (finalAttrs: {
     ]
     ++ optionals enableOptimizations [
       "--enable-optimizations"
+    ]
+    ++ optionals enableDebug [
+      "--with-pydebug"
     ]
     ++ optionals (sqlite != null) [
       "--enable-loadable-sqlite-extensions"
@@ -524,6 +525,7 @@ stdenv.mkDerivation (finalAttrs: {
       "ac_cv_func_lchmod=no"
     ]
     ++ optionals static [
+      "--disable-test-modules"
       "LDFLAGS=-static"
       "MODULE_BUILDTYPE=static"
     ]
@@ -615,7 +617,11 @@ stdenv.mkDerivation (finalAttrs: {
           echo $item
         fi
       done
+    ''
+    + lib.optionalString (!static) ''
       touch $out/lib/${libPrefix}/test/__init__.py
+    ''
+    + ''
 
       # Determinism: Windows installers were not deterministic.
       # We're also not interested in building Windows installers.
@@ -765,20 +771,25 @@ stdenv.mkDerivation (finalAttrs: {
       buildPackages.bashNonInteractive
     ];
 
+  # Optionally set allowedReferences to guarantee minimal dependencies
+  # Allows python3Minimal to stay minimal and not have deps added by accident
+  # Doesn't do anything if allowedReferenceNames is empty (was not set)
+  ${if allowedReferenceNames != [ ] then "allowedReferences" else null} =
+    # map allowed names to their derivations
+    (map (name: inputs.${name}) allowedReferenceNames) ++ [
+      # any version of python depends on libc and libgcc
+      stdenv.cc.cc.lib
+      stdenv.cc.libc
+      # allows python referring to its own store path
+      "out"
+    ];
+
   separateDebugInfo = true;
 
   passthru = passthru // {
     doc = stdenv.mkDerivation {
       inherit src;
       name = "python${pythonVersion}-${version}-doc";
-
-      patches = optionals (pythonAtLeast "3.9" && pythonOlder "3.10") [
-        # https://github.com/python/cpython/issues/98366
-        (fetchpatch {
-          url = "https://github.com/python/cpython/commit/5612471501b05518287ed61c1abcb9ed38c03942.patch";
-          hash = "sha256-p41hJwAiyRgyVjCVQokMSpSFg/VDDrqkCSxsodVb6vY=";
-        })
-      ];
 
       postPatch = lib.optionalString (pythonAtLeast "3.9" && pythonOlder "3.11") ''
         substituteInPlace Doc/tools/extensions/pyspecific.py \
@@ -833,7 +844,7 @@ stdenv.mkDerivation (finalAttrs: {
     pkgConfigModules = [ "python3" ];
     platforms = platforms.linux ++ platforms.darwin ++ platforms.windows ++ platforms.freebsd;
     mainProgram = executable;
-    maintainers = lib.teams.python.members;
+    teams = [ lib.teams.python ];
     # static build on x86_64-darwin/aarch64-darwin breaks with:
     # configure: error: C compiler cannot create executables
 

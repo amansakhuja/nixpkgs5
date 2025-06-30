@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "0.17.70";
+  version = "0.17.75";
 in
 buildGoModule {
   pname = "gqlgen";
@@ -16,10 +16,10 @@ buildGoModule {
     owner = "99designs";
     repo = "gqlgen";
     tag = "v${version}";
-    hash = "sha256-VpZQBmQKxqrWC9pD90V4hMO6mYgbCCbrenyCEbGTHtA=";
+    hash = "sha256-VtpD7UfrypaREUu/uon6OTi3jvSzUaj1Y0yTiUw9u0A=";
   };
 
-  vendorHash = "sha256-B3RiZZee6jefslUSTfHDth8WUl5rv7fmEFU0DpKkWZk=";
+  vendorHash = "sha256-sOiEgSGxIp4COfSQjDXv5sm/iryOcRK8MUbnvrglpbc=";
 
   subPackages = [ "." ];
 

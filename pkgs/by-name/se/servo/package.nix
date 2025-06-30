@@ -16,8 +16,9 @@
   makeWrapper,
   perl,
   pkg-config,
-  python3,
+  python311,
   taplo,
+  uv,
   which,
   yasm,
   zlib,
@@ -28,7 +29,6 @@
   freetype,
   gst_all_1,
   harfbuzz,
-  libcxx,
   libGL,
   libunwind,
   libxkbcommon,
@@ -42,7 +42,8 @@
 }:
 
 let
-  customPython = python3.withPackages (
+  # match .python-version
+  customPython = python311.withPackages (
     ps: with ps; [
       packaging
     ]
@@ -62,13 +63,13 @@ in
 
 rustPlatform.buildRustPackage {
   pname = "servo";
-  version = "0-unstable-2025-04-08";
+  version = "0-unstable-2025-06-26";
 
   src = fetchFromGitHub {
     owner = "servo";
     repo = "servo";
-    rev = "4d4f94936f8859f039497df370083fd7ea35fb00";
-    hash = "sha256-SI3HnKuh6zD07D7SUswfehwXEFkuaZQkqipH0Rlj9Gg=";
+    rev = "cbb0407ae641c049dd6796275b4ba8572c06b798";
+    hash = "sha256-d0Z+dvnNm3NxvGe/W/zJsAsyeMvxF9HoA+wSclWeLgk=";
     # Breaks reproducibility depending on whether the picked commit
     # has other ref-names or not, which may change over time, i.e. with
     # "ref-names: HEAD -> main" as long this commit is the branch HEAD
@@ -79,7 +80,7 @@ rustPlatform.buildRustPackage {
   };
 
   useFetchCargoVendor = true;
-  cargoHash = "sha256-toVo1QpeMeK8SoQaYU5d+VAd3s22iwRI4caJIpxPP6I=";
+  cargoHash = "sha256-j6cQalYbeHunI1t4VRQkbqGNylwWg0NBoItwloYTfAE=";
 
   # set `HOME` to a temp dir for write access
   # Fix invalid option errors during linking (https://github.com/mozilla/nixpkgs-mozilla/commit/c72ff151a3e25f14182569679ed4cd22ef352328)
@@ -101,13 +102,15 @@ rustPlatform.buildRustPackage {
     makeWrapper
     perl
     pkg-config
-    python3
     rustPlatform.bindgenHook
     taplo
+    uv
     which
     yasm
     zlib
   ];
+
+  env.UV_PYTHON = customPython.interpreter;
 
   buildInputs =
     [
@@ -131,10 +134,14 @@ rustPlatform.buildRustPackage {
     ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
       apple-sdk_14
-      libcxx
     ];
 
-  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isDarwin "-I${lib.getDev libcxx}/include/c++/v1";
+  # Builds with additional features for aarch64, see https://github.com/servo/servo/issues/36819
+  buildFeatures = lib.optionals stdenv.hostPlatform.isAarch64 [
+    "servo_allocator/use-system-allocator"
+  ];
+
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isDarwin "-I${lib.getInclude stdenv.cc.libcxx}/include/c++/v1";
 
   # copy resources into `$out` to be used during runtime
   # link runtime libraries
@@ -152,7 +159,7 @@ rustPlatform.buildRustPackage {
   };
 
   meta = {
-    description = "The embeddable, independent, memory-safe, modular, parallel web rendering engine";
+    description = "Embeddable, independent, memory-safe, modular, parallel web rendering engine";
     homepage = "https://servo.org";
     license = lib.licenses.mpl20;
     maintainers = with lib.maintainers; [

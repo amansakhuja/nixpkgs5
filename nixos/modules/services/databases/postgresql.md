@@ -21,7 +21,10 @@ To enable PostgreSQL, add the following to your {file}`configuration.nix`:
   services.postgresql.package = pkgs.postgresql_15;
 }
 ```
-Note that you are required to specify the desired version of PostgreSQL (e.g. `pkgs.postgresql_15`). Since upgrading your PostgreSQL version requires a database dump and reload (see below), NixOS cannot provide a default value for [](#opt-services.postgresql.package) such as the most recent release of PostgreSQL.
+
+The default PostgreSQL version is approximately the latest major version available on the NixOS release matching your [`system.stateVersion`](#opt-system.stateVersion).
+This is because PostgreSQL upgrades require a manual migration process (see below).
+Hence, upgrades must happen by setting [`services.postgresql.package`](#opt-services.postgresql.package) explicitly.
 
 <!--
 After running {command}`nixos-rebuild`, you can verify
@@ -86,29 +89,29 @@ database migrations.
 
 **NOTE:** please make sure that any added migrations are idempotent (re-runnable).
 
-#### as superuser {#module-services-postgres-initializing-extra-permissions-superuser}
+#### in database's setup `postStart` {#module-services-postgres-initializing-extra-permissions-superuser-post-start}
 
-**Advantage:** compatible with postgres < 15, because it's run
-as the database superuser `postgres`.
-
-##### in database `postStart` {#module-services-postgres-initializing-extra-permissions-superuser-post-start}
-
-**Disadvantage:** need to take care of ordering yourself. In this
-example, `mkAfter` ensures that permissions are assigned after any
-databases from `ensureDatabases` and `extraUser1` from `ensureUsers`
-are already created.
+`ensureUsers` is run in `postgresql-setup`, so this is where `postStart` must be added to:
 
 ```nix
   {
-    systemd.services.postgresql.postStart = lib.mkAfter ''
-      $PSQL service1 -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
-      $PSQL service1 -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
+    systemd.services.postgresql-setup.postStart = ''
+      psql service1 -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
+      psql service1 -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
       # ....
     '';
   }
 ```
 
-##### in intermediate oneshot service {#module-services-postgres-initializing-extra-permissions-superuser-oneshot}
+#### in intermediate oneshot service {#module-services-postgres-initializing-extra-permissions-superuser-oneshot}
+
+Make sure to run this service after `postgresql.target`, not `postgresql.service`.
+
+They differ in two aspects:
+- `postgresql.target` includes `postgresql-setup`, so users managed via `ensureUsers` are already created.
+- `postgresql.target` will wait until PostgreSQL is in read-write mode after restoring from backup, while `postgresql.service` will already be ready when PostgreSQL is still recovering in read-only mode.
+
+Both can lead to unexpected errors either during initial database creation or restore, when using `postgresql.service`.
 
 ```nix
   {
@@ -116,59 +119,50 @@ are already created.
       serviceConfig.Type = "oneshot";
       requiredBy = "service1.service";
       before = "service1.service";
-      after = "postgresql.service";
+      after = "postgresql.target";
       serviceConfig.User = "postgres";
-      environment.PSQL = "psql --port=${toString services.postgresql.settings.port}";
+      environment.PGPORT = toString services.postgresql.settings.port;
       path = [ postgresql ];
       script = ''
-        $PSQL service1 -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
-        $PSQL service1 -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
+        psql service1 -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
+        psql service1 -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
         # ....
       '';
     };
   }
 ```
 
-#### as service user {#module-services-postgres-initializing-extra-permissions-service-user}
+## Authentication {#module-services-postgres-authentication}
 
-**Advantage:** re-uses systemd's dependency ordering;
+Local connections are made through unix sockets by default and support [peer authentication](https://www.postgresql.org/docs/current/auth-peer.html).
+This allows system users to login with database roles of the same name.
+For example, the `postgres` system user is allowed to login with the database role `postgres`.
 
-**Disadvantage:** relies on service user having grant permission. To be combined with `ensureDBOwnership`.
+System users and database roles might not always match.
+In this case, to allow access for a service, you can create a [user name map](https://www.postgresql.org/docs/current/auth-username-maps.html) between system roles and an existing database role.
 
-##### in service `preStart` {#module-services-postgres-initializing-extra-permissions-service-user-pre-start}
+### User Mapping {#module-services-postgres-authentication-user-mapping}
 
-```nix
-  {
-    environment.PSQL = "psql --port=${toString services.postgresql.settings.port}";
-    path = [ postgresql ];
-    systemd.services."service1".preStart = ''
-      $PSQL -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
-      $PSQL -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
-      # ....
-    '';
-  }
-```
-
-##### in intermediate oneshot service {#module-services-postgres-initializing-extra-permissions-service-user-oneshot}
+Assume that your app creates a role `admin` and you want the `root` user to be able to login with it.
+You can then use [](#opt-services.postgresql.identMap) to define the map and [](#opt-services.postgresql.authentication) to enable it:
 
 ```nix
-  {
-    systemd.services."migrate-service1-db1" = {
-      serviceConfig.Type = "oneshot";
-      requiredBy = "service1.service";
-      before = "service1.service";
-      after = "postgresql.service";
-      serviceConfig.User = "service1";
-      environment.PSQL = "psql --port=${toString services.postgresql.settings.port}";
-      path = [ postgresql ];
-      script = ''
-        $PSQL -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO "extraUser1"'
-        $PSQL -c 'GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO "extraUser1"'
-        # ....
-      '';
-    };
-  }
+services.postgresql = {
+  identMap = ''
+    admin root admin
+  '';
+  authentication = ''
+    local all admin peer map=admin
+  '';
+}
 ```
+
+::: {.warning}
+To avoid conflicts with other modules, you should never apply a map to `all` roles.
+Because PostgreSQL will stop on the first matching line in `pg_hba.conf`, a line matching all roles would lock out other services.
+Each module should only manage user maps for the database roles that belong to this module.
+Best practice is to name the map after the database role it manages to avoid name conflicts.
+:::
 
 ## Upgrading {#module-services-postgres-upgrading}
 
@@ -326,6 +320,37 @@ self: super: {
   };
 }
 ```
+
+## Procedural Languages {#module-services-postgres-pls}
+
+PostgreSQL ships the additional procedural languages PL/Perl, PL/Python and PL/Tcl as extensions.
+They are packaged as plugins and can be made available in the same way as external extensions:
+```nix
+{
+  services.postgresql.extensions = ps: with ps; [
+    plperl
+    plpython3
+    pltcl
+  ];
+}
+```
+
+Each procedural language plugin provides a `.withPackages` helper to make language specific packages available at run-time.
+
+For example, to make `python3Packages.base58` available:
+```nix
+{
+  services.postgresql.extensions = pgps: with pgps; [
+    (plpython3.withPackages (pyps: with pyps; [ base58 ]))
+  ];
+}
+```
+
+This currently works for:
+- `plperl` by re-using `perl.withPackages`
+- `plpython3` by re-using `python3.withPackages`
+- `plr` by exposing `rPackages`
+- `pltcl` by exposing `tclPackages`
 
 ## JIT (Just-In-Time compilation) {#module-services-postgres-jit}
 

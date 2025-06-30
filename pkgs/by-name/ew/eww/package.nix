@@ -15,17 +15,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "eww";
-  version = "0.6.0-unstable-2025-03-25";
+  version = "0.6.0-unstable-2025-06-17";
 
   src = fetchFromGitHub {
     owner = "elkowar";
     repo = "eww";
-    rev = "a9aa0f96892f20e4741e94f4cd46ca31106e492c";
-    hash = "sha256-T9OZ8jke2T73Zeqt8VekH82ar23AV7llA7ta8b7HP2o=";
+    rev = "0e409d4a52bd3d37d0aa0ad4e2d7f3b9a8adcdb7";
+    hash = "sha256-QGs9H+SBoMjvznTh3RZVjlwQPkcz6S6CbxC71cS49dk=";
   };
 
   useFetchCargoVendor = true;
-  cargoHash = "sha256-tjhF4D5WFw6qBUXRWcWjaB57zyXeWBDULsOcr2MJJgA=";
+  cargoHash = "sha256-SEdr9nW5nBm1g6fjC5fZhqPbHQ7H6Kk0RL1V6OEQRdA=";
 
   nativeBuildInputs = [
     installShellFiles

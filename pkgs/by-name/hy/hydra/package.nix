@@ -130,13 +130,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "hydra";
-  version = "0-unstable-2025-04-07";
+  version = "0-unstable-2025-06-15";
 
   src = fetchFromGitHub {
     owner = "NixOS";
     repo = "hydra";
-    rev = "1c52c4c0ed596ea71de370562ed5af1604bd2183";
-    hash = "sha256-pcZA2SA7nskxsvDYp3nzF5V258b67YrZONv9G3PhLCE=";
+    rev = "ed500ca4345f7edaa6c3d84027a7599d38b15a29";
+    hash = "sha256-Mxz4n40VKxA2ILtIHX6fObgcy2WlgsM+ERfpjuVJ0BU=";
   };
 
   outputs = [
@@ -261,6 +261,7 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://nixos.org/hydra";
     license = licenses.gpl3;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ mindavi ] ++ teams.helsinki-systems.members;
+    maintainers = with maintainers; [ mindavi ];
+    teams = [ teams.helsinki-systems ];
   };
 })

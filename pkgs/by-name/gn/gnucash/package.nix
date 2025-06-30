@@ -3,6 +3,7 @@
   stdenv,
   fetchFromGitHub,
   fetchurl,
+  fetchpatch2,
   aqbanking,
   boost,
   cmake,
@@ -25,6 +26,8 @@
   swig,
   webkitgtk_4_0,
   wrapGAppsHook3,
+  python3,
+  replaceVars,
 }:
 
 stdenv.mkDerivation rec {
@@ -45,6 +48,11 @@ stdenv.mkDerivation rec {
     pkg-config
   ];
 
+  cmakeFlags = [
+    "-DWITH_PYTHON=\"ON\""
+    "-DPYTHON_SYSCONFIG_BUILD=\"$out\""
+  ];
+
   buildInputs =
     [
       aqbanking
@@ -63,6 +71,7 @@ stdenv.mkDerivation rec {
       libxslt
       swig
       webkitgtk_4_0
+      python3
     ]
     ++ (with perlPackages; [
       JSONParse
@@ -79,7 +88,21 @@ stdenv.mkDerivation rec {
     ./0003-remove-valgrind.patch
     # this patch makes gnucash exec the Finance::Quote wrapper directly
     ./0004-exec-fq-wrapper.patch
+    # this patch adds in env vars to the Python lib that makes it able to find required resource files
+    ./0005-python-env.patch
+    # this patch backports a fix to remove unused includes causing build failures
+    (fetchpatch2 {
+      url = "https://github.com/Gnucash/gnucash/commit/940085a0172216240232551022686cea4da86096.patch?full_index=1";
+      name = "0006-remove-unused-includes.patch";
+      hash = "sha256-4CpBtKDkcT1HlOAHsbASxPiHKVpZ9ETWS3fXEupOl0Q=";
+    })
   ];
+
+  postPatch = ''
+    substituteInPlace bindings/python/__init__.py \
+      --subst-var-by gnc_dbd_dir "${libdbiDrivers}/lib/dbd" \
+      --subst-var-by gsettings_schema_dir ${glib.makeSchemaPath "$out" "gnucash-${version}"};
+  '';
 
   # this needs to be an environment variable and not a cmake flag to suppress
   # guile warning
@@ -172,8 +195,6 @@ stdenv.mkDerivation rec {
     '';
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [
-      domenkozar
-      rski
       nevivurn
     ];
     platforms = platforms.unix;
