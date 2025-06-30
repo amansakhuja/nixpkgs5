@@ -26,6 +26,7 @@ crystal.buildCrystalPackage rec {
     mainProgram = "exfetch";
     homepage = "https://codeberg.org/Izder456/exfetch";
     license = lib.licenses.isc;
+    badPlatforms = [ lib.systems.inspect.patterns.isDarwin ];
     maintainers = with lib.maintainers; [ goose121 ];
   };
 }
