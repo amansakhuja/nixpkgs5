@@ -17,14 +17,14 @@
 
 buildPythonPackage rec {
   pname = "python-keycloak";
-  version = "5.5.1";
+  version = "5.6.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "marcospereirampj";
     repo = "python-keycloak";
     tag = "v${version}";
-    hash = "sha256-D95S2iaeuuCcGyIeQ/rpe/b04qS3LASVoHqVkBXztYI=";
+    hash = "sha256-nlvwVvfwOJ3kYkzQ3IDbmLEhFcvOwKasGZyu/wh9b94=";
   };
 
   postPatch = ''
