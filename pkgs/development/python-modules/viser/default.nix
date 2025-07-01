@@ -4,6 +4,11 @@
   buildPythonPackage,
   fetchFromGitHub,
 
+  # nativeBuildInputs
+  nodejs,
+  fetchYarnDeps,
+  yarnConfigHook,
+
   # build-system
   hatchling,
 
@@ -52,6 +57,35 @@ buildPythonPackage rec {
     tag = "v${version}";
     hash = "sha256-c9Yxu4/OnHpJbLxluiaVK1RlFtsfaI++pYZpViU/HAQ=";
   };
+
+  postPatch = ''
+    # prepare yarn offline cache
+    mkdir -p node_modules
+    cd src/viser/client
+    cp package.json yarn.lock ../../..
+    ln -s ../../../node_modules
+
+    # fix: [vite-plugin-eslint] Failed to load config "react-app" to extend from.
+    substituteInPlace vite.config.mts --replace-fail \
+      "eslint({ failOnError: false, failOnWarning: false })," ""
+
+    cd ../../..
+  '';
+
+  nativeBuildInputs = [
+    yarnConfigHook
+    nodejs
+  ];
+
+  yarnOfflineCache = fetchYarnDeps {
+    hash = "sha256-o75aOQLl33W497oaNCkf5kYYlLLH4CNTe+Al6vdgLLM=";
+  };
+
+  preBuild = ''
+    cd src/viser/client
+    yarn --offline build
+    cd ../../..
+  '';
 
   build-system = [
     hatchling
