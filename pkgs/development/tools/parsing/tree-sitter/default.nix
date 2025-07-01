@@ -171,7 +171,6 @@ rustPlatform.buildRustPackage {
   pname = "tree-sitter";
   inherit src version;
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-/KCvLsbb6DullLpRoSYbxtSsm/TMc6o0Y/QmK6BN748=";
 
   buildInputs =

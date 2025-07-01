@@ -24,7 +24,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     tomlq -ti '.package.version = "0.2.7"' Cargo.toml
   '';
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-oJd2ymNkNSGUD3cQ+bEHooAJQNeSarkIHWvGNXezwrM=";
 
   nativeBuildInputs = [

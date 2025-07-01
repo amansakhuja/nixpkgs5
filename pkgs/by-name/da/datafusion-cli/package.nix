@@ -16,7 +16,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     hash = "sha256-DkMJKZI5rOH/PGXiAXY/GtYwYvhZ2b3zKeGeD9o2AvE=";
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-9uMmxP/MvFXfylKCCcZS1YEp8snF5Tds9Eh0hL6U0oE=";
 
   buildAndTestSubdir = "datafusion-cli";

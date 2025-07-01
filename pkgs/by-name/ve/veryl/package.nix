@@ -20,7 +20,6 @@ rustPlatform.buildRustPackage rec {
     fetchSubmodules = true;
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-MQkxeV+06hL9DqReuHy7H8SMvh2Xn6Hqj/VY8a1scyQ=";
 
   nativeBuildInputs = [

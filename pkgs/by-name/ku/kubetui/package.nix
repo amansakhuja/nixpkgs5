@@ -19,7 +19,6 @@ rustPlatform.buildRustPackage rec {
     "--skip=workers::kube::store::tests::kubeconfigからstateを生成"
   ];
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-Mmz7p7bz6EQDl7/xSVP+7kLHNCYlBIkQGiCeuH7qpWY=";
 
   meta = {

@@ -21,7 +21,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     hash = "sha256-6oV9E6Q6FmCh24xT9+lsQ47GVs70sSujsn54dX6CPgY=";
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-vnBk0uojWDM9PS8v5Qda2UflmIFZ09Qp9l25qTTWGMc=";
 
   PIMSYNC_VERSION = finalAttrs.version;

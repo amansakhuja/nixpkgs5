@@ -62,7 +62,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     cp ${cargoLock} ${finalAttrs.src.name}/Cargo.lock
   '';
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-Sr56iu51WjVi8qCqSRjix/e6NNvRmqIvAOlgSArF48I=";
 
   # `cargo-llvm-cov` reads these environment variables to find these binaries,

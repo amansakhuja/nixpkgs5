@@ -21,7 +21,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     hash = "sha256-1EY1YTkNnjRIMOvsjowx57PquYMrkv2+8kolD1z19ls=";
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-IoqCv7ee+vvo0DLpZS4pLn5gBnOC9FyWMxjgWASCdOk=";
 
   # Conduit enables rusqlite's bundled feature by default, but we'd rather use our copy of SQLite.

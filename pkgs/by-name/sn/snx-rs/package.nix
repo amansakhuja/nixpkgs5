@@ -47,7 +47,6 @@ rustPlatform.buildRustPackage rec {
     versionCheckHook
   ];
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-ZzVTl1IVTAut+7o9QXaPDk8QCemRt2EoYX/Wi0RXJ3U=";
 
   doInstallCheck = true;

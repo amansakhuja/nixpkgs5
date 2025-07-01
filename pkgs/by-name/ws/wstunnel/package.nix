@@ -18,7 +18,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     hash = "sha256-Qg+9ClYbb1+g3BPioCwDdJYyPrl2g+44LD5OCDjMBzI=";
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-LZkiSu9KRI7QYZrCakwR+VVvR6ZpwEGB7Z9jM1C8qvk=";
 
   cargoBuildFlags = [ "--package wstunnel-cli" ];

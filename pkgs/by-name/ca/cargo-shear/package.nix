@@ -19,7 +19,6 @@ rustPlatform.buildRustPackage {
     hash = "sha256-y50nYTwUobNyb+uTln9K8of3L9a7G1D/CporgX3obn0=";
   };
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-dmpYnYUPKhkB72J/TO0u8y8dDaGrOwYSHghSu/SCUDc=";
 
   # https://github.com/Boshen/cargo-shear/blob/a0535415a3ea94c86642f39f343f91af5cdc3829/src/lib.rs#L20-L23
