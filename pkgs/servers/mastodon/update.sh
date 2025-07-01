@@ -90,19 +90,19 @@ cat > source.nix << EOF
 let
   version = "$VERSION";
 in
-(applyPatches {
+applyPatches {
   src = fetchFromGitHub {
     owner = "$OWNER";
     repo = "$REPO";
     rev = "v\${version}";
     hash = "$HASH";
+    passthru = {
+      inherit version;
+      yarnHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      yarnMissingHashes = ./missing-hashes.json;
+    };
   };
-  patches = patches ++ [$PATCHES];
-})
-// {
-  inherit version;
-  yarnHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-  yarnMissingHashes = null;
+  patches = patches ++ [ $PATCHES];
 }
 EOF
 SOURCE_DIR="$(nix-build --no-out-link -E '(import <nixpkgs> {}).callPackage ./source.nix {}')"
