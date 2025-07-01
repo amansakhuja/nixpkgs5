@@ -9169,6 +9169,7 @@ with pkgs;
       buildPythonApplication
       setuptools
       pycsdr
+      pycsdreti
       pydigiham
       ;
   };
