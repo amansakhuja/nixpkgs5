@@ -8856,6 +8856,7 @@ with pkgs;
   libxkbcommon = libxkbcommon_8;
 
   inherit (callPackage ../development/libraries/libxml2 { })
+    libxml2_2_13
     libxml2
     ;
 
