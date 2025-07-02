@@ -5,18 +5,19 @@
   lib,
   pyobjc-core,
   setuptools,
+  xcbuild,
 }:
 
 buildPythonPackage rec {
   pname = "pyobjc-framework-Cocoa";
-  version = "11.0";
+  version = "11.1";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "ronaldoussoren";
     repo = "pyobjc";
     tag = "v${version}";
-    hash = "sha256-RhB0Ht6vyDxYwDGS+A9HZL9ySIjWlhdB4S+gHxvQQBg=";
+    hash = "sha256-2qPGJ/1hXf3k8AqVLr02fVIM9ziVG9NMrm3hN1de1Us=";
   };
 
   sourceRoot = "${src.name}/pyobjc-framework-Cocoa";
@@ -26,10 +27,12 @@ buildPythonPackage rec {
   buildInputs = [
     darwin.libffi
     darwin.DarwinTools
+    xcbuild
   ];
 
   nativeBuildInputs = [
     darwin.DarwinTools # sw_vers
+    xcbuild
   ];
 
   # See https://github.com/ronaldoussoren/pyobjc/pull/641. Unfortunately, we
@@ -37,7 +40,10 @@ buildPythonPackage rec {
   postPatch = ''
     substituteInPlace pyobjc_setup.py \
       --replace-fail "-buildversion" "-buildVersion" \
-      --replace-fail "-productversion" "-productVersion"
+      --replace-fail "-productversion" "-productVersion" \
+      --replace-fail "/usr/bin/sw_vers" "${darwin.DarwinTools}/bin/sw_vers" \
+      --replace-fail '"sw_vers"' '"${darwin.DarwinTools}/bin/sw_vers"' \
+      --replace-fail "/usr/bin/xcrun" "${xcbuild.xcrun}/bin/xcrun"
   '';
 
   dependencies = [ pyobjc-core ];
