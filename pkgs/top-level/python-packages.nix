@@ -18151,6 +18151,8 @@ self: super: with self; {
 
   tskit = callPackage ../development/python-modules/tskit { };
 
+  tt-flash = callPackage ../development/python-modules/tt-flash { };
+
   tt-tools-common = callPackage ../development/python-modules/tt-tools-common { };
 
   ttach = callPackage ../development/python-modules/ttach { };
