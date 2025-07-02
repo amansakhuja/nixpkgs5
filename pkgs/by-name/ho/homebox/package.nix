@@ -94,7 +94,10 @@ buildGo124Module {
     mainProgram = "api";
     homepage = "https://homebox.software/";
     description = "Inventory and organization system built for the Home User";
-    maintainers = with lib.maintainers; [ patrickdag ];
+    maintainers = with lib.maintainers; [
+      patrickdag
+      tebriel
+    ];
     license = lib.licenses.agpl3Only;
     platforms = lib.platforms.linux;
   };
