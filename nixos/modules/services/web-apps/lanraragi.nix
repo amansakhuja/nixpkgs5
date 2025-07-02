@@ -22,6 +22,12 @@ in
         description = "Port for LANraragi's web interface.";
       };
 
+      openFirewall = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Open ports in the firewall for the Radarr web interface.";
+      };
+
       passwordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -102,6 +108,10 @@ in
             HSET LRR_CONFIG password $(${cfg.package}/bin/helpers/lrr-make-password-hash $(head -n1 ${cfg.passwordFile}))
           EOF
         '';
+    };
+
+    networking.firewall = lib.mkIf cfg.openFirewall {
+      allowedTCPPorts = [ cfg.port ];
     };
   };
 }
