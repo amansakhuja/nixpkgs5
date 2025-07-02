@@ -20,14 +20,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "buildstream";
-  version = "2.4.1";
+  version = "2.5.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "apache";
     repo = "buildstream";
     tag = version;
-    hash = "sha256-6a0VzYO5yj7EHvAb0xa4xZ0dgBKjFcwKv2F4o93oahY=";
+    hash = "sha256-/kGmAHx10//iVeqLXwcIWNI9FGIi0LlNJW+s6v0yU3Q=";
   };
 
   build-system = with python3Packages; [
@@ -64,6 +64,10 @@ python3Packages.buildPythonApplication rec {
     fuse3
     lzip
     patch
+  ];
+
+  patches = [
+    ./0001-Patch-requirements-for-Protobuf-to-work-with-6.0.patch
   ];
 
   pythonImportsCheck = [ "buildstream" ];
