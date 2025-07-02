@@ -5,6 +5,7 @@
   ffmpeg-headless,
   rtmpdump,
   atomicparsley,
+  pandoc,
   atomicparsleySupport ? true,
   ffmpegSupport ? true,
   rtmpSupport ? true,
@@ -31,6 +32,8 @@ python3Packages.buildPythonApplication rec {
     hatchling
   ];
 
+  nativeBuildInputs = [ pandoc ];
+
   # expose optional-dependencies, but provide all features
   dependencies = lib.flatten (lib.attrValues optional-dependencies);
 
@@ -53,6 +56,23 @@ python3Packages.buildPythonApplication rec {
 
   pythonRelaxDeps = [ "websockets" ];
 
+  preBuild = ''
+    python devscripts/make_lazy_extractors.py
+  '';
+
+  postBuild = ''
+    python devscripts/prepare_manpage.py yt-dlp.1.temp.md
+    pandoc -s -f markdown-smart -t man yt-dlp.1.temp.md -o yt-dlp.1
+    rm -f yt-dlp.1.temp.md
+
+    mkdir -p completions/bash completions/zsh completions/fish
+    python devscripts/bash-completion.py
+    python devscripts/zsh-completion.py completions/zsh/_yt-dlp
+    python devscripts/fish-completion.py completions/fish/yt-dlp.fish
+
+    cp README.md README.txt
+  '';
+
   # Ensure these utilities are available in $PATH:
   # - ffmpeg: post-processing & transcoding support
   # - rtmpdump: download files over RTMP
@@ -69,15 +89,22 @@ python3Packages.buildPythonApplication rec {
       ''--prefix PATH : "${lib.makeBinPath packagesToBinPath}"''
     ];
 
-  setupPyBuildFlags = [
-    "build_lazy_extractors"
-  ];
-
   # Requires network
   doCheck = false;
 
-  postInstall = lib.optionalString withAlias ''
-    ln -s "$out/bin/yt-dlp" "$out/bin/youtube-dl"
+  postInstall = ''
+    install -Dm644 yt-dlp.1 $out/share/man/man1/yt-dlp.1
+
+    install -Dm644 completions/bash/yt-dlp $out/share/bash-completion/completions/yt-dlp
+    install -Dm644 completions/zsh/_yt-dlp $out/share/zsh/site-functions/_yt-dlp
+    install -Dm644 completions/fish/yt-dlp.fish $out/share/fish/vendor_completions.d/yt-dlp.fish
+
+    install -Dm644 README.txt $out/share/doc/yt-dlp/README.txt
+    install -Dm644 Changelog.md $out/share/doc/yt-dlp/Changelog.md
+
+    ${lib.optionalString withAlias ''
+      ln -s "$out/bin/yt-dlp" "$out/bin/youtube-dl"
+    ''}
   '';
 
   passthru.updateScript = nix-update-script { };
