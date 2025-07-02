@@ -23,19 +23,13 @@
   spdlog,
   tinyxml-2,
   zenity,
+  sdl_gamecontrollerdb,
   makeDesktopItem,
 }:
 
 let
 
   # The following are either normally fetched during build time or a specific version is required
-
-  gamecontrollerdb = fetchFromGitHub {
-    owner = "mdqinc";
-    repo = "SDL_GameControllerDB";
-    rev = "e84a52679007c6a6346794cda1fdbcb941ac6494";
-    hash = "sha256-npgsTvRQRQkgT8C1nwisJqq2m+DT9q/r/Zev2NipGcU=";
-  };
 
   imgui' = applyPatches {
     src = fetchFromGitHub {
@@ -157,7 +151,7 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   postBuild = ''
-    cp ${gamecontrollerdb}/gamecontrollerdb.txt gamecontrollerdb.txt
+    cp ${sdl_gamecontrollerdb}/share/gamecontrollerdb.txt gamecontrollerdb.txt
     pushd ../OTRExporter
     python3 ./extract_assets.py -z ../build/ZAPD/ZAPD.out --norom --xml-root ../mm/assets/xml --custom-assets-path ../mm/assets/custom --custom-otr-file 2ship.o2r --port-ver ${finalAttrs.version}
     popd
@@ -175,7 +169,6 @@ stdenv.mkDerivation (finalAttrs: {
 
     install -Dm644 -t $out/share/licenses/2ship2harkinian ../LICENSE
     install -Dm644 -t $out/share/licenses/2ship2harkinian/OTRExporter ../OTRExporter/LICENSE
-    install -Dm644 -t $out/share/licenses/2ship2harkinian/SDL_GameControllerDB ${gamecontrollerdb}/LICENSE
     install -Dm644 -t $out/share/licenses/2ship2harkinian/ZAPDTR ../ZAPDTR/LICENSE
     install -Dm644 -t $out/share/licenses/2ship2harkinian/libgfxd ${libgfxd}/LICENSE
     install -Dm644 -t $out/share/licenses/2ship2harkinian/libultraship ../libultraship/LICENSE
