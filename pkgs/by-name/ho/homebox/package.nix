@@ -72,8 +72,8 @@ buildGo124Module {
     "-s"
     "-w"
     "-extldflags=-static"
-    "-X main.version=${version}"
-    "-X main.commit=${version}"
+    "-X main.version=v${version}"
+    "-X main.commit=v${version}"
   ];
   installPhase = ''
     runHook preInstall
