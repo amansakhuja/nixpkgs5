@@ -22,9 +22,7 @@ in
         description = "Port for LANraragi's web interface.";
       };
 
-      openFirewall = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
+      openFirewall = lib.mkEnableOption // {
         description = "Open ports in the firewall for the Radarr web interface.";
       };
 
