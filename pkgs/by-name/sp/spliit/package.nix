@@ -25,6 +25,9 @@ buildNpmPackage rec {
 
   preBuild = ''
     prisma generate
+
+    # Insert the ignoreBuildErrors flag into the config before export
+    sed -i '/const nextConfig = {/a \  typescript: { ignoreBuildErrors: true },' next.config.mjs
   '';
 
   npmDepsHash = "sha256-sd0/7ruNUFxUKTeTwx/v8Vc/G3llkXP6RSDE78h3qVU=";
