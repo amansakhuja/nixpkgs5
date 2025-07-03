@@ -2,8 +2,7 @@
 
 {
   name = "postal";
-
-  meta.maintainers = with lib.maintainers; [ MatthieuBarthel ];
+  meta = { inherit (pkgs.postal.meta) maintainers platforms; };
 
   nodes = {
     machine =
