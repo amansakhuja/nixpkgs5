@@ -3,6 +3,11 @@
   fetchFromGitHub,
   fetchYarnDeps,
   mkYarnPackage,
+  writeText,
+
+  # Custom application config placed to theme/config.theme.js file
+  # https://nominatim.org/release-docs/latest/admin/Setup-Nominatim-UI/#installing-nominatim-ui
+  customConfig ? null,
 }:
 
 # Notes for the upgrade:
@@ -10,6 +15,16 @@
 # * Replace new `package.json` here.
 # * Update `version`+`hash` and rebuild.
 
+let
+  configFile =
+    if customConfig != null then
+      writeText "config.theme.js" customConfig
+    else
+      writeText "config.theme.js" ''
+        // Default configuration
+        Nominatim_Config.Nominatim_API_Endpoint='https://localhost/';
+      '';
+in
 mkYarnPackage rec {
   pname = "nominatim-ui";
   version = "3.7.1";
@@ -36,11 +51,8 @@ mkYarnPackage rec {
     runHook postBuild
   '';
 
-  # Minimal configuration
-  # See https://nominatim.org/release-docs/latest/admin/Setup-Nominatim-UI/#installing-nominatim-ui
   preInstall = ''
-    echo "Nominatim_Config.Nominatim_API_Endpoint='https://localhost/';" \
-    > deps/nominatim-ui/dist/theme/config.theme.js
+    ln --symbolic ${configFile} deps/nominatim-ui/dist/theme/config.theme.js
   '';
 
   installPhase = ''
