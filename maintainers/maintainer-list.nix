@@ -1928,7 +1928,7 @@
     name = "Arbel Arad";
   };
   arcadio = {
-    email = "arc@well.ox.ac.uk";
+    email = "git.obtrusive281@passinbox.com";
     github = "arcadio";
     githubId = 56009;
     name = "Arcadio Rubio García";
@@ -6376,6 +6376,12 @@
     email = "dietmar.winkler@dwe.no";
     github = "dietmarw";
     githubId = 9332;
+  };
+  different-name = {
+    name = "different-name";
+    email = "hello@different-name.dev";
+    github = "different-name";
+    githubId = 49257026;
   };
   diffumist = {
     email = "git@diffumist.me";
@@ -17068,6 +17074,13 @@
     github = "sciabarracom";
     githubId = 30654959;
     name = "Michele Sciabarra";
+  };
+  msgilligan = {
+    email = "sean@msgilligan.com";
+    github = "msgilligan";
+    githubId = 61612;
+    name = "Sean Gilligan";
+    keys = [ { fingerprint = "3B66 ACFA D10F 02AA B1D5  2CB1 8DD0 D81D 7D1F C61A"; } ];
   };
   msiedlarek = {
     email = "mikolaj@siedlarek.pl";
