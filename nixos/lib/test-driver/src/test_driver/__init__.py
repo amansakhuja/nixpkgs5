@@ -5,6 +5,7 @@ from pathlib import Path
 
 import ptpython.ipython
 
+from test_driver.debug import Debug, DebugNop
 from test_driver.driver import Driver
 from test_driver.logger import (
     CompositeLogger,
@@ -63,6 +64,11 @@ def main() -> None:
         "-I",
         "--interactive",
         help="drop into a python repl and run the tests interactively",
+        action=argparse.BooleanOptionalAction,
+    )
+    arg_parser.add_argument(
+        "--debug-hook",
+        help="Enable interactive debugging breakpoints for sandboxed runs",
         action=argparse.BooleanOptionalAction,
     )
     arg_parser.add_argument(
@@ -137,6 +143,7 @@ def main() -> None:
         logger,
         args.keep_vm_state,
         args.global_timeout,
+        debug=Debug(logger) if args.debug_hook else DebugNop(),
     ) as driver:
         if args.interactive:
             history_dir = os.getcwd()
