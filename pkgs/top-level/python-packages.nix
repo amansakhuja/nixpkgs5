@@ -11736,6 +11736,8 @@ self: super: with self; {
 
   potr = callPackage ../development/python-modules/potr { };
 
+  potracer = callPackage ../development/python-modules/potracer { };
+
   power = callPackage ../development/python-modules/power { };
 
   powerapi = callPackage ../development/python-modules/powerapi { };
