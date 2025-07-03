@@ -2,6 +2,7 @@
   lib,
   rustPlatform,
   fetchFromGitHub,
+  buildPackages,
   boost,
   cmake,
   git,
@@ -44,6 +45,13 @@ rustPlatform.buildRustPackage rec {
     cmake
     pkg-config
   ];
+
+  depsBuildBuild = [
+    # Fix error: failed to run custom build command for `vectorscan-rs-sys v0.0.5`
+    # Failed to get C++ compiler version: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+    buildPackages.stdenv.cc
+  ];
+
   buildInputs = [
     boost
     vectorscan
