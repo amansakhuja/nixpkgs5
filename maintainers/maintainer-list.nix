@@ -11900,6 +11900,7 @@
     github = "jjacke13";
     githubId = 156372486;
     name = "Vaios K";
+  };
   jjjollyjim = {
     email = "jamie@kwiius.com";
     github = "JJJollyjim";
