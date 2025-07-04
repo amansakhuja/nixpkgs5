@@ -68,7 +68,6 @@ stdenv.mkDerivation rec {
 
   # this causes some python trouble on a darwin host so we skip this step.
   # also we have to tell libwally-core to use sed instead of gsed.
-  # also, postgresql support is forced via Nix build by linking its libraries
   postPatch = 
      if !stdenv.hostPlatform.isDarwin then ''
         patchShebangs \
