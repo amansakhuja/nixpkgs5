@@ -9,20 +9,20 @@
 }:
 
 let
-  version = "2025.6.1";
+  version = "2025.6.3";
 
   product =
     if proEdition then
       {
         productName = "pro";
         productDesktop = "Burp Suite Professional Edition";
-        hash = "sha256-At3+tScMbNrZI2qF+kwt41khou8aP5Qn33v6IT7n9HI=";
+        hash = "sha256-RG765SzmInhG0FCrBfSpNQHwlsMhGYj8K5cet3XEMjg=";
       }
     else
       {
         productName = "community";
         productDesktop = "Burp Suite Community Edition";
-        hash = "sha256-1reZGan6hmXTg7RUjaian6Q5VAsR5iuye4kGWkpREM4=";
+        hash = "sha256-O7Us6C4msuEwaobZjWuj6Tex1q7ifL1hzbY8IG6EAlM=";
       };
 
   src = fetchurl {
