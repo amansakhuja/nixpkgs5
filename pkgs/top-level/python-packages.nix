@@ -8212,6 +8212,8 @@ self: super: with self; {
 
   lifelines = callPackage ../development/python-modules/lifelines { };
 
+  lifxlan = callPackage ../development/python-modules/lifxlan { };
+
   lightgbm = callPackage ../development/python-modules/lightgbm { };
 
   lightify = callPackage ../development/python-modules/lightify { };
