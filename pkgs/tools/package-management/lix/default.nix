@@ -238,14 +238,14 @@ lib.makeExtensible (self: {
     attrName = "git";
 
     lix-args = rec {
-      version = "2.94.0-pre-20250624_${builtins.substring 0 12 src.rev}";
+      version = "2.94.0-pre-20250630_${builtins.substring 0 12 src.rev}";
 
       src = fetchFromGitea {
         domain = "git.lix.systems";
         owner = "lix-project";
         repo = "lix";
-        rev = "42e2bd045c9e51a59fdab038dc4e6f9e86c4922c";
-        hash = "sha256-BsY8kpwQML9/036g9C+No7lhzqmn4ZTlIsuo92SVSJk=";
+        rev = "6e7c0812c78c50c1b06da9a0f326a5e21a1fab6f";
+        hash = "sha256-EPwFPGhkPuNJcLcXRPmyAPCwJLN/f9qSilpnTS6peCk=";
       };
 
       cargoDeps = rustPlatform.fetchCargoVendor {
