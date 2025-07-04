@@ -22641,6 +22641,11 @@
     githubId = 3598650;
     name = "Fritz Otlinghaus";
   };
+  scriptod = {
+    name = "Abdo Zain";
+    github = "scriptod911";
+    githubId = 70215102;
+  };
   Scrumplex = {
     name = "Sefa Eyeoglu";
     email = "contact@scrumplex.net";
