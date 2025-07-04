@@ -7,6 +7,13 @@
 
 let
   cfg = config.hardware.fw-fanctrl;
+
+  configFormat = pkgs.formats.json { };
+  configOption = configFormat.generate "config.json" cfg.config;
+
+  configFile = pkgs.runCommand "configFile" { } ''
+    ${lib.getExe pkgs.jq} -s '.[0] * .[1]' ${pkgs.fw-fanctrl}/share/fw-fanctrl/config.json ${configOption} > $out
+  '';
 in
 {
   options.hardware.fw-fanctrl = {
@@ -26,6 +33,7 @@ in
         Additional config entries for the fw-fanctrl service (documentation: https://github.com/TamtamHero/fw-fanctrl/blob/main/doc/configuration.md)
       '';
       type = lib.types.submodule {
+        freeformType = configFormat.type;
         options = {
           defaultStrategy = lib.mkOption {
             type = lib.types.str;
@@ -104,18 +112,7 @@ in
       serviceConfig = {
         Type = "simple";
         Restart = "always";
-        ExecStart =
-          let
-            configFile =
-              if cfg.config.strategies == null then
-                "${pkgs.fw-fanctrl}/share/fw-fanctrl/config.json"
-              else
-                pkgs.runCommand "configFile" { } ''
-                  mkdir -p $out/share/fw-fanctrl
-                  ${lib.getExe pkgs.jq} -s '.[0] * .[1]' ${pkgs.fw-fanctrl}/share/fw-fanctrl/config.json ${pkgs.writeText "fw-fanctrl-config.json" (builtins.toJSON cfg.config)} > $out/share/fw-fanctrl/config.json
-                '';
-          in
-          "${lib.getExe pkgs.fw-fanctrl} --output-format JSON run --config ${configFile}/share/fw-fanctrl/config.json --silent ${lib.optionalString cfg.disableBatteryTempCheck "--no-battery-sensors"}";
+        ExecStart = "${lib.getExe pkgs.fw-fanctrl} --output-format JSON run --config ${configFile} --silent ${lib.optionalString cfg.disableBatteryTempCheck "--no-battery-sensors"}";
         ExecStopPost = "${lib.getExe pkgs.fw-ectool} autofanctrl";
       };
       wantedBy = [ "multi-user.target" ];
