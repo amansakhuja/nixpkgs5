@@ -18,9 +18,9 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  installPhase = ''
-    make install PREFIX="$out"
-  '';
+  makeFlags = [
+    "PREFIX=$(out)"
+  ];
 
   fixupPhase = ''
     wrapProgram "$out/bin/chibi-scheme" \
