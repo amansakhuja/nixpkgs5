@@ -16327,6 +16327,7 @@ with pkgs;
 
   wasmer = callPackage ../development/interpreters/wasmer {
     llvmPackages = llvmPackages_18;
+    make = pkgs.make;
   };
 
   wavm = callPackage ../development/interpreters/wavm {
