@@ -46,6 +46,8 @@ let
 
         apron = callPackage ../development/ocaml-modules/apron { };
 
+        argon2 = callPackage ../development/ocaml-modules/argon2 { };
+
         arg-complete = callPackage ../development/ocaml-modules/arg-complete { };
 
         arp = callPackage ../development/ocaml-modules/arp { };
@@ -1884,6 +1886,10 @@ let
         simple-diff = callPackage ../development/ocaml-modules/simple-diff { };
 
         slug = callPackage ../development/ocaml-modules/slug { };
+
+        smtml = callPackage ../development/ocaml-modules/smtml {
+          mdx = mdx.override { inherit logs; };
+        };
 
         sodium = callPackage ../development/ocaml-modules/sodium { };
 
