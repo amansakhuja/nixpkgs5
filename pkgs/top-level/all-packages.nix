@@ -121,7 +121,9 @@ with pkgs;
     packages, like using pkgs/top-level/release-attrpaths-superset.nix.
   '';
 
-  tests = callPackages ../test { };
+  tests = callPackages ../test { } // {
+    __recurseIntoDerivationForReleaseJobs = true;
+  };
 
   defaultPkgConfigPackages =
     # We don't want nix-env -q to enter this, because all of these are aliases.
@@ -5586,7 +5588,7 @@ with pkgs;
 
   gwt240 = callPackage ../development/compilers/gwt/2.4.0.nix { };
 
-  idrisPackages = dontRecurseIntoAttrs (
+  idrisPackages = recurseIntoAttrs (
     callPackage ../development/idris-modules {
       idris-no-deps = haskellPackages.idris;
       pkgs = pkgs.__splicedPackages;
@@ -5882,7 +5884,9 @@ with pkgs;
   ocaml-ng = callPackage ./ocaml-packages.nix { };
   ocaml = ocamlPackages.ocaml;
 
-  ocamlPackages = recurseIntoAttrs ocaml-ng.ocamlPackages;
+  ocamlPackages = ocaml-ng.ocamlPackages // {
+    __attrsFailEvaluation = true;
+  };
 
   ocaml-crunch = ocamlPackages.crunch.bin;
 
@@ -9773,9 +9777,11 @@ with pkgs;
 
   ### DEVELOPMENT / LIBRARIES / AGDA
 
-  agdaPackages = callPackage ./agda-packages.nix {
-    inherit (haskellPackages) Agda;
-  };
+  agdaPackages = recurseIntoAttrs (
+    callPackage ./agda-packages.nix {
+      inherit (haskellPackages) Agda;
+    }
+  );
   agda = agdaPackages.agda;
 
   ### DEVELOPMENT / LIBRARIES / BASH
