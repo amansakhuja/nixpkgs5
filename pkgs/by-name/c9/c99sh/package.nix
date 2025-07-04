@@ -6,12 +6,12 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "c99sh";
-  version = "1.1.0";
+  version = "1.1.0-unstable-2024-02-12";
 
   src = fetchFromGitHub {
     owner = "RhysU";
     repo = "c99sh";
-    tag = "v${version}";
+    rev = "f01d549c38878561d27bd1112ed49ccf7211a85c";
     hash = "sha256-9iQLGJBud4KsUb1slH6sQRqeVfEC6ZfJ6cwuZ5e9a+c=";
   };
 
