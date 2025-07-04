@@ -3,11 +3,10 @@
   stdenv,
   buildPythonPackage,
   fetchFromGitHub,
+  replaceVars,
   gitMinimal,
   portaudio,
   playwright-driver,
-  symlinkJoin,
-  nltk-data,
   pythonOlder,
   pythonAtLeast,
   setuptools-scm,
@@ -19,6 +18,7 @@
   attrs,
   backoff,
   beautifulsoup4,
+  cachetools,
   certifi,
   cffi,
   charset-normalizer,
@@ -33,8 +33,11 @@
   fsspec,
   gitdb,
   gitpython,
+  google-ai-generativelanguage,
+  google-generativeai,
   grep-ast,
   h11,
+  hf-xet,
   httpcore,
   httpx,
   huggingface-hub,
@@ -54,6 +57,7 @@
   networkx,
   numpy,
   openai,
+  oslex,
   packaging,
   pathspec,
   pexpect,
@@ -78,6 +82,7 @@
   rich,
   rpds-py,
   scipy,
+  shtab,
   smmap,
   sniffio,
   sounddevice,
@@ -116,28 +121,25 @@
 }:
 
 let
-  aider-nltk-data = symlinkJoin {
-    name = "aider-nltk-data";
-    paths = [
-      nltk-data.punkt_tab
-      nltk-data.stopwords
-    ];
-  };
+  aider-nltk-data = nltk.dataDir (d: [
+    d.punkt-tab
+    d.stopwords
+  ]);
 
-  version = "0.81.0";
+  version = "0.85.0";
   aider-chat = buildPythonPackage {
     pname = "aider-chat";
     inherit version;
     pyproject = true;
 
-    # needs exactly Python 3.12
-    disabled = pythonOlder "3.12" || pythonAtLeast "3.13";
+    # dont support python 3.13 (Aider-AI/aider#3037)
+    disabled = pythonOlder "3.10" || pythonAtLeast "3.13";
 
     src = fetchFromGitHub {
       owner = "Aider-AI";
       repo = "aider";
       tag = "v${version}";
-      hash = "sha256-xWOXsffLAVBZvJM8PuAJ12IrmNLfXuqHrbIMtPM1leE=";
+      hash = "sha256-ZYjDRu4dAOkmz+fMOG8KU6y27RI/t3iEoTSUebundqo=";
     };
 
     pythonRelaxDeps = true;
@@ -153,6 +155,7 @@ let
       attrs
       backoff
       beautifulsoup4
+      cachetools
       certifi
       cffi
       charset-normalizer
@@ -167,8 +170,11 @@ let
       fsspec
       gitdb
       gitpython
+      google-ai-generativelanguage
+      google-generativeai
       grep-ast
       h11
+      hf-xet
       httpcore
       httpx
       huggingface-hub
@@ -188,6 +194,7 @@ let
       networkx
       numpy
       openai
+      oslex
       packaging
       pathspec
       pexpect
@@ -212,6 +219,7 @@ let
       rich
       rpds-py
       scipy
+      shtab
       smmap
       sniffio
       sounddevice
@@ -245,6 +253,12 @@ let
     nativeCheckInputs = [
       pytestCheckHook
       gitMinimal
+    ];
+
+    patches = [
+      (replaceVars ./fix-flake8-invoke.patch {
+        flake8 = lib.getExe flake8;
+      })
     ];
 
     disabledTestPaths = [
@@ -330,52 +344,54 @@ let
             propagatedBuildInputs ? [ ],
             ...
           }:
-          let
-            playwrightDeps =
-              if withPlaywright || withAll then aider-chat.optional-dependencies.playwright else [ ];
-            browserDeps = if withBrowser || withAll then aider-chat.optional-dependencies.browser else [ ];
-            helpDeps = if withHelp || withAll then aider-chat.optional-dependencies.help else [ ];
-            bedrockDeps = if withBedrock || withAll then aider-chat.optional-dependencies.bedrock else [ ];
 
-            playwrightInputs = if withPlaywright || withAll then [ playwright-driver.browsers ] else [ ];
-            playwrightArgs =
-              if withPlaywright || withAll then
-                [
-                  "--set"
-                  "PLAYWRIGHT_BROWSERS_PATH"
-                  "${playwright-driver.browsers}"
-                  "--set"
-                  "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS"
-                  "true"
-                ]
-              else
-                [ ];
-            helpArgs =
-              if withHelp || withAll then
-                [
-                  "--set"
-                  "NLTK_DATA"
-                  "${aider-nltk-data}"
-                ]
-              else
-                [ ];
-          in
           {
-            dependencies = dependencies ++ playwrightDeps ++ browserDeps ++ helpDeps ++ bedrockDeps;
-            propagatedBuildInputs = propagatedBuildInputs ++ playwrightInputs;
-            makeWrapperArgs = makeWrapperArgs ++ playwrightArgs ++ helpArgs;
+            dependencies =
+              dependencies
+              ++ lib.optionals (withAll || withPlaywright) aider-chat.optional-dependencies.playwright
+              ++ lib.optionals (withAll || withBrowser) aider-chat.optional-dependencies.browser
+              ++ lib.optionals (withAll || withHelp) aider-chat.optional-dependencies.help
+              ++ lib.optionals (withAll || withBedrock) aider-chat.optional-dependencies.bedrock;
+
+            propagatedBuildInputs =
+              propagatedBuildInputs
+              ++ lib.optionals (withAll || withPlaywright) [ playwright-driver.browsers ];
+
+            makeWrapperArgs =
+              makeWrapperArgs
+              ++ lib.optionals (withAll || withPlaywright) [
+                "--set"
+                "PLAYWRIGHT_BROWSERS_PATH"
+                "${playwright-driver.browsers}"
+                "--set"
+                "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS"
+                "true"
+              ]
+              ++ lib.optionals (withAll || withHelp) [
+                "--set"
+                "NLTK_DATA"
+                "${aider-nltk-data}"
+              ];
           }
         );
 
-      updateScript = nix-update-script { };
+      updateScript = nix-update-script {
+        extraArgs = [
+          "--version-regex"
+          "^v([0-9.]+)$"
+        ];
+      };
     };
 
     meta = {
       description = "AI pair programming in your terminal";
-      homepage = "https://github.com/paul-gauthier/aider";
-      changelog = "https://github.com/paul-gauthier/aider/blob/v${version}/HISTORY.md";
+      homepage = "https://github.com/Aider-AI/aider";
+      changelog = "https://github.com/Aider-AI/aider/blob/v${version}/HISTORY.md";
       license = lib.licenses.asl20;
-      maintainers = with lib.maintainers; [ happysalada ];
+      maintainers = with lib.maintainers; [
+        happysalada
+        yzx9
+      ];
       mainProgram = "aider";
     };
   };

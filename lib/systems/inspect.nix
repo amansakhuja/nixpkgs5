@@ -64,6 +64,11 @@ rec {
         bits = 64;
       };
     };
+    isAbiElfv1 = {
+      abi = {
+        abi = "elfv1";
+      };
+    };
     # This ABI is the default in NixOS PowerPC64 BE, but not on mainline GCC,
     # so it sometimes causes issues in certain packages that makes the wrong
     # assumption on the used ABI.
@@ -386,7 +391,6 @@ rec {
         uclibceabi
         uclibceabihf
       ];
-    isLLVMLibc = [ { abi = abis.llvm; } ];
 
     isEfi = [
       {
@@ -415,6 +419,11 @@ rec {
       {
         cpu = {
           family = "x86";
+        };
+      }
+      {
+        cpu = {
+          family = "loongarch";
         };
       }
     ];

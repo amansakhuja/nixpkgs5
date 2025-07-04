@@ -2,6 +2,10 @@
   lib,
   python3,
   fetchFromGitHub,
+  nix-update-script,
+
+  # support setting socks proxies in `ALL_PROXY` environment variable
+  supportSocks ? true,
 }:
 let
   version = "1.9.2";
@@ -23,19 +27,24 @@ python3.pkgs.buildPythonApplication {
     python3.pkgs.wheel
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
-    requests
-    sqlalchemy
-  ];
+  propagatedBuildInputs =
+    with python3.pkgs;
+    [
+      requests
+      sqlalchemy
+    ]
+    ++ lib.optional supportSocks pysocks;
 
   pythonImportsCheck = [ "fangfrisch" ];
 
-  meta = with lib; {
+  passthru.updateScript = nix-update-script { };
+
+  meta = {
     description = "Update and verify unofficial Clam Anti-Virus signatures";
     homepage = "https://github.com/rseichter/fangfrisch";
     changelog = "https://github.com/rseichter/fangfrisch/blob/${version}/CHANGELOG.rst";
-    license = licenses.gpl3Only;
-    maintainers = with maintainers; [ happysalada ];
+    license = lib.licenses.gpl3Only;
+    maintainers = with lib.maintainers; [ happysalada ];
     mainProgram = "fangfrisch";
   };
 }

@@ -3,6 +3,7 @@
   buildPythonPackage,
   fetchFromGitHub,
   pytestCheckHook,
+  pytest-cov-stub,
   pythonOlder,
 }:
 
@@ -20,12 +21,10 @@ buildPythonPackage rec {
     hash = "sha256-kA6h2CPGhoZt8h3KEttegHhmMqVc72IkrkA3PonY3sY=";
   };
 
-  postPatch = ''
-    substituteInPlace pytest.ini --replace \
-      "--cov-report term-missing" ""
-  '';
-
-  nativeCheckInputs = [ pytestCheckHook ];
+  nativeCheckInputs = [
+    pytestCheckHook
+    pytest-cov-stub
+  ];
 
   pytestFlagsArray = [ "tests" ];
 
@@ -35,6 +34,6 @@ buildPythonPackage rec {
     homepage = "https://github.com/mozillazg/python-pinyin";
     changelog = "https://github.com/mozillazg/python-pinyin/blob/${src.tag}/CHANGELOG.rst";
     license = licenses.mit;
-    maintainers = teams.tts.members;
+    teams = [ teams.tts ];
   };
 }

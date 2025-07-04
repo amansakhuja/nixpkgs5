@@ -257,6 +257,8 @@ let
                     config
                     specialArgs
                     ;
+                  _class = class;
+                  _prefix = prefix;
                 }
                 // specialArgs
               );
@@ -387,6 +389,7 @@ let
                 value = m;
                 _type = m._type;
                 expectedClass = class;
+                prefix = args._prefix;
               }
             )
         else if isList m then
@@ -1097,10 +1100,16 @@ let
         # Process mkMerge and mkIf properties.
         defs' = concatMap (
           m:
-          map (value: {
-            inherit (m) file;
-            inherit value;
-          }) (addErrorContext "while evaluating definitions from `${m.file}':" (dischargeProperties m.value))
+          map (
+            value:
+            if value._type or null == "definition" then
+              value
+            else
+              {
+                inherit (m) file;
+                inherit value;
+              }
+          ) (addErrorContext "while evaluating definitions from `${m.file}':" (dischargeProperties m.value))
         ) defs;
 
         # Process mkOverride properties.
@@ -1364,6 +1373,11 @@ let
     _type = "merge";
     inherit contents;
   };
+
+  /**
+    Return a definition with file location information.
+  */
+  mkDefinition = args@{ file, value, ... }: args // { _type = "definition"; };
 
   mkOverride = priority: content: {
     _type = "override";
@@ -1869,7 +1883,7 @@ let
 
     This function does not add support for deduplication and `disabledModules`,
     although that could be achieved by wrapping the returned module and setting
-    the `_key` module attribute.
+    the `key` module attribute.
     The reason for this omission is that the file path is not guaranteed to be
     a unique identifier for the module, as two instances of the module may
     reference different `arg`s in their closures.
@@ -1964,6 +1978,10 @@ let
           file != null && file != unknownModule
         ) ", while trying to load a module into ${toString file}";
 
+      into_prefix_maybe =
+        prefix:
+        optionalString (prefix != [ ]) ", while trying to load a module into ${code (showOption prefix)}";
+
       /**
         Format text with one line break between each list item.
       */
@@ -2011,12 +2029,13 @@ let
           value,
           _type,
           expectedClass ? null,
+          prefix,
         }:
         paragraphs (
           [
             ''
-              Expected a module, but found a value of type ${warn (escapeNixString _type)}${into_fallback_file_maybe fallbackFile}.
-              A module is typically loaded by adding it the ${code "imports = [ ... ];"} attribute of an existing module, or in the ${code "modules = [ ... ];"} argument of various functions.
+              Expected a module, but found a value of type ${warn (escapeNixString _type)}${into_fallback_file_maybe fallbackFile}${into_prefix_maybe prefix}.
+              A module is typically loaded by adding it to the ${code "imports = [ ... ];"} attribute of an existing module, or in the ${code "modules = [ ... ];"} argument of various functions.
               Please make sure that each of the list items is a module, and not a different kind of value.
             ''
           ]
@@ -2045,7 +2064,7 @@ let
                 '')
               ]
               ++ optionalMatch {
-                # We'll no more than 5 custom suggestions here.
+                # We'll add no more than 5 custom suggestions here.
                 # Please switch to `.modules.${class}` in your Module System application.
                 "nixos" = trim ''
                   or
@@ -2095,6 +2114,7 @@ private
     mkBefore
     mkChangedOptionModule
     mkDefault
+    mkDefinition
     mkDerivedConfig
     mkFixStrictness
     mkForce

@@ -8,15 +8,15 @@
 
 buildGoModule rec {
   pname = "stripe-cli";
-  version = "1.25.1";
+  version = "1.27.0";
 
   src = fetchFromGitHub {
     owner = "stripe";
     repo = "stripe-cli";
     rev = "v${version}";
-    hash = "sha256-WlLrWMDOwpSoHUixkJbCoewt/4UgnTbwIMBD5p5SI3c=";
+    hash = "sha256-tV76A1qnsaj3Zp9W9aMrmvVVWjxgjUUkIwNSxdLaakk=";
   };
-  vendorHash = "sha256-dWLrJ866R+yPEYs4vc8SRADZXC1xCO7sDosHbU1G63o=";
+  vendorHash = "sha256-T8vrEbR240ihkLDG4vu0s+MxKJ5nOLm0aseDgK9EPPE=";
 
   nativeBuildInputs = [ installShellFiles ];
 
@@ -69,7 +69,7 @@ buildGoModule rec {
     runHook postInstallCheck
   '';
 
-  meta = with lib; {
+  meta = {
     homepage = "https://stripe.com/docs/stripe-cli";
     changelog = "https://github.com/stripe/stripe-cli/releases/tag/v${version}";
     description = "Command-line tool for Stripe";
@@ -83,8 +83,8 @@ buildGoModule rec {
       Tail your API request logs in real-time
       Create, retrieve, update, or delete API objects.
     '';
-    license = with licenses; [ asl20 ];
-    maintainers = with maintainers; [
+    license = with lib.licenses; [ asl20 ];
+    maintainers = with lib.maintainers; [
       RaghavSood
       jk
       kashw2

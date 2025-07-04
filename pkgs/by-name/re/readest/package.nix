@@ -15,17 +15,18 @@
   nix-update-script,
   moreutils,
   jq,
+  gst_all_1,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "readest";
-  version = "0.9.29";
+  version = "0.9.61";
 
   src = fetchFromGitHub {
     owner = "readest";
     repo = "readest";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-2L5Wyl3xWjiJCjwUq9mcKe/hnDeHjNnhHgFPISNqfk0=";
+    hash = "sha256-vtswHOG3/9oao+KrHWJi3NLsFghczmyLfT276kq5Llg=";
     fetchSubmodules = true;
   };
 
@@ -38,14 +39,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   pnpmDeps = pnpm_9.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-VcPxhCpDrKaqKtGMsvPwXwniPy0rbJ/i03gbZ3i87aE=";
+    hash = "sha256-9YG0l/cIjk5imkoly/pNmTVN7N+K56tpWnD7HDFSqiw=";
   };
 
   pnpmRoot = "../..";
 
   useFetchCargoVendor = true;
 
-  cargoHash = "sha256-bRIZcR8UNE78k5cbOt6GQM+PlFVHR2qV7eB82Y+abZw=";
+  cargoHash = "sha256-35REIeZy/D9UWzSI6yQZc1MRYwlAnjzsk5T7KOAhWVw=";
 
   cargoRoot = "../..";
 
@@ -59,7 +60,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
       --replace-fail '"Readest"' '"readest"'
     jq 'del(.plugins."deep-link")' src-tauri/tauri.conf.json | sponge src-tauri/tauri.conf.json
     substituteInPlace src/services/constants.ts \
-      --replace-fail "autoCheckUpdates: true" "autoCheckUpdates: false"
+      --replace-fail "autoCheckUpdates: true" "autoCheckUpdates: false" \
+      --replace-fail "telemetryEnabled: true" "telemetryEnabled: false"
   '';
 
   nativeBuildInputs = [
@@ -78,6 +80,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
     gtk3
     librsvg
     openssl
+    # TTS
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-plugins-bad
   ];
 
   preBuild = ''

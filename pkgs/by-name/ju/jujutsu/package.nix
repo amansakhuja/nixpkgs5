@@ -4,52 +4,35 @@
   rustPlatform,
   fetchFromGitHub,
   installShellFiles,
-  pkg-config,
-  zstd,
-  libgit2,
-  libssh2,
-  openssl,
-  git,
+  gitMinimal,
   gnupg,
   openssh,
   buildPackages,
   nix-update-script,
-  testers,
-  jujutsu,
+  versionCheckHook,
 }:
 
-let
-  version = "0.28.1";
-in
-
-rustPlatform.buildRustPackage {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "jujutsu";
-  inherit version;
+  version = "0.31.0";
 
   src = fetchFromGitHub {
     owner = "jj-vcs";
     repo = "jj";
-    tag = "v${version}";
-    hash = "sha256-LDMHMFg9fjEMi8I2Fc3TEyWMctqJurAbckubCgkkZiM=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-4zDHSpi7Kk7rramrWFOlBelZnOxt0zgXIrHucYQUOz0=";
   };
 
   useFetchCargoVendor = true;
 
-  cargoHash = "sha256-y/GQSzI7bVPieuAmQKdZY1qticmmRYibBtgXSEJ7dU4=";
+  cargoHash = "sha256-QmMc7pG2FMJBI9AIGPRRh2juFoz7gRFw5CQIcNK6QZI=";
 
   nativeBuildInputs = [
     installShellFiles
-    pkg-config
   ];
 
-  buildInputs = [
-    zstd
-    libgit2
-    libssh2
-  ] ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [ openssl ];
-
   nativeCheckInputs = [
-    git
+    gitMinimal
     gnupg
     openssh
   ];
@@ -69,6 +52,12 @@ rustPlatform.buildRustPackage {
     "-p"
     "jj-cli"
   ];
+
+  # taplo-cli (used in tests) always creates a reqwest client, which
+  # requires configd access on macOS.
+  sandboxProfile = ''
+    (allow mach-lookup (global-name "com.apple.SystemConfiguration.configd"))
+  '';
 
   env = {
     # Disable vendored libraries.
@@ -91,20 +80,19 @@ rustPlatform.buildRustPackage {
         --zsh <(COMPLETE=zsh ${jj})
     '';
 
+  doInstallCheck = true;
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  versionCheckProgram = "${placeholder "out"}/bin/jj";
+  versionCheckProgramArg = "--version";
+
   passthru = {
     updateScript = nix-update-script { };
-    tests = {
-      version = testers.testVersion {
-        package = jujutsu;
-        command = "jj --version";
-      };
-    };
   };
 
   meta = {
     description = "Git-compatible DVCS that is both simple and powerful";
     homepage = "https://github.com/jj-vcs/jj";
-    changelog = "https://github.com/jj-vcs/jj/blob/v${version}/CHANGELOG.md";
+    changelog = "https://github.com/jj-vcs/jj/blob/v${finalAttrs.version}/CHANGELOG.md";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [
       _0x4A6F
@@ -114,4 +102,4 @@ rustPlatform.buildRustPackage {
     ];
     mainProgram = "jj";
   };
-}
+})

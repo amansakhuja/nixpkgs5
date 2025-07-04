@@ -2,18 +2,21 @@
   lib,
   buildNpmPackage,
   fetchzip,
+  nodejs_20,
 }:
 
 buildNpmPackage rec {
   pname = "claude-code";
-  version = "0.2.62";
+  version = "1.0.41";
+
+  nodejs = nodejs_20; # required for sandboxed Nix builds on Darwin
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-${version}.tgz";
-    hash = "sha256-O6jkpx3OxEh/npZjyJb+osoeJrG+HZ6NRB9T4EMkdf8=";
+    hash = "sha256-x8Bxh0iKqf8AsMQ+7zutSh53DbCRzM9s6s6BQkdbyXc=";
   };
 
-  npmDepsHash = "sha256-tVA4VbPaPc+KwZzUK0QI9In3QSXXoELaNM2U65wxGGA=";
+  npmDepsHash = "sha256-LiCN8swT4ba+F1aMjHQqCsZUqcAW0qc4AiYL90Burk8=";
 
   postPatch = ''
     cp ${./package-lock.json} package-lock.json
@@ -24,8 +27,7 @@ buildNpmPackage rec {
   AUTHORIZED = "1";
 
   # `claude-code` tries to auto-update by default, this disables that functionality.
-  # Note that the `DISABLE_AUTOUPDATER` environment variable is not documented, so this trick may
-  # not continue to work.
+  # https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview#environment-variables
   postInstall = ''
     wrapProgram $out/bin/claude \
       --set DISABLE_AUTOUPDATER 1
@@ -34,11 +36,14 @@ buildNpmPackage rec {
   passthru.updateScript = ./update.sh;
 
   meta = {
-    description = "An agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";
+    description = "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";
     homepage = "https://github.com/anthropics/claude-code";
     downloadPage = "https://www.npmjs.com/package/@anthropic-ai/claude-code";
     license = lib.licenses.unfree;
-    maintainers = [ lib.maintainers.malo ];
+    maintainers = with lib.maintainers; [
+      malo
+      omarjatoi
+    ];
     mainProgram = "claude";
   };
 }

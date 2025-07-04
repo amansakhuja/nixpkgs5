@@ -1,6 +1,7 @@
 {
   stdenv,
   fetchFromGitHub,
+  fetchpatch,
   gmp,
   bison,
   perl,
@@ -69,6 +70,18 @@ stdenv.mkDerivation rec {
 
     patchShebangs .
   '';
+
+  # Use fq_nmod_mat_entry instead of row pointer (removed in flint 3.3.0)
+  patches = [
+    (fetchpatch {
+      url = "https://github.com/Singular/Singular/commit/05f5116e13c8a4f5f820c78c35944dd6d197d442.patch";
+      hash = "sha256-4l7JaCCFzE+xINU+E92eBN5CJKIdtQHly4Ed3ZwbKTA=";
+    })
+    (fetchpatch {
+      url = "https://github.com/Singular/Singular/commit/595d7167e6e019d45d9a4f1e18ae741df1f3c41d.patch";
+      hash = "sha256-hpTZy/eAiHAaleasWPAenxM35aqeNAZ//o6OqqdGOJ4=";
+    })
+  ];
 
   # For reference (last checked on commit 75f460d):
   # https://github.com/Singular/Singular/blob/spielwiese/doc/Building-Singular-from-source.md
@@ -182,7 +195,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "CAS for polynomial computations";
-    maintainers = teams.sage.members;
+    teams = [ teams.sage ];
     # 32 bit x86 fails with some link error: `undefined reference to `__divmoddi4@GCC_7.0.0'`
     # https://www.singular.uni-kl.de:8002/trac/ticket/837
     platforms = subtractLists platforms.i686 platforms.unix;

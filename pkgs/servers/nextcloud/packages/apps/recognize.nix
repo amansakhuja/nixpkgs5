@@ -10,7 +10,7 @@
   ffmpeg-headless,
 
   # Current derivation only supports linux-x86_64 (contributions welcome, without libTensorflow builtin webassembly can be used)
-  useLibTensorflow ? stdenv.isx86_64 && stdenv.isLinux,
+  useLibTensorflow ? stdenv.hostPlatform.isx86_64 && stdenv.hostPlatform.isLinux,
 
   ncVersion,
 }:
@@ -26,11 +26,6 @@ let
       appHash = "sha256-CAORqBdxNQ0x+xIVY2zI07jvsKHaa7eH0jpVuP0eSW4=";
       modelHash = "sha256-s8MQOLU490/Vr/U4GaGlbdrykOAQOKeWE5+tCzn6Dew=";
     };
-    "29" = {
-      version = "7.1.0";
-      appHash = "sha256-qR4SrTHFAc4YWiZAsL94XcH4VZqYtkRLa0y+NdiFZus=";
-      modelHash = "sha256-M/j5wVOBLR7xMVJQWDUWAzLajRUBYEzHSNBsRSBUgfM=";
-    };
   };
   currentVersionInfo =
     latestVersionForNc.${ncVersion}
@@ -43,22 +38,19 @@ stdenv.mkDerivation rec {
   srcs =
     [
       (fetchurl {
-        inherit version;
         url = "https://github.com/nextcloud/recognize/releases/download/v${version}/recognize-${version}.tar.gz";
         hash = currentVersionInfo.appHash;
       })
 
       (fetchurl {
-        inherit version;
         url = "https://github.com/nextcloud/recognize/archive/refs/tags/v${version}.tar.gz";
         hash = currentVersionInfo.modelHash;
       })
     ]
     ++ lib.optionals useLibTensorflow [
-      (fetchurl rec {
+      (fetchurl {
         # For version see LIBTENSORFLOW_VERSION in https://github.com/tensorflow/tfjs/blob/master/tfjs-node/scripts/deps-constants.js
-        version = "2.9.1";
-        url = "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${version}.tar.gz";
+        url = "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz";
         hash = "sha256-f1ENJUbj214QsdEZRjaJAD1YeEKJKtPJW8pRz4KCAXM=";
       })
     ];
@@ -66,7 +58,7 @@ stdenv.mkDerivation rec {
   unpackPhase =
     ''
       # Merge the app and the models from github
-      tar -xzpf "${builtins.elemAt srcs 0}" recognize;
+      tar -xzpf "${builtins.elemAt srcs 0}" recognize
       tar -xzpf "${builtins.elemAt srcs 1}" -C recognize --strip-components=1 recognize-${version}/models
     ''
     + lib.optionalString useLibTensorflow ''
@@ -85,8 +77,6 @@ stdenv.mkDerivation rec {
       --replace-quiet "\$this->config->getAppValueString('node_binary', '""')" "'${lib.getExe nodejs}'" \
       --replace-quiet "\$this->config->getAppValueString('node_binary')" "'${lib.getExe nodejs}'"
     test "$(grep "get[a-zA-Z]*('node_binary'" recognize/lib/**/*.php | wc -l)" -eq 0
-
-
 
     # Skip trying to install it... (less warnings in the log)
     sed  -i '/public function run/areturn ; //skip' recognize/lib/Migration/InstallDeps.php
@@ -108,17 +98,17 @@ stdenv.mkDerivation rec {
     # Install tfjs dependency
     export CPPFLAGS="-I${lib.getDev nodejs}/include/node -Ideps/include"
     cd node_modules/@tensorflow/tfjs-node
-    node-pre-gyp install --prefer-offline --build-from-source --nodedir=${nodejs}/include/node
+    node-pre-gyp install --prefer-offline --build-from-source --nodedir=${nodejs}
     cd -
 
     # Test tfjs returns exit code 0
     node src/test_libtensorflow.js
     cd ..
   '';
+
   installPhase = ''
     approot="$(dirname $(dirname $(find -path '*/appinfo/info.xml' | head -n 1)))"
-    if [ -d "$approot" ];
-    then
+    if [ -d "$approot" ]; then
       mv "$approot/" $out
       chmod -R a-w $out
     fi

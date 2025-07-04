@@ -31,7 +31,7 @@ let
   };
 in
 stdenv.mkDerivation rec {
-  version = "16.3.11";
+  version = "16.3.27";
   pname = "jmol";
 
   src =
@@ -40,7 +40,7 @@ stdenv.mkDerivation rec {
     in
     fetchurl {
       url = "mirror://sourceforge/jmol/Jmol/Version%20${baseVersion}/Jmol%20${version}/Jmol-${version}-binary.tar.gz";
-      hash = "sha256-sa2wYzLtk3rSghNxk/kJfaOIDPEJLfwKRRIXMRNBEuI=";
+      hash = "sha256-VRyMMkSwdXX80DudS+4uCZBnxypgmR/75PyK/vEJyrs=";
     };
 
   patchPhase = ''
@@ -66,6 +66,7 @@ stdenv.mkDerivation rec {
     sourceProvenance = with sourceTypes; [ binaryBytecode ];
     license = licenses.lgpl2;
     platforms = platforms.all;
-    maintainers = with maintainers; [ mounium ] ++ teams.sage.members;
+    maintainers = with maintainers; [ mounium ];
+    teams = [ teams.sage ];
   };
 }

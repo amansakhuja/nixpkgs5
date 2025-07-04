@@ -2,9 +2,9 @@
   lowPrio,
   newScope,
   pkgs,
+  targetPackages,
   lib,
   stdenv,
-  preLibcCrossHeaders,
   libxcrypt,
   substitute,
   replaceVars,
@@ -14,6 +14,7 @@
   overrideCC,
   wrapCCWith,
   wrapBintoolsWith,
+  buildPackages,
   buildLlvmTools, # tools, but from the previous stage, for cross
   targetLlvmLibraries, # libraries, but from the next stage, for cross
   targetLlvm,
@@ -119,12 +120,25 @@ let
           metadata.release_version
         else
           lib.versions.major metadata.release_version;
-      mkExtraBuildCommands0 = cc: ''
-        rsrc="$out/resource-root"
-        mkdir "$rsrc"
-        ln -s "${lib.getLib cc}/lib/clang/${clangVersion}/include" "$rsrc"
-        echo "-resource-dir=$rsrc" >> $out/nix-support/cc-cflags
-      '';
+      mkExtraBuildCommands0 =
+        cc:
+        ''
+          rsrc="$out/resource-root"
+          mkdir "$rsrc"
+          echo "-resource-dir=$rsrc" >> $out/nix-support/cc-cflags
+        ''
+        # clang standard c headers are incompatible with FreeBSD so we have to put them in -idirafter instead of -resource-dir
+        # see https://github.com/freebsd/freebsd-src/commit/f382bac49b1378da3c2dd66bf721beaa16b5d471
+        + (
+          if stdenv.targetPlatform.isFreeBSD then
+            ''
+              echo "-idirafter ${lib.getLib cc}/lib/clang/${clangVersion}/include" >> $out/nix-support/cc-cflags
+            ''
+          else
+            ''
+              ln -s "${lib.getLib cc}/lib/clang/${clangVersion}/include" "$rsrc"
+            ''
+        );
       mkExtraBuildCommandsBasicRt =
         cc:
         mkExtraBuildCommands0 cc
@@ -254,7 +268,7 @@ let
 
       bintoolsNoLibc = wrapBintoolsWith {
         bintools = tools.bintools-unwrapped;
-        libc = preLibcCrossHeaders;
+        libc = targetPackages.preLibcHeaders;
       };
 
       bintools = wrapBintoolsWith { bintools = tools.bintools-unwrapped; };
@@ -423,18 +437,14 @@ let
           libcxx = null;
           bintools = bintoolsNoLibc';
           extraPackages = [ ];
-          extraBuildCommands =
-            lib.optionalString (lib.versions.major metadata.release_version == "13") ''
-              echo "-nostartfiles" >> $out/nix-support/cc-cflags
-            ''
-            + mkExtraBuildCommands0 cc;
+          # "-nostartfiles" used to be needed for pkgsLLVM, causes problems so don't include it.
+          extraBuildCommands = mkExtraBuildCommands0 cc;
         }
         // lib.optionalAttrs (lib.versionAtLeast metadata.release_version "14") {
-          nixSupport.cc-cflags =
-            [ "-nostartfiles" ]
-            ++ lib.optional (
-              lib.versionAtLeast metadata.release_version "15" && stdenv.targetPlatform.isWasm
-            ) "-fno-exceptions";
+          # "-nostartfiles" used to be needed for pkgsLLVM, causes problems so don't include it.
+          nixSupport.cc-cflags = lib.optional (
+            lib.versionAtLeast metadata.release_version "15" && stdenv.targetPlatform.isWasm
+          ) "-fno-exceptions";
         }
       );
 
@@ -576,6 +586,13 @@ let
           # Use clang due to "gnu::naked" not working on aarch64.
           # Issue: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=77882
           stdenv = overrideCC stdenv buildLlvmTools.clangNoLibcNoRt;
+          cmake =
+            if stdenv.targetPlatform.libc == "llvm" then buildPackages.cmakeMinimal else buildPackages.cmake;
+          python3 =
+            if stdenv.targetPlatform.libc == "llvm" then
+              buildPackages.python3Minimal
+            else
+              buildPackages.python3;
         };
 
         libc = if stdenv.targetPlatform.libc == "llvm" then libraries.libc-full else libraries.libc-overlay;

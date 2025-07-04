@@ -31,29 +31,11 @@
   enableGC ? !stdenv.hostPlatform.isWindows,
 }:
 
-let
-  inherit (lib) fileset;
-in
-
 mkMesonLibrary (finalAttrs: {
   pname = "nix-expr";
   inherit version;
 
   workDir = ./.;
-  fileset = fileset.unions [
-    ../../nix-meson-build-support
-    ./nix-meson-build-support
-    ../../.version
-    ./.version
-    ./meson.build
-    ./meson.options
-    ./primops/meson.build
-    (fileset.fileFilter (file: file.hasExt "cc") ./.)
-    (fileset.fileFilter (file: file.hasExt "hh") ./.)
-    ./lexer.l
-    ./parser.y
-    (fileset.difference (fileset.fileFilter (file: file.hasExt "nix") ./.) ./package.nix)
-  ];
 
   nativeBuildInputs = [
     bison
@@ -80,13 +62,6 @@ mkMesonLibrary (finalAttrs: {
   mesonFlags = [
     (lib.mesonEnable "gc" enableGC)
   ];
-
-  env = {
-    # Needed for Meson to find Boost.
-    # https://github.com/NixOS/nixpkgs/issues/86131.
-    BOOST_INCLUDEDIR = "${lib.getDev boost}/include";
-    BOOST_LIBRARYDIR = "${lib.getLib boost}/lib";
-  };
 
   meta = {
     platforms = lib.platforms.unix ++ lib.platforms.windows;

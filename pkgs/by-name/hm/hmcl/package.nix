@@ -6,7 +6,15 @@
   wrapGAppsHook3,
   copyDesktopItems,
   imagemagick,
-  jre,
+  jdk,
+  jdk17,
+  jdk21,
+  hmclJdk ? jdk,
+  minecraftJdks ? [
+    jdk
+    jdk17
+    jdk21
+  ],
   xorg,
   glib,
   libGL,
@@ -21,7 +29,7 @@
 }:
 
 let
-  version = "3.6.11";
+  version = "3.6.12";
   icon = fetchurl {
     url = "https://github.com/huanghongxun/HMCL/raw/release-${version}/HMCLauncher/HMCL/HMCL.ico";
     hash = "sha256-+EYL33VAzKHOMp9iXoJaSGZfv+ymDDYIx6i/1o47Dmc=";
@@ -33,7 +41,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = fetchurl {
     url = "https://github.com/huanghongxun/HMCL/releases/download/release-${version}/HMCL-${version}.jar";
-    hash = "sha256-ZQNJm7xbOdVSnxtx4krOnM9QBsxibFXo8wx1fCn1gJA=";
+    hash = "sha256-ofrG7CVZIODJoHE6owR9P7viBlChamYF5PEpFeeOH4E=";
   };
 
   dontUnpack = true;
@@ -96,9 +104,10 @@ stdenv.mkDerivation (finalAttrs: {
     ''
       runHook preFixup
 
-      makeBinaryWrapper ${jre}/bin/java $out/bin/hmcl \
+      makeBinaryWrapper ${hmclJdk}/bin/java $out/bin/hmcl \
         --add-flags "-jar $out/lib/hmcl/hmcl.jar" \
         --set LD_LIBRARY_PATH ${libpath} \
+        --prefix PATH : "${lib.makeBinPath minecraftJdks}"\
         ''${gappsWrapperArgs[@]}
 
       runHook postFixup
@@ -106,11 +115,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = with lib; {
     homepage = "https://hmcl.huangyuhui.net";
-    description = "A Minecraft Launcher which is multi-functional, cross-platform and popular";
+    description = "Minecraft Launcher which is multi-functional, cross-platform and popular";
     mainProgram = "hmcl";
     sourceProvenance = with sourceTypes; [ binaryBytecode ];
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ daru-san ];
-    inherit (jre.meta) platforms;
+    inherit (hmclJdk.meta) platforms;
   };
 })

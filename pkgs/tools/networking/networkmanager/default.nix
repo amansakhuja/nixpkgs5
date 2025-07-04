@@ -40,7 +40,6 @@
   docbook_xml_dtd_412,
   docbook_xml_dtd_42,
   docbook_xml_dtd_43,
-  openconnect,
   curl,
   meson,
   mesonEmulatorHook,
@@ -52,6 +51,7 @@
   nixosTests,
   systemd,
   udev,
+  udevCheckHook,
   withSystemd ? lib.meta.availableOn stdenv.hostPlatform systemd,
 }:
 
@@ -129,13 +129,10 @@ stdenv.mkDerivation (finalAttrs: {
     (replaceVars ./fix-paths.patch {
       inherit
         iputils
-        openconnect
         ethtool
         gnused
         ;
       inherit runtimeShell;
-      # patch context
-      OUTPUT = null;
     })
 
     # Meson does not support using different directories during build and
@@ -186,6 +183,7 @@ stdenv.mkDerivation (finalAttrs: {
       docbook_xml_dtd_42
       docbook_xml_dtd_43
       pythonForDocs
+      udevCheckHook
     ]
     ++ lib.optionals (!stdenv.buildPlatform.canExecute stdenv.hostPlatform) [
       mesonEmulatorHook
@@ -221,6 +219,8 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r ${buildPackages.networkmanager.man} $man
   '';
 
+  doInstallCheck = true;
+
   passthru = {
     updateScript = gitUpdater {
       odd-unstable = true;
@@ -236,12 +236,10 @@ stdenv.mkDerivation (finalAttrs: {
     description = "Network configuration and management tool";
     license = licenses.gpl2Plus;
     changelog = "https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/raw/${version}/NEWS";
-    maintainers =
-      teams.freedesktop.members
-      ++ (with maintainers; [
-        domenkozar
-        obadz
-      ]);
+    maintainers = with maintainers; [
+      obadz
+    ];
+    teams = [ teams.freedesktop ];
     platforms = platforms.linux;
     badPlatforms = [
       # Mandatory shared libraries.

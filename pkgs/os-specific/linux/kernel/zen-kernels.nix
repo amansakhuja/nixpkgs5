@@ -16,16 +16,16 @@ let
   variants = {
     # ./update-zen.py zen
     zen = {
-      version = "6.14"; # zen
+      version = "6.15.2"; # zen
       suffix = "zen1"; # zen
-      sha256 = "1lgzmjqybf4k7npwg2jkwmyxh0zfzhvbdpw3ajlr84i4sny2i6cy"; # zen
+      sha256 = "196vc361fqpiwqgpxa0kp1nfqs6gplah2qw48yrwlzxp08q9sfqn"; # zen
       isLqx = false;
     };
     # ./update-zen.py lqx
     lqx = {
-      version = "6.14.0"; # lqx
-      suffix = "lqx1"; # lqx
-      sha256 = "1py2zg8wr5azr88ixm04v3nvlfihk7iimzc7sdjgz2mb0ji5kxjc"; # lqx
+      version = "6.15.4"; # lqx
+      suffix = "lqx2"; # lqx
+      sha256 = "197m75li8lhkcil8mkb402v8f166n0m52l450dar8mq4y89r7x3j"; # lqx
       isLqx = true;
     };
   };
@@ -145,7 +145,7 @@ let
             UCLAMP_TASK_GROUP = mkKernelOverride (option no);
           };
 
-        passthru.updateScript = [
+        extraPassthru.updateScript = [
           ./update-zen.py
           (if isLqx then "lqx" else "zen")
         ];
@@ -157,6 +157,7 @@ let
             jerrysm64
             axertheaxe
           ];
+          teams = [ ];
           description =
             "Built using the best configuration and kernel sources for desktop, multimedia, and gaming workloads."
             + lib.optionalString isLqx " (Same as linux_zen, but less aggressive release schedule and additional extra config)";

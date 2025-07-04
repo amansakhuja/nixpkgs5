@@ -28,7 +28,7 @@
   protobuf,
   pugixml,
   snappy,
-  tbb_2022_0,
+  tbb_2022,
   cudaPackages,
 }:
 
@@ -61,14 +61,14 @@ in
 
 stdenv.mkDerivation rec {
   pname = "openvino";
-  version = "2025.0.0";
+  version = "2025.2.0";
 
   src = fetchFromGitHub {
     owner = "openvinotoolkit";
     repo = "openvino";
     tag = version;
     fetchSubmodules = true;
-    hash = "sha256-+LXOX5ChfVbD2dbQYuIp9unz6v3OIpH5YUpdhn2okbM=";
+    hash = "sha256-EtXHMOIk4hGcLiaoC0ZWYF6XZCD2qNtt1HeJoJIuuTA=";
   };
 
   outputs = [
@@ -158,7 +158,7 @@ stdenv.mkDerivation rec {
       opencv
       pugixml
       snappy
-      tbb_2022_0
+      tbb_2022
     ]
     ++ lib.optionals cudaSupport [
       cudaPackages.cuda_cudart
