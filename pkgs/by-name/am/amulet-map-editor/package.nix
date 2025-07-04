@@ -17,7 +17,7 @@ python3.pkgs.buildPythonApplication {
     owner = "Amulet-Team";
     repo = "Amulet-Map-Editor";
     tag = version;
-    hash = "sha256-rMLRNE+DwZXpB9tNPHwQo53HLGnRtAy0kt6subMF778=";
+    hash = "sha256-CW8J+0HVuYchtl+m9QZ1/g7/az4icLFSt9xLwUSvfwc=";
   };
 
   build-system = with python3.pkgs; [
