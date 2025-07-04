@@ -1617,18 +1617,6 @@ in
         )
       );
 
-    systemd.services.domainname = lib.mkIf (cfg.domain != null) {
-      wantedBy = [ "sysinit.target" ];
-      before = [
-        "sysinit.target"
-        "shutdown.target"
-      ];
-      conflicts = [ "shutdown.target" ];
-      unitConfig.DefaultDependencies = false;
-      serviceConfig.ExecStart = ''${pkgs.nettools}/bin/domainname "${cfg.domain}"'';
-      serviceConfig.Type = "oneshot";
-    };
-
     environment.etc.hostid = mkIf (cfg.hostId != null) { source = hostidFile; };
     boot.initrd.systemd.contents."/etc/hostid" = mkIf (cfg.hostId != null) { source = hostidFile; };
 
@@ -1643,7 +1631,6 @@ in
         pkgs.host
         pkgs.iproute2
         pkgs.iputils
-        pkgs.nettools
       ]
       ++ optionals config.networking.wireless.enable [
         pkgs.wirelesstools # FIXME: obsolete?
